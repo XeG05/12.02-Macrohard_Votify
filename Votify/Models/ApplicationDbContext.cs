@@ -1,0 +1,289 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace Votify.Models;
+
+public partial class ApplicationDbContext : DbContext
+{
+    public ApplicationDbContext()
+    {
+    }
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Administrador> Administradors { get; set; }
+
+    public virtual DbSet<Categorium> Categoria { get; set; }
+
+    public virtual DbSet<Comentario> Comentarios { get; set; }
+
+    public virtual DbSet<Criterio> Criterios { get; set; }
+
+    public virtual DbSet<Evento> Eventos { get; set; }
+
+    public virtual DbSet<Grupo> Grupos { get; set; }
+
+    public virtual DbSet<Jurado> Jurados { get; set; }
+
+    public virtual DbSet<Notificacion> Notificacions { get; set; }
+
+    public virtual DbSet<Participante> Participantes { get; set; }
+
+    public virtual DbSet<Proyecto> Proyectos { get; set; }
+
+    public virtual DbSet<Reclamacion> Reclamacions { get; set; }
+
+    public virtual DbSet<Rol> Rols { get; set; }
+
+    public virtual DbSet<Usuario> Usuarios { get; set; }
+
+    public virtual DbSet<Votante> Votantes { get; set; }
+
+    public virtual DbSet<Voto> Votos { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=localhost;Port=8888;Database=postgres;Username=postgres;Password=Xiaganen1");
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Administrador>(entity =>
+        {
+            entity.HasKey(e => new { e.Correo, e.Id }).HasName("administrador_pkey");
+
+            entity.ToTable("administrador");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(25)
+                .HasColumnName("correo");
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<Categorium>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("categoria_pkey");
+
+            entity.ToTable("categoria");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.IdEvento).HasColumnName("id_evento");
+            entity.Property(e => e.Nombre)
+                .HasColumnType("character varying")
+                .HasColumnName("nombre");
+
+            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categoria)
+                .HasForeignKey(d => d.IdEvento)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_eventoFK");
+        });
+
+        modelBuilder.Entity<Comentario>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("comentario");
+        });
+
+        modelBuilder.Entity<Criterio>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("criterio_pkey");
+
+            entity.ToTable("criterio");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(20)
+                .HasColumnName("nombre");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Criterios)
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_categoriaFK");
+        });
+
+        modelBuilder.Entity<Evento>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("evento_pkey");
+
+            entity.ToTable("evento");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(30)
+                .HasColumnName("nombre");
+            entity.Property(e => e.Subtitulo).HasColumnName("subtitulo");
+        });
+
+        modelBuilder.Entity<Grupo>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("grupo_pkey");
+
+            entity.ToTable("grupo");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.HojaRutaTexto).HasColumnName("hoja_ruta_texto");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(25)
+                .HasColumnName("nombre");
+        });
+
+        modelBuilder.Entity<Jurado>(entity =>
+        {
+            entity.HasKey(e => new { e.Correo, e.Id }).HasName("jurado_pkey");
+
+            entity.ToTable("jurado");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(25)
+                .HasColumnName("correo");
+            entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.HasOne(d => d.Rol).WithOne(p => p.Jurado)
+                .HasForeignKey<Jurado>(d => new { d.Correo, d.Id })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
+        });
+
+        modelBuilder.Entity<Notificacion>(entity =>
+        {
+            entity.HasKey(e => new { e.Id, e.Correo }).HasName("notificacion_pkey");
+
+            entity.ToTable("notificacion");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Correo)
+                .HasMaxLength(20)
+                .HasColumnName("correo");
+            entity.Property(e => e.Contenido).HasColumnName("contenido");
+
+            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Notificacions)
+                .HasForeignKey(d => d.Correo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("correoFK");
+        });
+
+        modelBuilder.Entity<Participante>(entity =>
+        {
+            entity.HasKey(e => new { e.Correo, e.Id }).HasName("participante_pkey");
+
+            entity.ToTable("participante");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(25)
+                .HasColumnName("correo");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+
+            entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Participantes)
+                .HasForeignKey(d => d.IdGrupo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_grupo");
+        });
+
+        modelBuilder.Entity<Proyecto>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("proyecto");
+        });
+
+        modelBuilder.Entity<Reclamacion>(entity =>
+        {
+            entity.HasKey(e => new { e.IdCriterio, e.IdRol, e.CorreoRol }).HasName("reclamacion_pkey");
+
+            entity.ToTable("reclamacion");
+
+            entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
+            entity.Property(e => e.IdRol).HasColumnName("id_rol");
+            entity.Property(e => e.CorreoRol)
+                .HasMaxLength(25)
+                .HasColumnName("correo_rol");
+            entity.Property(e => e.Comentario).HasColumnName("comentario");
+
+            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamacions)
+                .HasForeignKey(d => d.IdCriterio)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_criterio");
+        });
+
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.HasKey(e => new { e.Correo, e.Id }).HasName("rol_pkey");
+
+            entity.ToTable("rol");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(20)
+                .HasColumnName("correo");
+            entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Rols)
+                .HasForeignKey(d => d.Correo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("correo_usuarioFK");
+
+            entity.HasOne(d => d.IdNavigation).WithMany(p => p.Rols)
+                .HasForeignKey(d => d.Id)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_eventoFK");
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.HasKey(e => e.Correo).HasName("usuarios_pkey");
+
+            entity.ToTable("usuario");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(20)
+                .HasColumnName("correo");
+            entity.Property(e => e.Contraseña)
+                .HasMaxLength(20)
+                .HasColumnName("contraseña");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(20)
+                .HasColumnName("nombre");
+        });
+
+        modelBuilder.Entity<Votante>(entity =>
+        {
+            entity.HasKey(e => new { e.Correo, e.Id }).HasName("votante_pkey");
+
+            entity.ToTable("votante");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(25)
+                .HasColumnName("correo");
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<Voto>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("voto");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
