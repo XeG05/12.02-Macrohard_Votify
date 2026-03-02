@@ -46,8 +46,16 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Voto> Votos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Port=8888;Database=postgres;Username=postgres;Password=Xiaganen1");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Read connection string from environment variable to avoid embedding secrets in source.
+            var connection = Environment.GetEnvironmentVariable("VOTIFY_CONNECTION")
+                             ?? "Host=localhost;Port=8888;Database=postgres;Username=postgres;Password=Xiaganen1";
+
+            optionsBuilder.UseNpgsql(connection);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
