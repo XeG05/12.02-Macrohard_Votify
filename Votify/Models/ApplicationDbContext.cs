@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Votify.Models;
 
-namespace Votify.Models;
+namespace Votify.Persistence;
 
 public partial class ApplicationDbContext : DbContext
 {
