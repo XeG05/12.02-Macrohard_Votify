@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Votify.Models;
 
-namespace Votify.Persistence;
+namespace Votify.Models;
 
 public partial class ApplicationDbContext : DbContext
 {
