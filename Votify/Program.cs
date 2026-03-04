@@ -1,6 +1,7 @@
 using Votify.Components;
 using Microsoft.EntityFrameworkCore;
 using Votify.Models;
+using Votify.Persistence;
 
 
 var builder = WebApplication.CreateBuilder(args);
