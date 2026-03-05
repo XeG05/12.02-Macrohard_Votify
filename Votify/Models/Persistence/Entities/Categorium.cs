@@ -5,7 +5,7 @@ namespace Votify.Models;
 
 public partial class Categorium
 {
-    public long Id { get; set; }
+    public long Id { get; set; } //comeny
 
     public string Nombre { get; set; } = null!;
 
