@@ -12,4 +12,6 @@ public partial class Grupo
     public string? HojaRutaTexto { get; set; }
 
     public virtual ICollection<Participante> Participantes { get; set; } = new List<Participante>();
+
+    public virtual ICollection<Proyecto> Proyectos { get; set; } = new List<Proyecto>();
 }

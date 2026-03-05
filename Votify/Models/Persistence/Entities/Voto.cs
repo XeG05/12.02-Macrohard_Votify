@@ -5,5 +5,19 @@ namespace Votify.Models;
 
 public partial class Voto
 {
-    public long? Id { get; set; }
+    public long IdRol { get; set; }
+
+    public long IdCriterio { get; set; }
+
+    public long? Nota { get; set; }
+
+    public string CorreoRol { get; set; } = null!;
+
+    public long IdProyectoCat { get; set; }
+
+    public long IdProyectoGru { get; set; }
+
+    public virtual Criterio IdCriterioNavigation { get; set; } = null!;
+
+    public virtual Proyecto Proyecto { get; set; } = null!;
 }

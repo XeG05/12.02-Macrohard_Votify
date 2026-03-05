@@ -8,4 +8,6 @@ public partial class Votante
     public string Correo { get; set; } = null!;
 
     public long Id { get; set; }
+
+    public virtual Rol Rol { get; set; } = null!;
 }

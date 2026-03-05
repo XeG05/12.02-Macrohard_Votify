@@ -11,8 +11,6 @@ public partial class Evento
 
     public string Descripcion { get; set; } = null!;
 
-    public string Subtitulo { get; set; } = null!;
-
     public virtual ICollection<Categorium> Categoria { get; set; } = new List<Categorium>();
 
     public virtual ICollection<Rol> Rols { get; set; } = new List<Rol>();

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Votify.Models;
 
 namespace Votify.Models;
 
-public partial class ApplicationDbContext : DbContext
+public partial class VotifyContext : DbContext
 {
-    public ApplicationDbContext()
+    public VotifyContext()
     {
     }
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public VotifyContext(DbContextOptions<VotifyContext> options)
         : base(options)
     {
     }
@@ -47,16 +46,8 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Voto> Votos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            // Read connection string from environment variable to avoid embedding secrets in source.
-            var connection = Environment.GetEnvironmentVariable("VOTIFY_CONNECTION")
-                             ?? "Host=localhost;Port=8888;Database=postgres;Username=postgres;Password=Xiaganen1";
-
-            optionsBuilder.UseNpgsql(connection);
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=Votify;Username=postgres;Password=manzana14");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,6 +61,11 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(25)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.HasOne(d => d.Rol).WithOne(p => p.Administrador)
+                .HasForeignKey<Administrador>(d => new { d.Correo, d.Id })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
         });
 
         modelBuilder.Entity<Categorium>(entity =>
@@ -86,6 +82,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasColumnType("character varying")
                 .HasColumnName("nombre");
+            entity.Property(e => e.PonderacionExperto).HasColumnName("ponderacion_experto");
+            entity.Property(e => e.PonderacionPopular).HasColumnName("ponderacion_popular");
 
             entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categoria)
                 .HasForeignKey(d => d.IdEvento)
@@ -95,9 +93,22 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Comentario>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("comentario");
+            entity.HasKey(e => new { e.IdRol, e.CorreoRol, e.IdProyectoGru, e.IdProyectoCat }).HasName("comentario_pkey");
+
+            entity.ToTable("comentario");
+
+            entity.Property(e => e.IdRol).HasColumnName("id_rol");
+            entity.Property(e => e.CorreoRol)
+                .HasMaxLength(25)
+                .HasColumnName("correo_rol");
+            entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
+            entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");
+            entity.Property(e => e.Contenido).HasColumnName("contenido");
+
+            entity.HasOne(d => d.Proyecto).WithMany(p => p.Comentarios)
+                .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_proyectoFK");
         });
 
         modelBuilder.Entity<Criterio>(entity =>
@@ -114,6 +125,7 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(20)
                 .HasColumnName("nombre");
+            entity.Property(e => e.Ponderacion).HasColumnName("ponderacion");
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Criterios)
                 .HasForeignKey(d => d.IdCategoria)
@@ -134,7 +146,6 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(30)
                 .HasColumnName("nombre");
-            entity.Property(e => e.Subtitulo).HasColumnName("subtitulo");
         });
 
         modelBuilder.Entity<Grupo>(entity =>
@@ -203,13 +214,34 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.IdGrupo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_grupo");
+
+            entity.HasOne(d => d.Rol).WithOne(p => p.Participante)
+                .HasForeignKey<Participante>(d => new { d.Correo, d.Id })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
         });
 
         modelBuilder.Entity<Proyecto>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("proyecto");
+            entity.HasKey(e => new { e.IdGrupo, e.IdCategoria }).HasName("proyecto_pkey");
+
+            entity.ToTable("proyecto");
+
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(25)
+                .HasColumnName("nombre");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Proyectos)
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_categoria");
+
+            entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Proyectos)
+                .HasForeignKey(d => d.IdGrupo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_grupoFK");
         });
 
         modelBuilder.Entity<Reclamacion>(entity =>
@@ -233,22 +265,22 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Rol>(entity =>
         {
-            entity.HasKey(e => new { e.Correo, e.Id }).HasName("rol_pkey");
+            entity.HasKey(e => new { e.CorreoUsuario, e.IdEvento }).HasName("rol_pkey");
 
             entity.ToTable("rol");
 
-            entity.Property(e => e.Correo)
+            entity.Property(e => e.CorreoUsuario)
                 .HasMaxLength(20)
-                .HasColumnName("correo");
-            entity.Property(e => e.Id).HasColumnName("id");
+                .HasColumnName("correo_usuario");
+            entity.Property(e => e.IdEvento).HasColumnName("id_evento");
 
-            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Rols)
-                .HasForeignKey(d => d.Correo)
+            entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Rols)
+                .HasForeignKey(d => d.CorreoUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("correo_usuarioFK");
 
-            entity.HasOne(d => d.IdNavigation).WithMany(p => p.Rols)
-                .HasForeignKey(d => d.Id)
+            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Rols)
+                .HasForeignKey(d => d.IdEvento)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_eventoFK");
         });
@@ -280,15 +312,37 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(25)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.HasOne(d => d.Rol).WithOne(p => p.Votante)
+                .HasForeignKey<Votante>(d => new { d.Correo, d.Id })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
         });
 
         modelBuilder.Entity<Voto>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("voto");
+            entity.HasKey(e => new { e.IdRol, e.IdCriterio, e.IdProyectoCat, e.IdProyectoGru }).HasName("voto_pkey");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.ToTable("voto");
+
+            entity.Property(e => e.IdRol).HasColumnName("id_rol");
+            entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
+            entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");
+            entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
+            entity.Property(e => e.CorreoRol)
+                .HasColumnType("character varying")
+                .HasColumnName("correo_rol");
+            entity.Property(e => e.Nota).HasColumnName("nota");
+
+            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Votos)
+                .HasForeignKey(d => d.IdCriterio)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_criterio");
+
+            entity.HasOne(d => d.Proyecto).WithMany(p => p.Votos)
+                .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_proyectoFK");
         });
 
         OnModelCreatingPartial(modelBuilder);

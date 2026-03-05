@@ -12,4 +12,6 @@ public partial class Participante
     public long IdGrupo { get; set; }
 
     public virtual Grupo IdGrupoNavigation { get; set; } = null!;
+
+    public virtual Rol Rol { get; set; } = null!;
 }
