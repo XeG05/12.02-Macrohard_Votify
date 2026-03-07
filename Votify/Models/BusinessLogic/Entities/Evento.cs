@@ -10,7 +10,7 @@ public partial class Evento
         Roles = new List<Rol>();
         Categorias = new List<Categorium>();
     }
-    public Evento(string nombre, string descripcion, ICollection<Categorium> categorias, ICollection<Rol> roles)
+    public Evento(string nombre, string descripcion)
     {
         Nombre = nombre;
         Descripcion = descripcion;

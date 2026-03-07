@@ -21,7 +21,7 @@ public partial class Rol
 
     public virtual Participante? Participante { get; set; }
 
-    public virtual ICollection<Reclamacion> Reclamacions { get; set; } = new List<Reclamacion>();
+    public virtual ICollection<Reclamacion> Reclamaciones { get; set; } = new List<Reclamacion>();
 
     public virtual Votante? Votante { get; set; }
 

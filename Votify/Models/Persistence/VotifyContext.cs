@@ -262,12 +262,12 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("correo_rol");
             entity.Property(e => e.Comentario).HasColumnName("comentario");
 
-            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamacions)
+            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamaciones)
                 .HasForeignKey(d => d.IdCriterio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_criterio");
 
-            entity.HasOne(d => d.Rol).WithMany(p => p.Reclamacions)
+            entity.HasOne(d => d.Rol).WithMany(p => p.Reclamaciones)
                 .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_rol");

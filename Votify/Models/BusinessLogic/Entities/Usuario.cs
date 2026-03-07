@@ -10,7 +10,7 @@ public partial class Usuario
         Notificaciones = new List<Notificacion>();
         Roles = new List<Rol>();
     }
-    public Usuario(string nombre, string contraseña, string correo, ICollection<Notificacion> notificaciones, ICollection<Rol> roles)
+    public Usuario(string nombre, string contraseña, string correo)
     {
         this.Nombre = nombre;
         this.Contraseña = contraseña;

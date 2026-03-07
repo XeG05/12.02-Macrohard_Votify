@@ -7,7 +7,9 @@ public partial class Rol
 {
     public Rol()
     {
-
+        Comentarios = new List<Comentario>();
+        Reclamaciones = new List<Reclamacion>();
+        Votos = new List<Voto>();
     }
     public Rol(string correoUsuario, Administrador? administrador, Usuario correoUsuarioNavigation, Evento idEventoNavigation, Jurado? jurado, Participante? participante, Votante? votante)
     {
@@ -18,5 +20,8 @@ public partial class Rol
         Jurado = jurado;
         Participante = participante;
         Votante = votante;
+        Comentarios = new List<Comentario>();
+        Reclamaciones = new List<Reclamacion>();
+        Votos = new List<Voto>();
     }
 }

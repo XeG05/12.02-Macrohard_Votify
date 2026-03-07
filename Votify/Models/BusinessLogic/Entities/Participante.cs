@@ -5,5 +5,15 @@ namespace Votify.Models;
 
 public partial class Participante
 {
+    public Participante()
+    {
 
+    }
+    public Participante(string correo, long idGrupo, Grupo idGrupoNavigation, Rol rol)
+    {
+        Correo = correo;
+        IdGrupo = idGrupo;
+        IdGrupoNavigation = idGrupoNavigation;
+        Rol = rol;
+    }
 }
