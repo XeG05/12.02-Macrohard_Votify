@@ -11,6 +11,8 @@ public partial class Rol
 
     public virtual Administrador? Administrador { get; set; }
 
+    public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
     public virtual Usuario CorreoUsuarioNavigation { get; set; } = null!;
 
     public virtual Evento IdEventoNavigation { get; set; } = null!;
@@ -19,5 +21,9 @@ public partial class Rol
 
     public virtual Participante? Participante { get; set; }
 
+    public virtual ICollection<Reclamacion> Reclamacions { get; set; } = new List<Reclamacion>();
+
     public virtual Votante? Votante { get; set; }
+
+    public virtual ICollection<Voto> Votos { get; set; } = new List<Voto>();
 }

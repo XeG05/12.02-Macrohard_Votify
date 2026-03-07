@@ -14,4 +14,6 @@ public partial class Reclamacion
     public string CorreoRol { get; set; } = null!;
 
     public virtual Criterio IdCriterioNavigation { get; set; } = null!;
+
+    public virtual Rol Rol { get; set; } = null!;
 }

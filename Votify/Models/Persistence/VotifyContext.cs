@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Votify.Models;
+namespace Votify.Models.Persistence;
 
 public partial class VotifyContext : DbContext
 {
@@ -104,6 +104,11 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
             entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
+
+            entity.HasOne(d => d.Rol).WithMany(p => p.Comentarios)
+                .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Comentarios)
                 .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
@@ -261,6 +266,11 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => d.IdCriterio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_criterio");
+
+            entity.HasOne(d => d.Rol).WithMany(p => p.Reclamacions)
+                .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rol");
         });
 
         modelBuilder.Entity<Rol>(entity =>
@@ -338,6 +348,11 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => d.IdCriterio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_criterio");
+
+            entity.HasOne(d => d.Rol).WithMany(p => p.Votos)
+                .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Votos)
                 .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })

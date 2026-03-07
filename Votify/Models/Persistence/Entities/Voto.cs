@@ -20,4 +20,6 @@ public partial class Voto
     public virtual Criterio IdCriterioNavigation { get; set; } = null!;
 
     public virtual Proyecto Proyecto { get; set; } = null!;
+
+    public virtual Rol Rol { get; set; } = null!;
 }
