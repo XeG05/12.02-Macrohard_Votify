@@ -5,5 +5,14 @@ namespace Votify.Models;
 
 public partial class Notificacion
 {
+    public Notificacion()
+    {
 
+    }
+    public Notificacion(string correo, string contenido, Usuario correoNavigation)
+    { 
+        this.Correo = correo;
+        this.Contenido = contenido;
+        this.CorreoNavigation = correoNavigation;
+    }
 }

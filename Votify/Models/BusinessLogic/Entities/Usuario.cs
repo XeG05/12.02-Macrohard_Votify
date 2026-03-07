@@ -5,5 +5,17 @@ namespace Votify.Models;
 
 public partial class Usuario
 {
-
+    public Usuario()
+    {
+        Notificaciones = new List<Notificacion>();
+        Roles = new List<Rol>();
+    }
+    public Usuario(string nombre, string contraseña, string correo, ICollection<Notificacion> notificaciones, ICollection<Rol> roles)
+    {
+        this.Nombre = nombre;
+        this.Contraseña = contraseña;
+        this.Correo = correo;
+        this.Notificaciones = new List<Notificacion>();
+        this.Roles = new List<Rol>();
+    }
 }

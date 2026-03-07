@@ -11,7 +11,7 @@ public partial class Usuario
 
     public string Correo { get; set; } = null!;
 
-    public virtual ICollection<Notificacion> Notificacions { get; set; } = new List<Notificacion>();
+    public virtual ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
 
-    public virtual ICollection<Rol> Rols { get; set; } = new List<Rol>();
+    public virtual ICollection<Rol> Roles { get; set; } = new List<Rol>();
 }
