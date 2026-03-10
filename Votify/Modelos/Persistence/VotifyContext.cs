@@ -85,7 +85,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.PonderacionExperto).HasColumnName("ponderacion_experto");
             entity.Property(e => e.PonderacionPopular).HasColumnName("ponderacion_popular");
 
-            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categoria)
+            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categorias)
                 .HasForeignKey(d => d.IdEvento)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_eventoFK");
@@ -197,7 +197,7 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("correo");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
-            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Notificacions)
+            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Notificaciones)
                 .HasForeignKey(d => d.Correo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("correoFK");
@@ -262,12 +262,12 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("correo_rol");
             entity.Property(e => e.Comentario).HasColumnName("comentario");
 
-            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamacions)
+            entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamaciones)
                 .HasForeignKey(d => d.IdCriterio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_criterio");
 
-            entity.HasOne(d => d.Rol).WithMany(p => p.Reclamacions)
+            entity.HasOne(d => d.Rol).WithMany(p => p.Reclamaciones)
                 .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_rol");
@@ -284,12 +284,12 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("correo_usuario");
             entity.Property(e => e.IdEvento).HasColumnName("id_evento");
 
-            entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Rols)
+            entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Roles)
                 .HasForeignKey(d => d.CorreoUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("correo_usuarioFK");
 
-            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Rols)
+            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Roles)
                 .HasForeignKey(d => d.IdEvento)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_eventoFK");
