@@ -1,6 +1,6 @@
 using Votify.Components;
 using Microsoft.EntityFrameworkCore;
-using Votify.Models.Persistence;
+using Votify.Modelos;
 
 
 

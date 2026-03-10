@@ -17,7 +17,7 @@ public partial class Criterio
 
     public virtual Categorium IdCategoriaNavigation { get; set; } = null!;
 
-    public virtual ICollection<Reclamacion> Reclamacions { get; set; } = new List<Reclamacion>();
+    public virtual ICollection<Reclamacion> Reclamaciones { get; set; } = new List<Reclamacion>();
 
     public virtual ICollection<Voto> Votos { get; set; } = new List<Voto>();
 }
