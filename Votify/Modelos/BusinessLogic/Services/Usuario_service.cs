@@ -12,11 +12,17 @@ namespace Votify.Modelos.BusinessLogic.Services
             this.repository = repository;
         }
 
-        public async  Task<Usuario> login(string email, string password)
+        public async  Task<Usuario?> login(string correo, string contraseña)
         {
             var usuarios = await repository.GetAllAsync();
 
-            return usuarios.FirstOrDefault(u = u => u.email == email && u.password == password);
+            var usuario = usuarios.FirstOrDefault(u => u.Correo == correo);
+
+            if(usuario == null) { return null; }
+
+            if(usuario.Contraseña != contraseña){ return null; }
+
+            return usuario;
 
         }
 
