@@ -6,11 +6,17 @@ namespace Votify.Modelos.BusinessLogic.Services
 {
     public class Usuario_service : Service<Usuario>, I_Usuario_Service
     {
-        public Usuario_service(IRepository<Usuario>repository) : base(repository) { }
-
-        public async  Task<Usuario> login(Guid id)
+        private readonly IRepository<Usuario> repository;
+        public Usuario_service(IRepository<Usuario> repository) : base(repository)
         {
-            return await _repository.GetByIdAsync(id);
+            this.repository = repository;
+        }
+
+        public async  Task<Usuario> login(string email, string password)
+        {
+            var usuarios = await repository.GetAllAsync();
+
+            return usuarios.FirstOrDefault(u = u => u.email == email && u.password == password);
 
         }
 

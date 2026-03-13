@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Votify.Modelos;
 
-namespace Votify.Controllers
+namespace Votify.Components.Controllers
 {
     public class UsuariosController : Controller
     {
+        private Usuario_service usuarioService;
         private readonly VotifyContext _context;
 
         public UsuariosController(VotifyContext context)

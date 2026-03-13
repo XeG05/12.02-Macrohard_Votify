@@ -1,10 +1,19 @@
-using Votify.Components;
 using Microsoft.EntityFrameworkCore;
+using Votify.Components;
 using Votify.Modelos;
-
+using Votify.Modelos.BusinessLogic.Services;
+using Votify.Modelos.BusinessLogic.Interfaces;
+using Votify.Modelos.Persistence.Interfaces;
+using Votify.Modelos.Persistence.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<Usuario_service>(); //Controlador
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
+builder.Services.AddScoped<I_Usuario_Service, Usuario_service>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
