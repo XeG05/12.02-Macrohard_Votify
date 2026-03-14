@@ -1,4 +1,5 @@
 ﻿@page "/register"
+@rendermode InteractiveServer
 @inject I_Usuario_Service UsuarioService
 
 <h3>Register</h3>
@@ -18,10 +19,13 @@
     string correo;
     string contraseña;
     string contraseña2;
-    string mensaje;
+    string mensaje = "registro de ejemplo";
+
 
     async Task register()
     {
+        
+        mensaje = "intentando registrar";
         try
         {
             await UsuarioService.register(nombre, correo, contraseña, contraseña2);
