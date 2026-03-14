@@ -1,0 +1,28 @@
+﻿@page "/login"
+@inject I_Usuario_Service UsuarioService
+
+<h3>Login</h3>
+
+<input @bind="correo" placeholder="Correo" />
+<input @bind="contraseña" type="password" placeholder="Contraseña" />
+
+<button @onclick="login">Login</button>
+
+<p>@mensaje</p>
+
+@code {
+
+    string correo;
+    string contraseña;
+    string mensaje;
+
+    async Task login()
+    {
+        var user = await UsuarioService.login(correo, contraseña);
+
+        if (user == null)
+            mensaje = "Usuario o contraseña incorrectos";
+        else
+            mensaje = "Login correcto";
+    }
+}

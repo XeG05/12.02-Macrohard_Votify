@@ -1,0 +1,35 @@
+﻿@page "/register"
+@inject I_Usuario_Service UsuarioService
+
+<h3>Register</h3>
+
+<input @bind="nombre" placeholder="Nombre" />
+<input @bind="correo" placeholder="Correo" />
+<input @bind="contraseña" type="password" />
+<input @bind="contraseña2" type="password" />
+
+<button @onclick="register">Registrarse</button>
+
+<p>@mensaje</p>
+
+@code {
+
+    string nombre;
+    string correo;
+    string contraseña;
+    string contraseña2;
+    string mensaje;
+
+    async Task register()
+    {
+        try
+        {
+            await UsuarioService.register(nombre, correo, contraseña, contraseña2);
+            mensaje = "Usuario creado";
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+        }
+    }
+}

@@ -11,6 +11,7 @@ using Votify.Modelos.BusinessLogic.Interfaces;
 
 namespace Votify.Components.Controllers
 {
+    [ApiController]
     [Route("api/usuarios")]
     public class UsuarioController : GenericController<Usuario>
     {
@@ -21,6 +22,11 @@ namespace Votify.Components.Controllers
         {
 
             this.usuario_Service = usuario_Service;
+        }
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("UsuarioController funciona");
         }
 
         [HttpPost("login")]

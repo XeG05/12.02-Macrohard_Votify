@@ -4,7 +4,7 @@ using Votify.Modelos.BusinessLogic.Interfaces;
 namespace Votify.Components.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    
     public class GenericController<T> : ControllerBase where T : class
     {
         protected readonly IService<T> _service;
