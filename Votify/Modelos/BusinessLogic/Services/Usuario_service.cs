@@ -18,9 +18,30 @@ namespace Votify.Modelos.BusinessLogic.Services
 
             var usuario = usuarios.FirstOrDefault(u => u.Correo == correo);
 
-            if(usuario == null) { return null; }
+            if(usuario == null) { throw new Exception("Ese usuario no existe"); }
 
-            if(usuario.Contraseña != contraseña){ return null; }
+            if(usuario.Contraseña != contraseña){ throw new Exception("Contraseña incorrecta"); }
+
+            return usuario;
+
+        }
+
+        public async Task<Usuario?> register(string nombre, string correo, string contraseña, string contraseñaRepetida)
+        {
+            if(contraseña != contraseñaRepetida) { throw new Exception("Las contraseñas no coinciden"); }
+
+            var usuarios = await repository.GetAllAsync();
+
+            if (usuarios.Any(u => u.Correo == correo)) { throw new Exception("El correo ya etá registrado"); }
+
+            var usuario = new Usuario
+            {
+                Nombre = nombre,
+                Correo = correo,
+                Contraseña = contraseña
+            };
+
+            await repository.AddAsync(usuario);
 
             return usuario;
 

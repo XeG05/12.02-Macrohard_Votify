@@ -26,11 +26,32 @@ namespace Votify.Components.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<Usuario>> Login(string correo, string contraseña)
         {
-            var usuario = await usuarioService.login(correo, contraseña);
+            try
+            {
+                var usuario = await usuarioService.login(correo, contraseña);
 
-            if (usuario == null) { return Unauthorized("Correo o contraseña incorrectos"); }
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-            return Ok(usuario);
+        [HttpPost("register")]
+        public async Task<ActionResult<Usuario>> register(string nombre, string correo, string contraseña, string contraseña2)
+        {
+            try
+            {
+                var usuario = await usuarioService.register(nombre, correo, contraseña, contraseña2);
+
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
 
     }
