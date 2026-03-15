@@ -19,13 +19,13 @@
     string correo;
     string contraseña;
     string contraseña2;
-    string mensaje = "registro de ejemplo";
+    string mensaje = "Registro de ejemplo";
 
 
     async Task register()
     {
         
-        mensaje = "intentando registrar";
+        mensaje = "Intentando registrar";
         try
         {
             await UsuarioService.register(nombre, correo, contraseña, contraseña2);

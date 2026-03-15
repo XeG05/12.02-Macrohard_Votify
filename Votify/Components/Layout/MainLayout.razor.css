@@ -84,6 +84,7 @@ main {
         height: calc(100vh - 5rem);
         position: sticky;
         top: 5rem;
+
     }
 }
 
