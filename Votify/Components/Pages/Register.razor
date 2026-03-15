@@ -28,7 +28,7 @@
         mensaje = "Intentando registrar";
         try
         {
-            await UsuarioService.register(nombre, correo, contraseña, contraseña2);
+            await UsuarioService.Register(nombre, correo, contraseña, contraseña2);
             mensaje = "Usuario creado";
         }
         catch (Exception ex)

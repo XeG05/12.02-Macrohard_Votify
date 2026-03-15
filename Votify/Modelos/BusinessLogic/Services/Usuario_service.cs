@@ -12,7 +12,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             this.repository = repository;
         }
 
-        public async  Task<Usuario?> login(string correo, string contraseña)
+        public async  Task<Usuario?> Login(string correo, string contraseña)
         {
             var usuarios = await repository.GetAllAsync();
 
@@ -26,7 +26,7 @@ namespace Votify.Modelos.BusinessLogic.Services
 
         }
 
-        public async Task<Usuario?> register(string nombre, string correo, string contraseña, string contraseñaRepetida)
+        public async Task<Usuario?> Register(string nombre, string correo, string contraseña, string contraseñaRepetida)
         {
             if(contraseña != contraseñaRepetida) { throw new Exception("Las contraseñas no coinciden"); }
 
