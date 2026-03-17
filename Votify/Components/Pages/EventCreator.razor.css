@@ -1,0 +1,47 @@
+﻿body {
+}
+
+.main-container {
+    display: flex;
+    flex-direction:column;
+}
+
+h3 {
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+.basic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input {
+    width: 400px;
+}
+
+.time-container, .opciones {
+    margin-top: 20px;
+}
+
+.time-container > div {
+    margin-top: 8px;
+    display: flex;
+    flex-direction:column;
+    gap: 5px;
+}
+
+.time-container > div > input {
+    width: 200px;
+}
+
+.opciones > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.opciones > div > p {
+    margin: 8px;
+}

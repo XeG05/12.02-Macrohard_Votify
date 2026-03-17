@@ -1,0 +1,65 @@
+﻿@page "/EventCreator"
+
+<div class="main-container">
+    <h3>EventCreator</h3>
+    <hr />
+    <div class="basic-info">
+        <div>
+            <h6>Nombre del evento:</h6>
+            <input class="input" type="text" placeholder="Escribe hasta un máximo de 30 caracteres" @bind="nombre" />
+        </div>
+        <div>
+            <h6>Descripción breve:</h6>
+            <input class="input" type="text" placeholder="Escribe hasta un máximo de 120 caracteres" @bind="descripcion" />
+        </div>
+    </div>
+
+    <div class="time-container">
+        <h4>Periodos</h4>
+        <hr />
+        <div>
+            <h6>Fin de inscripciones e inicio de plazo de entrega:</h6>
+            <input type="date" />
+        </div>
+        <div>
+            <h6>Finalización del plazo de entre e inicio de las votaciones:</h6>
+            <input type="date" />
+        </div>
+        <div>
+            <h6>Finalización de las votaciones:</h6>
+            <input type="date" />
+        </div>
+        
+    </div>
+    
+    <div class="opciones">
+        <h4>Opciones</h4>
+        <hr />
+        <div class="primer-opcion">
+            <input type="checkbox">
+            <p>El proyecto se realiza en grupos</p>
+        </div>
+        <div class="segundo-opcion">
+            <input type="checkbox">
+            <p>Los grupos han de estar completos</p>
+        </div>
+        <div class="num-participantes">
+            <p>Participantes por grupo:</p>
+            <input type="number" min="0" max="10"/>
+        </div>
+    </div>
+
+    <div class="participantes-container">
+        <h4>Participantes</h4>
+        <hr />
+
+    </div>
+
+    <button type="button">Salir y Guardar</button>
+    <button type="button">Publicar Evento</button>
+</div>
+
+@code {
+    private string nombre;
+    private string descripcion;
+}

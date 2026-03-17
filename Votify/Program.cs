@@ -10,9 +10,11 @@ using Votify.Modelos.Persistence.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<Usuario_service>(); //Controlador
+builder.Services.AddScoped<EventoService>();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
+builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<I_Usuario_Service, Usuario_service>();
 
 // Add services to the container.
@@ -20,10 +22,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddDbContext<VotifyContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
-);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
