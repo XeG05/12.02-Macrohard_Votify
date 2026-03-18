@@ -1,0 +1,54 @@
+﻿
+.layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 20px;
+}
+
+.input {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    width: 350px;
+}
+
+    .input p {
+        margin: 0;
+    }
+
+    .input input {
+        border-radius: 6px;
+        padding: 6px;
+        border: 1px solid #E2ECDF;
+        outline: none;
+        background-color: #F6FFF3;
+    }
+
+.button {
+    display: flex;
+    width: 350px;
+    justify-content: right;
+    border-radius: 6px;
+}
+
+    .button button {
+        border-radius: 6px;
+        padding: 6px;
+        border: 1px solid #E2ECDF;
+        outline: none;
+        background-color: #6DFF49;
+        cursor: pointer;
+    }
+
+button:hover {
+    background-color: #C8E9C0;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}

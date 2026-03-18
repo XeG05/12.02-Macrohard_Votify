@@ -2,16 +2,34 @@
 @rendermode InteractiveServer
 @inject I_Usuario_Service UsuarioService
 
-<h3>Register</h3>
+<div class="layout">
+    <h1>Votify</h1>
 
-<input @bind="nombre" placeholder="Nombre" />
-<input @bind="correo" placeholder="Correo" />
-<input @bind="contraseña" type="password" />
-<input @bind="contraseña2" type="password" />
-
-<button @onclick="register">Registrarse</button>
-
-<p>@mensaje</p>
+    <div class="input">
+        <p>Nombre completo:</p>
+        <input @bind="nombre" placeholder="Inserte su nombre y apellidos" />
+    </div>
+    <div class="input">
+        <p>Correo electrónico:</p>
+        <input @bind="correo" placeholder="Inserte su correo electrónico" />
+    </div>
+    <div class="input">
+        <p>Contraseña:</p>
+        <input @bind="contraseña" type="password" placeholder="Inserte su contraseña" />
+    </div>
+    <div class="input">
+        <p>Repetir contraseña:</p>
+        <input @bind="contraseña2" placeholder="Inserte su contraseña de nuevo" />
+    </div>
+    <div class="button">
+        <button @onclick="register">Registrarse</button>
+    </div>
+    <p>@mensaje</p>
+    <div class="options">
+        <NavLink href="/login">¿Ya tienes cuenta? Inicia sesión</NavLink>
+    </div>
+  
+</div>
 
 @code {
 
