@@ -13,7 +13,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             _repository = repository;
         }
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(long id)
         {
             return await _repository.GetByIdAsync(id);
         }
@@ -39,7 +39,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             await _repository.UpdateAsync(entity);
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(long id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity != null)
