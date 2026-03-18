@@ -9,10 +9,18 @@ namespace Votify.Modelos.BusinessLogic.Services
     {
         private readonly IRepository<Evento> _evento_repo;
         private readonly IRepository<Usuario> _usuario_repo;
-        public Evento_Service(IRepository<Evento> eventoRepo, IRepository<Usuario> usuarioRepo) : base(eventoRepo)
+        private readonly IRepository<Proyecto> _proyectoRepo;
+        private readonly IRepository<Participante> _participanteRepo;
+        private readonly IRepository<Grupo> _grupoRepo;
+        private readonly IRepository<Categorium> _categoriumRepo;
+        public Evento_Service(IRepository<Evento> eventoRepo, IRepository<Usuario> usuarioRepo, IRepository<Participante> participanteRepo, IRepository<Proyecto> proyectoRepo, IRepository<Grupo> grupoRepo, IRepository<Categorium> categoriumRepo) : base(eventoRepo)
         {
             _evento_repo = eventoRepo;
             _usuario_repo = usuarioRepo;
+            _participanteRepo = participanteRepo;
+            _proyectoRepo = proyectoRepo;
+            _categoriumRepo = categoriumRepo;
+            _grupoRepo = grupoRepo;
         }
 
         public async Task<EventoBase> EntrarEvento(string correo, int eventoId)
@@ -34,7 +42,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             switch(rol)
             {
                 case "ADMIN":
-                    creator = new EventoAdministradorCreator();
+                    creator = new EventoAdministradorCreator(_evento_repo, _proyectoRepo, _participanteRepo, _grupoRepo, _categoriumRepo);
                     break;
 
                 default:
