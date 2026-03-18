@@ -1,14 +1,27 @@
 ﻿@page "/login"
 @inject I_Usuario_Service UsuarioService
 
-<h3>Login</h3>
+<div class="layout">
+    <h1>Votify</h1>
 
-<input @bind="correo" placeholder="Correo" />
-<input @bind="contraseña" type="password" placeholder="Contraseña" />
-
-<button @onclick="login">Login</button>
-
-<p>@mensaje</p>
+    <div class="input">
+        <p>Correo electrónico:</p>
+        <input @bind="correo" placeholder="Inserte su correo electrónico" />
+    </div>
+    <div class="input">
+        <p>Contraseña:</p>
+        <input @bind="contraseña" type="password" placeholder="Inserte su contraseña" />
+    </div>
+    <div class="button">
+        <button @onclick="login">Iniciar sesión</button>
+    </div>
+    <p>@mensaje</p>
+    <div class="options">
+        <NavLink href="/register">¿Tu primera vez en votify? Crea tu cuenta</NavLink>
+        <NavLink href="/register">¿Has olvidado tu contraseña?</NavLink>
+    </div>
+  
+</div>
 
 @code {
 
