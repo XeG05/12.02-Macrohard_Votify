@@ -20,4 +20,14 @@ public partial class Proyecto
         Comentarios = new List<Comentario>();
         Votos = new List<Voto>();
     }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is Proyecto otro)
+        {
+            return (this.IdGrupo == otro.IdGrupo) && (this.IdCategoria == otro.IdCategoria);
+        }
+        return false;
+    }
+
 }

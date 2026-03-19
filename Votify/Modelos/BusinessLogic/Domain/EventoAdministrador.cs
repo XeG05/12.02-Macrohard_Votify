@@ -33,8 +33,37 @@ namespace Votify.Modelos.BusinessLogic.Domain
         public async Task<List<Categorium>> VerCategoria()
         {
             return await _categoriumRepo.FindAsync(c => c.IdEvento == evento.Id);
-        } 
+        }
 
+        public async Task<List<Grupo>> VerGrupo(long idCategoria)
+        {
+            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+
+            var grupos = new List<Grupo>();
+
+            foreach (var p in proyectos)
+            {
+                var grupo = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+
+                if(grupo != null && !grupos.Any(g => g.Id == grupo.Id))
+                {
+                    grupos.Add(grupo);
+                }
+            }
+          
+            return grupos;
+            
+        }
+
+        public async Task<List<Proyecto>> VerProyectoDeGrupo(long idGrupo)
+        {
+            return await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
+        }
+
+        public async Task<List<Participante>> VerParticipantes(long idGrupo)
+        {
+            return await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
+        }
 
     }
 }
