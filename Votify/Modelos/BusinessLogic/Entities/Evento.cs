@@ -10,10 +10,21 @@ public partial class Evento
         Roles = new List<Rol>();
         Categorias = new List<Categorium>();
     }
-    public Evento(string nombre, string descripcion)
+    public Evento(string nombre, string descripcion, DateOnly fechaFinInscripciones,
+        DateOnly fechaFinEntrega,
+        DateOnly fechaFinVotaciones,
+        bool tieneGrupos,
+        bool gruposCompletos,
+        int participantesPorGrupo)
     {
         Nombre = nombre;
         Descripcion = descripcion;
+        FechaFinInscripciones = fechaFinInscripciones;
+        FechaFinEntrega = fechaFinEntrega;
+        FechaFinVotaciones = fechaFinVotaciones;
+        TieneGrupos = tieneGrupos;
+        GruposCompletos = gruposCompletos;
+        ParticipantesPorGrupo = participantesPorGrupo;
         Categorias = new List<Categorium>();
         Roles = new List<Rol>();
     }

@@ -151,6 +151,18 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(30)
                 .HasColumnName("nombre");
+            entity.Property(e => e.FechaFinInscripciones)
+        .HasColumnName("fecha_fin_inscripciones");
+            entity.Property(e => e.FechaFinEntrega)
+                .HasColumnName("fecha_fin_entrega");
+            entity.Property(e => e.FechaFinVotaciones)
+                .HasColumnName("fecha_fin_votaciones");
+            entity.Property(e => e.TieneGrupos)
+                .HasColumnName("tiene_grupos");
+            entity.Property(e => e.GruposCompletos)
+                .HasColumnName("grupos_completos");
+            entity.Property(e => e.ParticipantesPorGrupo)
+                .HasColumnName("participantes_por_grupo");
         });
 
         modelBuilder.Entity<Grupo>(entity =>

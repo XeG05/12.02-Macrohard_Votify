@@ -1,65 +1,157 @@
 ﻿@page "/EventCreator"
-
+@using Votify.Modelos.BusinessLogic.DTOs
+@rendermode InteractiveServer
+@inject I_Evento_Service EventoService
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+ 
 <div class="main-container">
-    <h3>EventCreator</h3>
+    <h3>Crear Evento</h3>
     <hr />
+ 
+    @* ── Info básica ──────────────────────────────────────────── *@
     <div class="basic-info">
         <div>
             <h6>Nombre del evento:</h6>
-            <input class="input" type="text" placeholder="Escribe hasta un máximo de 30 caracteres" @bind="nombre" />
+            <input class="input" type="text" placeholder="Máximo 30 caracteres" @bind="dto.Nombre" maxlength="30" />
+            <small>@dto.Nombre.Length / 30</small>
         </div>
         <div>
             <h6>Descripción breve:</h6>
-            <input class="input" type="text" placeholder="Escribe hasta un máximo de 120 caracteres" @bind="descripcion" />
+            <input class="input" type="text" placeholder="Máximo 120 caracteres" @bind="dto.Descripcion" maxlength="120" />
+            <small>@dto.Descripcion.Length / 120</small>
         </div>
     </div>
-
+ 
+    @* ── Fechas ────────────────────────────────────────────────── *@
     <div class="time-container">
         <h4>Periodos</h4>
         <hr />
         <div>
-            <h6>Fin de inscripciones e inicio de plazo de entrega:</h6>
-            <input type="date" />
+            <h6>Fin de inscripciones:</h6>
+            <input type="date" @bind="fechaFinInscripciones" @bind:format="dd-MM-yyyy" />
         </div>
         <div>
-            <h6>Finalización del plazo de entre e inicio de las votaciones:</h6>
-            <input type="date" />
+            <h6>Fin de entrega / inicio de votaciones:</h6>
+            <input type="date" @bind="fechaFinEntrega" @bind:format="yyyy-MM-dd" />
         </div>
         <div>
-            <h6>Finalización de las votaciones:</h6>
-            <input type="date" />
+            <h6>Fin de votaciones:</h6>
+            <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
         </div>
-        
     </div>
-    
+ 
+    @* ── Opciones de grupos ────────────────────────────────────── *@
     <div class="opciones">
         <h4>Opciones</h4>
         <hr />
-        <div class="primer-opcion">
-            <input type="checkbox">
+        <div>
+            <input type="checkbox" @bind="dto.TieneGrupos" />
             <p>El proyecto se realiza en grupos</p>
         </div>
-        <div class="segundo-opcion">
-            <input type="checkbox">
-            <p>Los grupos han de estar completos</p>
-        </div>
-        <div class="num-participantes">
-            <p>Participantes por grupo:</p>
-            <input type="number" min="0" max="10"/>
-        </div>
+ 
+        @if (dto.TieneGrupos)
+        {
+            <div>
+                <input type="checkbox" @bind="dto.GruposCompletos" />
+                <p>Los grupos han de estar completos</p>
+            </div>
+            <div class="num-participantes">
+                <p>Participantes por grupo:</p>
+                <input type="number" min="1" max="10"
+                       @bind="dto.ParticipantesPorGrupo" />
+            </div>
+        }
     </div>
-
-    <div class="participantes-container">
-        <h4>Participantes</h4>
-        <hr />
-
+ 
+    @* ── Feedback ──────────────────────────────────────────────── *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <p class="@(error ? "msg-error" : "msg-ok")">@mensaje</p>
+    }
+ 
+    @* ── Acciones ──────────────────────────────────────────────── *@
+    <div class="actions">
+        <button type="button" @onclick="Guardar" disabled="@cargando">
+            @(cargando ? "Guardando..." : "Guardar borrador")
+        </button>
+        <button type="button" @onclick="Publicar" disabled="@cargando">
+            Publicar Evento
+        </button>
     </div>
-
-    <button type="button">Salir y Guardar</button>
-    <button type="button">Publicar Evento</button>
 </div>
-
+ 
 @code {
-    private string nombre;
-    private string descripcion;
+    private EventoCreacionDto dto = new();
+ 
+    // Usamos DateTime? para el bind de <input type="date">
+    // y convertimos a DateOnly al guardar
+    private DateTime? fechaFinInscripciones;
+    private DateTime? fechaFinEntrega;
+    private DateTime? fechaFinVotaciones;
+ 
+    private string mensaje = "";
+    private bool error = false;
+    private bool cargando = false;
+ 
+    protected override void OnInitialized()
+    {
+        // Redirigir si no está autenticado
+        if (!AuthProvider.EstaAutenticado)
+            Nav.NavigateTo("/login");
+    }
+ 
+    private void SincronizarFechas()
+    {
+        dto.FechaFinInscripciones = fechaFinInscripciones.HasValue
+            ? DateOnly.FromDateTime(fechaFinInscripciones.Value) : null;
+ 
+        dto.FechaFinEntrega = fechaFinEntrega.HasValue
+            ? DateOnly.FromDateTime(fechaFinEntrega.Value) : null;
+ 
+        dto.FechaFinVotaciones = fechaFinVotaciones.HasValue
+            ? DateOnly.FromDateTime(fechaFinVotaciones.Value) : null;
+    }
+ 
+    private async Task Guardar()
+    {
+        SincronizarFechas();
+        await EjecutarCreacion(publicar: false);
+    }
+ 
+    private async Task Publicar()
+    {
+        SincronizarFechas();
+        await EjecutarCreacion(publicar: true);
+    }
+ 
+    private async Task EjecutarCreacion(bool publicar)
+    {
+        cargando = true;
+        mensaje = "";
+        error = false;
+ 
+        try
+        {
+            var correo = AuthProvider.ObtenerCorreo()!;
+            var evento = await EventoService.CrearEvento(correo, dto);
+ 
+            mensaje = publicar
+                ? $"¡Evento '{evento.Nombre}' publicado con éxito!"
+                : $"Borrador '{evento.Nombre}' guardado";
+ 
+            // Navegar al panel del evento recién creado
+            if (publicar)
+                Nav.NavigateTo($"/evento/{evento.Id}");
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            error = true;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
 }

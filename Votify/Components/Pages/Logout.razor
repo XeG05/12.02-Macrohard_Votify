@@ -1,0 +1,14 @@
+﻿@inject BlazorAuthStateProvider AuthProvider
+@inject EventoContextService EventoCtx
+@inject NavigationManager Nav
+ 
+<button @onclick="LogOut">Cerrar sesión</button>
+ 
+@code {
+    void LogOut()
+    {
+        EventoCtx.SalirEvento();
+        AuthProvider.MarcarDesconectado();
+        Nav.NavigateTo("/login");
+    }
+}

@@ -1,5 +1,9 @@
 ﻿@page "/login"
+@rendermode InteractiveServer
 @inject I_Usuario_Service UsuarioService
+@inject JwtService JwtService
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 
 <div class="layout">
     <h1>Votify</h1>
@@ -10,12 +14,17 @@
     </div>
     <div class="input">
         <p>Contraseña:</p>
-        <input @bind="contraseña" type="password" placeholder="Inserte su contraseña" />
+        <input @bind="contraseña" type="password" placeholder="Inserte su contraseña" @onkeydown="OnKeyDown" />
     </div>
     <div class="button">
-        <button @onclick="login">Iniciar sesión</button>
+        <button @onclick="SignIn" disabled="@cargando">
+            @(cargando ? "Iniciando..." : "Iniciar sesión")
+        </button>
     </div>
-    <p>@mensaje</p>
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <p class="@(error ? "error" : "ok")">@mensaje</p>
+    }
     <div class="options">
         <NavLink href="/register">¿Tu primera vez en votify? Crea tu cuenta</NavLink>
         <NavLink href="/register">¿Has olvidado tu contraseña?</NavLink>
@@ -25,17 +34,42 @@
 
 @code {
 
-    string correo;
-    string contraseña;
-    string mensaje;
-
-    async Task login()
+    string correo = "";
+    string contraseña = "";
+    string mensaje = "";
+    bool error = false;
+    bool cargando = false;
+ 
+    async Task SignIn()
     {
-        var user = await UsuarioService.Login(correo, contraseña);
-
-        if (user == null)
-            mensaje = "Usuario o contraseña incorrectos";
-        else
-            mensaje = "Login correcto";
+        cargando = true;
+        mensaje = "";
+ 
+        try
+        {
+            var usuario = await UsuarioService.Login(correo, contraseña);
+ 
+            if (usuario != null)
+            {
+                // Generar token y autenticar el circuito
+                var token = JwtService.GenerateToken(usuario);
+                AuthProvider.MarcarAutenticado(token);
+                Nav.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+            error = true;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+ 
+    async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SignIn();
     }
 }
