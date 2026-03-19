@@ -1,0 +1,69 @@
+﻿@page "/eventoadmin"
+@using Votify.Modelos
+@using Votify.Modelos.BusinessLogic.Domain
+@using Votify.Modelos.BusinessLogic.Services
+@inject I_Evento_Service Evento_Service
+
+<h3>Panel Administrador</h3>
+
+<h4>Categorías</h4>
+
+@if (categorias == null)
+{
+    <p>Cargando categorías...</p>
+}
+else
+{
+    <ul>
+        @foreach (var c in categorias)
+        {
+            <li>
+                @c.Nombre
+                <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
+            </li>
+        }
+    </ul>
+}
+
+<h4>Grupos</h4>
+
+@if (grupos != null)
+{
+    <ul>
+        @foreach (var g in grupos)
+        {
+            <li>@g.Nombre</li>
+        }
+    </ul>
+}
+
+@code {
+
+    List<Categorium>? categorias;
+    List<Grupo>? grupos;
+
+    //EventoAdministrador? eventoAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Esto es temporal (luego lo harás con login real)
+        var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
+
+
+
+        if (entradaEvento.TipoRol == "ADMIN" && entradaEvento.Evento is EventoAdministrador eventoAdmin)
+        {
+            //var eventoAdmin = entradaEvento.Evento;
+            categorias = await eventoAdmin.VerCategoria();
+        }
+    }
+
+    async Task CargarGrupos(long idCategoria)
+    {
+        var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
+        if (entradaEvento.TipoRol == "ADMIN" && entradaEvento.Evento is EventoAdministrador eventoAdmin)
+        {
+            grupos = await eventoAdmin.VerGrupo(idCategoria);
+        }
+    }
+}

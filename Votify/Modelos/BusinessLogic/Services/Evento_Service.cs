@@ -9,8 +9,8 @@ namespace Votify.Modelos.BusinessLogic.Services
 {
     public class Evento_Service : Service<Evento>, I_Evento_Service
     {
-        private readonly IRepository<Evento> _evento_repo;
-        private readonly IRepository<Usuario> _usuario_repo;
+        private readonly IRepository<Evento> _eventoRepo;
+        private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
@@ -33,8 +33,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             IRepository<Rol> rolRepo)
             : base(eventoRepo)
         {
-            _evento_repo = eventoRepo;
-            _usuario_repo = usuarioRepo;
+            _eventoRepo = eventoRepo;
+            _usuarioRepo = usuarioRepo;
             _participanteRepo = participanteRepo;
             _proyectoRepo = proyectoRepo;
             _categoriumRepo = categoriumRepo;
@@ -47,12 +47,12 @@ namespace Votify.Modelos.BusinessLogic.Services
 
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
         {
-            var usuario = (await _usuario_repo
+            var usuario = (await _usuarioRepo
                 .FindAsync(u => u.Correo == correo))
                 .FirstOrDefault()
                 ?? throw new Exception("Usuario no encontrado");
 
-            var evento = await _evento_repo.GetByIdAsync(eventoId)
+            var evento = await _eventoRepo.GetByIdAsync(eventoId)
                 ?? throw new Exception("Evento no encontrado");
 
             // Detectar rol consultando cada tabla de sub-rol
@@ -62,18 +62,18 @@ namespace Votify.Modelos.BusinessLogic.Services
             EventoCreator creator = tipoRol switch
             {
                 "ADMIN" => new EventoAdministradorCreator(
-                    _evento_repo, _proyectoRepo,
+                    _eventoRepo, _proyectoRepo,
                     _participanteRepo, _grupoRepo, _categoriumRepo),
 
-                "PARTICIPANTE" => new EventoParticipanteCreator()
+                "PARTICIPANTE" => new EventoParticipanteCreator(),
                 /*
                 "VOTANTE" => new EventoVotanteCreator(),
 
                 // Jurado puede reutilizar VotanteCreator o tener el suyo propio
-                "JURADO" => new EventoVotanteCreator(),
+                "JURADO" => new EventoVotanteCreator(),*/
 
                 _ => throw new Exception(
-                    $"No tienes ningún rol asignado en el evento {eventoId}")*/
+                    $"No tienes ningún rol asignado en el evento {eventoId}")
             };
 
             var eventoBase = creator.CrearEvento(evento, usuario);
@@ -108,13 +108,13 @@ namespace Votify.Modelos.BusinessLogic.Services
             if (!esValido) throw new Exception(error);
 
             // 2. Verificar que el usuario existe
-            var usuario = (await _usuario_repo.FindAsync(u => u.Correo == correoCreador))
+            var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correoCreador))
                 .FirstOrDefault()
                 ?? throw new Exception("Usuario no encontrado");
 
             // 3. Calcular el siguiente ID disponible
             //    (Si tu BD usa secuencias PostgreSQL cambia esto por ValueGeneratedOnAdd en el contexto)
-            var todos = await _evento_repo.GetAllAsync();
+            var todos = await _eventoRepo.GetAllAsync();
             long nuevoId = todos.Any() ? todos.Max(e => e.Id) + 1 : 1;
 
             // 4. Construir la entidad Evento
@@ -132,7 +132,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             };
 
             // 5. Persistir el evento
-            await _evento_repo.AddAsync(evento);
+            await _eventoRepo.AddAsync(evento);
 
             // 6. Crear el Rol de Administrador para el creador
             var rol = new Rol
