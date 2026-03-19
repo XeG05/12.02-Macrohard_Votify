@@ -11,7 +11,7 @@ namespace Votify.Modelos.BusinessLogic.DTOs
 
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
-        public int ParticipantesPorGrupo { get; set; } = 1;
+        public int NumParticipantes { get; set; } = 1;
 
         public (bool esValido, string error) Validar()
         {
@@ -39,7 +39,7 @@ namespace Votify.Modelos.BusinessLogic.DTOs
             if (FechaFinInscripciones < DateOnly.FromDateTime(DateTime.Today))
                 return (false, "La fecha de fin de inscripciones no puede ser en el pasado");
 
-            if (TieneGrupos && ParticipantesPorGrupo < 1)
+            if (TieneGrupos && NumParticipantes < 1)
                 return (false, "El número de participantes por grupo debe ser al menos 1");
 
             return (true, "");

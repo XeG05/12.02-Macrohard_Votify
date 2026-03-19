@@ -51,9 +51,8 @@
  
             if (usuario != null)
             {
-                // Generar token y autenticar el circuito
                 var token = JwtService.GenerateToken(usuario);
-                AuthProvider.MarcarAutenticado(token);
+                await AuthProvider.MarcarAutenticado(token);  // ← await
                 Nav.NavigateTo("/");
             }
         }

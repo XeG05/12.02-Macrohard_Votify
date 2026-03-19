@@ -8,8 +8,6 @@
 <div class="main-container">
     <h3>Crear Evento</h3>
     <hr />
- 
-    @* ── Info básica ──────────────────────────────────────────── *@
     <div class="basic-info">
         <div>
             <h6>Nombre del evento:</h6>
@@ -22,14 +20,12 @@
             <small>@dto.Descripcion.Length / 120</small>
         </div>
     </div>
- 
-    @* ── Fechas ────────────────────────────────────────────────── *@
     <div class="time-container">
         <h4>Periodos</h4>
         <hr />
         <div>
             <h6>Fin de inscripciones:</h6>
-            <input type="date" @bind="fechaFinInscripciones" @bind:format="dd-MM-yyyy" />
+            <input type="date" @bind="fechaFinInscripciones" @bind:format="yyyy-MM-dd" />
         </div>
         <div>
             <h6>Fin de entrega / inicio de votaciones:</h6>
@@ -40,8 +36,6 @@
             <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
         </div>
     </div>
- 
-    @* ── Opciones de grupos ────────────────────────────────────── *@
     <div class="opciones">
         <h4>Opciones</h4>
         <hr />
@@ -57,9 +51,9 @@
                 <p>Los grupos han de estar completos</p>
             </div>
             <div class="num-participantes">
-                <p>Participantes por grupo:</p>
-                <input type="number" min="1" max="10"
-                       @bind="dto.ParticipantesPorGrupo" />
+                <p>Número de participantes por grupo:</p>
+                <input type="number" min="1" max="6"
+                       @bind="dto.NumParticipantes" />
             </div>
         }
     </div>
@@ -93,11 +87,10 @@
     private string mensaje = "";
     private bool error = false;
     private bool cargando = false;
- 
-    protected override void OnInitialized()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Redirigir si no está autenticado
-        if (!AuthProvider.EstaAutenticado)
+        if (firstRender && !AuthProvider.EstaAutenticado)
             Nav.NavigateTo("/login");
     }
  

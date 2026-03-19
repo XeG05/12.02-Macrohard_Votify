@@ -45,10 +45,6 @@ public partial class VotifyContext : DbContext
 
     public virtual DbSet<Voto> Votos { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=Votify;Username=postgres;Password=manzana14");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Administrador>(entity =>
@@ -75,7 +71,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("categoria");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.IdEvento).HasColumnName("id_evento");
@@ -123,7 +119,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("criterio");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
@@ -145,7 +141,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("evento");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.Nombre)
@@ -172,7 +168,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("grupo");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
             entity.Property(e => e.HojaRutaTexto).HasColumnName("hoja_ruta_texto");
             entity.Property(e => e.Nombre)

@@ -29,7 +29,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             IRepository<Categorium> categoriumRepo,
             IRepository<Administrador> adminRepo,
             IRepository<Jurado> juradoRepo,
-            IRepository<Votante> votanteRepo)
+            IRepository<Votante> votanteRepo,
+            IRepository<Rol> rolRepo)
             : base(eventoRepo)
         {
             _evento_repo = eventoRepo;
@@ -41,6 +42,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             _adminRepo = adminRepo;
             _juradoRepo = juradoRepo;
             _votanteRepo = votanteRepo;
+            _rolRepo = rolRepo;
         }
 
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
@@ -63,15 +65,15 @@ namespace Votify.Modelos.BusinessLogic.Services
                     _evento_repo, _proyectoRepo,
                     _participanteRepo, _grupoRepo, _categoriumRepo),
 
-                "PARTICIPANTE" => new EventoParticipanteCreator(),
-
+                "PARTICIPANTE" => new EventoParticipanteCreator()
+                /*
                 "VOTANTE" => new EventoVotanteCreator(),
 
                 // Jurado puede reutilizar VotanteCreator o tener el suyo propio
                 "JURADO" => new EventoVotanteCreator(),
 
                 _ => throw new Exception(
-                    $"No tienes ningún rol asignado en el evento {eventoId}")
+                    $"No tienes ningún rol asignado en el evento {eventoId}")*/
             };
 
             var eventoBase = creator.CrearEvento(evento, usuario);
@@ -124,10 +126,9 @@ namespace Votify.Modelos.BusinessLogic.Services
                 dto.FechaFinVotaciones!.Value,
                 dto.TieneGrupos,
                 dto.GruposCompletos,
-                dto.ParticipantesPorGrupo
+                dto.NumParticipantes
             )
             {
-                Id = nuevoId
             };
 
             // 5. Persistir el evento

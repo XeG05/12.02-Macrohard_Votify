@@ -1,48 +1,71 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Components.Authorization;
-using Votify.Modelos;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
+using System.Security.Claims;
+using Votify.Auth;
 
-namespace Votify.Auth
+public class BlazorAuthStateProvider : AuthenticationStateProvider
 {
-    // Scoped: vive mientras dure la conexión SignalR del usuario
-    public class BlazorAuthStateProvider : AuthenticationStateProvider
+    private ClaimsPrincipal _currentUser =
+        new ClaimsPrincipal(new ClaimsIdentity());
+
+    private readonly JwtService _jwtService;
+    private readonly IJSRuntime _js;
+    private bool _initialized = false;
+
+    public BlazorAuthStateProvider(JwtService jwtService, IJSRuntime js)
     {
-        private ClaimsPrincipal _currentUser =
-            new ClaimsPrincipal(new ClaimsIdentity());
+        _jwtService = jwtService;
+        _js = js;
+    }
 
-        private readonly JwtService _jwtService;
-
-        public BlazorAuthStateProvider(JwtService jwtService)
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        if (!_initialized)
         {
-            _jwtService = jwtService;
-        }
-
-        public override Task<AuthenticationState> GetAuthenticationStateAsync()
-            => Task.FromResult(new AuthenticationState(_currentUser));
-
-        public void MarcarAutenticado(string jwtToken)
-        {
-            var principal = _jwtService.ValidateToken(jwtToken);
-            if (principal != null)
+            _initialized = true;
+            try
             {
-                _currentUser = principal;
-                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+                var token = await _js.InvokeAsync<string?>("authStorage.getToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var principal = _jwtService.ValidateToken(token);
+                    if (principal != null)
+                        _currentUser = principal;
+                }
+            }
+            catch
+            {
+                // JS no disponible en prerender, ignorar
             }
         }
 
-        public void MarcarDesconectado()
+        return new AuthenticationState(_currentUser);
+    }
+
+    public async Task MarcarAutenticado(string jwtToken)
+    {
+        var principal = _jwtService.ValidateToken(jwtToken);
+        if (principal != null)
         {
-            _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
+            _currentUser = principal;
+            await _js.InvokeVoidAsync("authStorage.saveToken", jwtToken);
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
-
-        public string? ObtenerCorreo()
-            => _currentUser.FindFirst(ClaimTypes.Name)?.Value;
-
-        public string? ObtenerNombre()
-            => _currentUser.FindFirst("nombre")?.Value;
-
-        public bool EstaAutenticado
-            => _currentUser.Identity?.IsAuthenticated ?? false;
     }
+
+    public async Task MarcarDesconectado()
+    {
+        _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
+        await _js.InvokeVoidAsync("authStorage.removeToken");
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
+
+    public string? ObtenerCorreo()
+        => _currentUser.FindFirst(ClaimTypes.Name)?.Value;
+
+    public string? ObtenerNombre()
+        => _currentUser.FindFirst("nombre")?.Value;
+
+    public bool EstaAutenticado
+        => _currentUser.Identity?.IsAuthenticated ?? false;
 }

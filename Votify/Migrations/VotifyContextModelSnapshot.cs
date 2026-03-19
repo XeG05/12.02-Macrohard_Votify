@@ -42,8 +42,11 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Modelos.Categorium", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -112,8 +115,11 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Modelos.Criterio", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -145,8 +151,11 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Modelos.Evento", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -192,8 +201,11 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Modelos.Grupo", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("HojaRutaTexto")
                         .HasColumnType("text")

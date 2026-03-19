@@ -1,0 +1,70 @@
+﻿@page "/evento/{EventoId:long}"
+@rendermode InteractiveServer
+@inject I_Evento_Service EventoService
+@inject BlazorAuthStateProvider AuthProvider
+@inject EventoContextService EventoCtx
+@inject NavigationManager Nav
+
+@if (cargando)
+{
+    <p>Cargando evento...</p>
+}
+else if (error != null)
+{
+    <p class="error">@error</p>
+}
+else if (EventoCtx.EstaEnEvento)
+{
+    <h2>Evento @EventoId</h2>
+    <p>Tu rol: <strong>@EventoCtx.RolActual</strong></p>
+    <hr />
+
+    @if (EventoCtx.EsAdministrador)
+    {
+        <EventoAdmin EventoId="EventoId" />
+    }
+    else if (EventoCtx.EsParticipante)
+    {
+        <EventoParticipante EventoId="EventoId" />
+    }
+    else if (EventoCtx.EsVotante || EventoCtx.EsJurado)
+    {
+        <EventoVotante EventoId="EventoId" />
+    }
+}
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+
+    private bool cargando = true;
+    private string? error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (!AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var correo = AuthProvider.ObtenerCorreo()!;
+            var entrada = await EventoService.EntrarEvento(correo, EventoId);
+
+            // Usa EstablecerEvento tal como está definido en tu EventoContextService
+            EventoCtx.EstablecerEvento(entrada.Evento, entrada.TipoRol, EventoId);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -45,7 +45,7 @@ namespace Votify.Auth
 
             try
             {
-                return handler.ValidateToken(token, new TokenValidationParameters
+                var principal = handler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -56,6 +56,10 @@ namespace Votify.Auth
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 }, out _);
+
+                // Única línea que cambia respecto a tu código original:
+                var identity = new ClaimsIdentity(principal.Claims, "jwt");
+                return new ClaimsPrincipal(identity);
             }
             catch
             {
