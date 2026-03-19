@@ -32,7 +32,7 @@ namespace Votify.Modelos.BusinessLogic.Services
 
             var usuarios = await repository.GetAllAsync();
 
-            if (usuarios.Any(u => u.Correo == correo)) { throw new Exception("El correo ya etá registrado"); }
+            if (usuarios.Any(u => u.Correo == correo)) { throw new Exception("El correo ya está registrado"); }
 
             var usuario = new Usuario
             {
