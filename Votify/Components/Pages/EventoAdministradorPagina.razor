@@ -60,7 +60,7 @@ else
 
     async Task CargarGrupos(long idCategoria)
     {
-        var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
+        var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
         if (entradaEvento.TipoRol == "ADMIN" && entradaEvento.Evento is EventoAdministrador eventoAdmin)
         {
             grupos = await eventoAdmin.VerGrupo(idCategoria);
