@@ -22,7 +22,6 @@ public class BlazorAuthStateProvider : AuthenticationStateProvider
     {
         if (!_initialized)
         {
-            _initialized = true;
             try
             {
                 var token = await _js.InvokeAsync<string?>("authStorage.getToken");
@@ -32,10 +31,12 @@ public class BlazorAuthStateProvider : AuthenticationStateProvider
                     if (principal != null)
                         _currentUser = principal;
                 }
+                _initialized = true; // ← solo aquí, si JS funcionó
             }
             catch
             {
-                // JS no disponible en prerender, ignorar
+                // Prerender: JS no disponible, _initialized sigue false
+                // y lo reintentará cuando el circuito SignalR esté activo
             }
         }
 
@@ -48,6 +49,7 @@ public class BlazorAuthStateProvider : AuthenticationStateProvider
         if (principal != null)
         {
             _currentUser = principal;
+            _initialized = true; // ← evita que sobreescriba el estado tras login
             await _js.InvokeVoidAsync("authStorage.saveToken", jwtToken);
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
@@ -56,6 +58,7 @@ public class BlazorAuthStateProvider : AuthenticationStateProvider
     public async Task MarcarDesconectado()
     {
         _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
+        _initialized = true;
         await _js.InvokeVoidAsync("authStorage.removeToken");
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
