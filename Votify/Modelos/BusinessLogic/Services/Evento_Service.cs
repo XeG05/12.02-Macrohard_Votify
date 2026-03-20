@@ -23,20 +23,23 @@ namespace Votify.Modelos.BusinessLogic.Services
         private readonly IRepository<Voto> _votoRepo;
         public Evento_Service(IRepository<Evento> eventoRepo, 
             IRepository<Usuario> usuarioRepo, 
-            IRepository<Participante> participanteRepo, 
-            IRepository<Proyecto> proyectoRepo, 
+            IRepository<Proyecto> proyectoRepo,
+            IRepository<Participante> participanteRepo,
             IRepository<Grupo> grupoRepo, 
             IRepository<Categorium> categoriumRepo,
+            IRepository<Administrador> adminRepo,
+            IRepository<Jurado> juradoRepo,
+            IRepository<Votante> votanteRepo,
             IRepository<Rol> rolRepo,
             IRepository<Criterio> criterioRepo,
             IRepository<Voto> votoRepo) : base(eventoRepo)
         {
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
-            _participanteRepo = participanteRepo;
             _proyectoRepo = proyectoRepo;
-            _categoriumRepo = categoriumRepo;
+            _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
+            _categoriumRepo = categoriumRepo;
             _adminRepo = adminRepo;
             _juradoRepo = juradoRepo;
             _votanteRepo = votanteRepo;
