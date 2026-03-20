@@ -45,12 +45,12 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 var grupo = await _grupoRepo.GetByIdAsync(p.IdGrupo);
 
-                if(grupo != null && !grupos.Any(g => g.Id == grupo.Id))
+                if (grupo != null && !grupos.Any(g => g.Id == grupo.Id)) //evitar repetidos
                 {
                     grupos.Add(grupo);
                 }
             }
-          
+            
             return grupos;
             
         }
