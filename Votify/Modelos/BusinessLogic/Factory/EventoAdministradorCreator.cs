@@ -10,24 +10,34 @@ namespace Votify.Modelos.BusinessLogic.Factory
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
+        private readonly IRepository<Voto> _votoRepo;
 
         public EventoAdministradorCreator(
             IRepository<Evento> eventoRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Participante> participanteRepo,
             IRepository<Grupo> grupoRepo,
-            IRepository<Categorium> categoriumRepo)
+            IRepository<Categorium> categoriumRepo,
+            IRepository<Voto> votoRepo)
         {
             _eventoRepo = eventoRepo;
             _proyectoRepo = proyectoRepo;
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
             _categoriumRepo = categoriumRepo;
+            _votoRepo = votoRepo;
         }
 
         public override EventoBase CrearEvento(Evento evento, Usuario usuario)
         {
-            return new EventoAdministrador(evento, usuario, _eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo);
+            return new EventoAdministrador(evento,
+                usuario,
+                _eventoRepo,
+                _proyectoRepo,
+                _participanteRepo,
+                _categoriumRepo,
+                _grupoRepo,
+                _votoRepo);
         }
     }
 }

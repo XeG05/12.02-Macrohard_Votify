@@ -9,13 +9,22 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
-        public EventoAdministrador(Evento evento, Usuario usuario, IRepository<Evento> eventoRepo, IRepository<Proyecto> proyectoRepo, IRepository<Participante> participanteRepo, IRepository<Categorium> categoriumRepo, IRepository<Grupo> grupoRepo) : base(evento, usuario)
+        private readonly IRepository<Voto> _votoRepo;
+        public EventoAdministrador(Evento evento, 
+            Usuario usuario, 
+            IRepository<Evento> eventoRepo, 
+            IRepository<Proyecto> proyectoRepo, 
+            IRepository<Participante> participanteRepo,
+            IRepository<Categorium> categoriumRepo,
+            IRepository<Grupo> grupoRepo,
+            IRepository<Voto> votoRepo) : base(evento, usuario)
         {
             _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
             _categoriumRepo = categoriumRepo;
+            _votoRepo = votoRepo;
         }
 
         public async Task CambiarNombre(string nuevoNombre)
@@ -65,5 +74,14 @@ namespace Votify.Modelos.BusinessLogic.Domain
             return await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
         }
 
+        public async Task<List<Proyecto>> VerProyectos(long idCategoria)
+        {
+            return await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+        }
+        public async Task<int> ContarVotosProyecto(long idProyecto)
+        {
+            var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == idProyecto);
+            return votos.Count;
+        }
     }
 }
