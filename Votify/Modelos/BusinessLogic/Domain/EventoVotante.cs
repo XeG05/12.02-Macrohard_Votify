@@ -12,6 +12,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Rol> _rolRepo;
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
+        private readonly IRepository<Comentario> _comentarioRepo;
         public EventoVotante(Evento evento, Usuario usuario, 
             IRepository<Evento> eventoRepo, 
             IRepository<Proyecto> proyectoRepo, 
@@ -20,7 +21,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
             IRepository<Grupo> grupoRepo, 
             IRepository<Rol> rolRepo, 
             IRepository<Criterio> criterioRepo,
-            IRepository<Voto> votoRepo) : base(evento, usuario)
+            IRepository<Voto> votoRepo,
+            IRepository<Comentario> comentarioRepo) : base(evento, usuario)
         {
             _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
@@ -30,6 +32,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             _rolRepo = rolRepo;
             _criterioRepo = criterioRepo;
             _votoRepo = votoRepo;
+            _comentarioRepo = comentarioRepo;
         }
 
         public async Task<List<Proyecto>> ListaProyectos(long idEvento)
@@ -54,7 +57,21 @@ namespace Votify.Modelos.BusinessLogic.Domain
             pr.Votos.Add(voto);
             rol.Votos.Add(voto);
             crit.Votos.Add(voto);
+            await _proyectoRepo.UpdateAsync(pr);
+            await _rolRepo.UpdateAsync(rol);
+            await _criterioRepo.UpdateAsync(crit);
+            await _votoRepo.AddAsync(voto);
+        }
 
+        public async void comentarProyecto(Comentario comentario)
+        {
+            Proyecto pr = comentario.Proyecto;
+            Rol rol = comentario.Rol;
+            pr.Comentarios.Add(comentario);
+            rol.Comentarios.Add(comentario);
+            await _proyectoRepo.UpdateAsync(pr);
+            await _rolRepo.UpdateAsync(rol);
+            await _comentarioRepo.AddAsync(comentario);
         }
         
     }

@@ -21,6 +21,7 @@ namespace Votify.Modelos.BusinessLogic.Services
         private readonly IRepository<Rol> _rolRepo;
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
+        private readonly IRepository<Comentario> _comentarioRepo;
         public Evento_Service(IRepository<Evento> eventoRepo, 
             IRepository<Usuario> usuarioRepo, 
             IRepository<Proyecto> proyectoRepo,
@@ -32,7 +33,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             IRepository<Votante> votanteRepo,
             IRepository<Rol> rolRepo,
             IRepository<Criterio> criterioRepo,
-            IRepository<Voto> votoRepo) : base(eventoRepo)
+            IRepository<Voto> votoRepo,
+            IRepository<Comentario> comentarioRepo) : base(eventoRepo)
         {
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
@@ -46,6 +48,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             _rolRepo = rolRepo;
             _criterioRepo = criterioRepo;
             _votoRepo = votoRepo;
+            _comentarioRepo = comentarioRepo;
         }
 
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
