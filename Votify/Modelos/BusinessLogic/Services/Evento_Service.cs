@@ -19,19 +19,17 @@ namespace Votify.Modelos.BusinessLogic.Services
         private readonly IRepository<Jurado> _juradoRepo;
         private readonly IRepository<Votante> _votanteRepo;
         private readonly IRepository<Rol> _rolRepo;
-
-        public Evento_Service(
-            IRepository<Evento> eventoRepo,
-            IRepository<Usuario> usuarioRepo,
-            IRepository<Participante> participanteRepo,
-            IRepository<Proyecto> proyectoRepo,
-            IRepository<Grupo> grupoRepo,
+        private readonly IRepository<Criterio> _criterioRepo;
+        private readonly IRepository<Voto> _votoRepo;
+        public Evento_Service(IRepository<Evento> eventoRepo, 
+            IRepository<Usuario> usuarioRepo, 
+            IRepository<Participante> participanteRepo, 
+            IRepository<Proyecto> proyectoRepo, 
+            IRepository<Grupo> grupoRepo, 
             IRepository<Categorium> categoriumRepo,
-            IRepository<Administrador> adminRepo,
-            IRepository<Jurado> juradoRepo,
-            IRepository<Votante> votanteRepo,
-            IRepository<Rol> rolRepo)
-            : base(eventoRepo)
+            IRepository<Rol> rolRepo,
+            IRepository<Criterio> criterioRepo,
+            IRepository<Voto> votoRepo) : base(eventoRepo)
         {
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
@@ -43,6 +41,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             _juradoRepo = juradoRepo;
             _votanteRepo = votanteRepo;
             _rolRepo = rolRepo;
+            _criterioRepo = criterioRepo;
+            _votoRepo = votoRepo;
         }
 
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
