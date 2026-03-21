@@ -12,6 +12,15 @@ namespace Votify.Modelos.BusinessLogic.Factory
         private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Voto> _votoRepo;
 
+        public EventoAdministradorCreator(IRepository<Evento> eventoRepo, IRepository<Proyecto> proyectoRepo, IRepository<Participante> participanteRepo, IRepository<Grupo> grupoRepo, IRepository<Categorium> categoriumRepo)
+        {
+            _eventoRepo = eventoRepo;
+            _proyectoRepo = proyectoRepo;
+            _participanteRepo = participanteRepo;
+            _grupoRepo = grupoRepo;
+            _categoriumRepo = categoriumRepo;
+        }
+
         public EventoAdministradorCreator(
             IRepository<Evento> eventoRepo,
             IRepository<Proyecto> proyectoRepo,

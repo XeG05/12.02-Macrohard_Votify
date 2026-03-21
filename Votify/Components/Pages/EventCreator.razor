@@ -59,19 +59,54 @@ else
                 </div>
                 <div class="num-participantes">
                     <p>Número de participantes por grupo:</p>
-                    <input type="number" min="1" max="6"
+                    <input type="number" min="1" max="4"
                     @bind="dto.NumParticipantes" />
                 </div>
             }
         </div>
 
-        @* ── Feedback ──────────────────────────────────────────────── *@
         @if (!string.IsNullOrEmpty(mensaje))
         {
             <p class="@(error ? "msg-error" : "msg-ok")">@mensaje</p>
         }
 
-        @* ── Acciones ──────────────────────────────────────────────── *@
+        <div class="participantes">
+            <h4>Participantes</h4>
+            <hr />
+            @foreach (var grupo in grupos)
+            {
+                <div class="grup-container" @key="grupo">
+                    <div class="grup-sup">
+                        <input type="text" placeholder="Nombre de Grupo" />
+                        <button type="button" @onclick="() => Eliminar(grupo)">✕</button>
+                    </div>
+                    <hr />
+                    @for (int i = 0; i < dto.NumParticipantes; i++)
+                    {
+                        var key = $"{grupo}-{i}";
+                        var index = i;
+
+                        @if (!activos.Contains(key))
+                        {
+                            <div class="participante">
+                                <button type="button" @onclick="() => Activar(grupo, index)"> ➕ </button>
+                                <p>Añadir participante</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="participante">
+                                <button type="button" @onclick="() => Desactivar(grupo, index)">✖️</button>
+                                <input type="text" placeholder="exp@example.com" />
+                                <span>Nombre</span>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            <button type="button" @onclick="Añadir" > Añadir Grupo </button>
+        </div>
+        <hr />
         <div class="actions">
             <button type="button" @onclick="Guardar" disabled="@cargando">
                 @(cargando ? "Guardando..." : "Guardar borrador")
@@ -85,14 +120,17 @@ else
 
 @code {
     bool autenticado = false;
+    private List<int> grupos = new();
+    private int contador = 0;
+    private HashSet<string> activos = new();
     private EventoCreacionDto dto = new();
- 
+
     // Usamos DateTime? para el bind de <input type="date">
     // y convertimos a DateOnly al guardar
     private DateTime? fechaFinInscripciones;
     private DateTime? fechaFinEntrega;
     private DateTime? fechaFinVotaciones;
- 
+
     private string mensaje = "";
     private bool error = false;
     private bool cargando = false;
@@ -112,7 +150,27 @@ else
         autenticado = true;
         StateHasChanged();
     }
- 
+
+    private void Añadir()
+    {
+        grupos.Add(contador++);
+    }
+
+    private void Eliminar(int grupo)
+    {
+        grupos.Remove(grupo);
+    }
+
+    private void Activar(int grupo, int index)
+    {
+        activos.Add($"{grupo}-{index}");
+    }
+
+    private void Desactivar(int grupo, int index)
+    {
+        activos.Remove($"{grupo}-{index}");
+    }
+
     private void SincronizarFechas()
     {
         dto.FechaFinInscripciones = fechaFinInscripciones.HasValue
