@@ -5,6 +5,7 @@ namespace Votify.Modelos;
 
 public partial class Voto
 {
+    public long Id { get; set; }
     public long IdRol { get; set; }
 
     public long IdCriterio { get; set; }

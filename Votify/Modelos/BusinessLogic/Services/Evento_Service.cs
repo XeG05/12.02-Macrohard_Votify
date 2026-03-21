@@ -69,7 +69,7 @@ namespace Votify.Modelos.BusinessLogic.Services
             {
                 "ADMIN" => new EventoAdministradorCreator(
                     _eventoRepo, _proyectoRepo,
-                    _participanteRepo, _grupoRepo, _categoriumRepo),
+                    _participanteRepo, _grupoRepo, _categoriumRepo, _votoRepo),
 
                 "PARTICIPANTE" => new EventoParticipanteCreator(),
                 /*

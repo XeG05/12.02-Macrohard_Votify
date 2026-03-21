@@ -90,9 +90,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
-        var eventoBase = entradaEvento.Evento;
-
-        if (eventoBase is EventoAdministrador admin)
+        
+        if (entradaEvento.Evento is EventoAdministrador admin)
         {
             eventoAdmin = admin;
         }

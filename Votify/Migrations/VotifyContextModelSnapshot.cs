@@ -402,6 +402,13 @@ namespace Votify.Migrations
 
             modelBuilder.Entity("Votify.Modelos.Voto", b =>
                 {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
                     b.Property<long>("IdRol")
                         .HasColumnType("bigint")
                         .HasColumnName("id_rol");
@@ -427,7 +434,7 @@ namespace Votify.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("nota");
 
-                    b.HasKey("IdRol", "IdCriterio", "IdProyectoCat", "IdProyectoGru")
+                    b.HasKey("Id", "IdRol", "IdCriterio", "IdProyectoCat", "IdProyectoGru")
                         .HasName("voto_pkey");
 
                     b.HasIndex("IdCriterio");

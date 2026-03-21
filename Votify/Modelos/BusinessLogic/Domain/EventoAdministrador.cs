@@ -75,7 +75,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             return await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
         }
 
-        public async Task<List<Proyecto>> VerProyectos(long idCategoria)
+        public async Task<List<Proyecto>> VerProyectosCategoria(long idCategoria)
         {
             return await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
         }
@@ -116,6 +116,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             foreach (var p in proyectos)
             {
+
                 var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == p.IdGrupo);
                 total += votos.Count;
             }

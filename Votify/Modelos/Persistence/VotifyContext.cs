@@ -339,10 +339,13 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Voto>(entity =>
         {
-            entity.HasKey(e => new { e.IdRol, e.IdCriterio, e.IdProyectoCat, e.IdProyectoGru }).HasName("voto_pkey");
+            entity.HasKey(e => new {e.Id, e.IdRol, e.IdCriterio, e.IdProyectoCat, e.IdProyectoGru}).HasName("voto_pkey");
 
             entity.ToTable("voto");
 
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
             entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");

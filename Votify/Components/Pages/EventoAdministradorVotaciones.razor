@@ -1,5 +1,60 @@
-﻿<h3>EventoAdministradorVotaciones</h3>
+﻿@page "/eventoadmin/votaciones/{idCategoria:long}"
+@using Votify.Modelos.BusinessLogic.DTOs
+@using Votify.Modelos.BusinessLogic.Domain
+@rendermode InteractiveServer
+
+@inject I_Evento_Service EventoService
+
+<h2>@eventoAdmin?.Nombre</h2>
+<h3>@nombreCategoria</h3>
+
+<p>Proyectos: @numeroProyectos</p>
+<p>Votos totales: @totalVotos</p>
+
+<h4>Proyectos</h4>
+
+@if (resumen != null)
+{
+    <ul>
+        @foreach (var r in resumen)
+        {
+            <li>
+                @r.NombreProyecto | @r.NombreGrupo | @r.CantidadVotos votos
+            </li>
+        }
+    </ul>
+}
 
 @code {
+    [Parameter] public long idCategoria { get; set; }
 
+    EventoAdministrador? eventoAdmin;
+
+    string nombreCategoria = "";
+    int numeroProyectos;
+    int totalVotos;
+
+    List<ProyectoResumenDTO>? resumen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var entrada = await EventoService.EntrarEvento("ana@gmail.com", 1000);
+
+        if (entrada.Evento is EventoAdministrador admin)
+        {
+            eventoAdmin = admin;
+
+            var categorias = await admin.VerCategoria();
+            var categoria = categorias.FirstOrDefault(c => c.Id == idCategoria);
+
+            nombreCategoria = categoria?.Nombre ?? "Categoría";
+
+            var proyectos = await admin.VerProyectosCategoria(idCategoria);
+            numeroProyectos = proyectos.Count;
+
+            totalVotos = await admin.TotalVotosCategoria(idCategoria);
+
+            resumen = await admin.ObtenerResultadosCategoria(idCategoria);
+        }
+    }
 }
