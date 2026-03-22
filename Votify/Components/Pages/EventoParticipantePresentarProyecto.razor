@@ -4,13 +4,17 @@
 @using Votify.Modelos.BusinessLogic.Domain
 @using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
-@inject EventoContextService EventoCtx
 @inject NavigationManager Nav
+@inject EventoContextService EventoCtx
 
-@if (eventoParticipante is null)
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (eventoParticipante is null)
 {
     <div class="vpp-wrapper">
-        <div class="vpp-alert">No se ha cargado el contexto del participante.</div>
+        <div class="vpp-alert vpp-alert-error">No se ha podido cargar el evento como participante.</div>
     </div>
 }
 else
@@ -29,7 +33,12 @@ else
 
         @if (!string.IsNullOrWhiteSpace(error))
         {
-            <div class="vpp-alert">@error</div>
+            <div class="vpp-alert vpp-alert-error">@error</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(mensaje))
+        {
+            <div class="vpp-alert vpp-alert-ok">@mensaje</div>
         }
 
         <div class="vpp-form">
@@ -40,7 +49,7 @@ else
                        @bind="nombreProyecto"
                        @bind:event="oninput"
                        placeholder="Escribe hasta un máximo de 30 caracteres" />
-                <div class="vpp-counter">@((nombreProyecto ?? string.Empty).Length)/30</div>
+                <div class="vpp-counter">@nombreProyecto.Length/30</div>
             </div>
 
             <div class="vpp-field">
@@ -50,7 +59,7 @@ else
                           @bind="descripcionBreve"
                           @bind:event="oninput"
                           placeholder="Escribe hasta un máximo de 500 caracteres"></textarea>
-                <div class="vpp-counter">@((descripcionBreve ?? string.Empty).Length)/500</div>
+                <div class="vpp-counter">@descripcionBreve.Length/500</div>
             </div>
 
             <div class="vpp-field">
@@ -61,22 +70,89 @@ else
                           placeholder="Escribe aquí"></textarea>
             </div>
 
+            <div class="vpp-card">
+                <h3>Participantes:</h3>
+
+                <div class="vpp-group-box">
+                    <strong>@nombreGrupo</strong>
+                    <ul>
+                        @foreach (var miembro in miembrosGrupo)
+                        {
+                            <li>@miembro.Nombre - @miembro.Correo</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vpp-card">
+                <label class="vpp-label">Categoría:</label>
+
+                @if (categorias.Any())
+                {
+                    <select class="vpp-select" @bind="categoriaSeleccionadaId">
+                        @foreach (var categoria in categorias)
+                        {
+                            <option value="@categoria.Id">@categoria.Nombre</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <p>No hay categorías disponibles para este evento.</p>
+                }
+            </div>
+
+            <div class="vpp-card">
+                <label class="vpp-label">Subir imágenes:</label>
+                <InputFile OnChange="CargarImagenes" multiple />
+
+                @if (nombresImagenes.Count > 0)
+                {
+                    <div class="vpp-files">
+                        @foreach (var nombre in nombresImagenes)
+                        {
+                            <div class="vpp-file-chip">@nombre</div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="vpp-card">
+                <label class="vpp-label">Subir archivo del proyecto (.zip, .rar, .pdf, etc.):</label>
+                <InputFile OnChange="CargarArchivoProyecto" />
+
+                @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+                {
+                    <p class="vpp-file-main">@nombreArchivoProyecto</p>
+                }
+            </div>
+
             <div class="vpp-actions">
-                <button class="vpp-primary" @onclick="Continuar">Continuar</button>
+                <button class="vpp-primary" @onclick="EntregarProyecto">Entregar proyecto</button>
             </div>
         </div>
     </div>
 }
 
 @code {
-    [Parameter] public long EventoId { get; set; }
-
     private EventoParticipante? eventoParticipante;
+    private bool cargando = true;
 
     private string nombreProyecto = string.Empty;
     private string descripcionBreve = string.Empty;
     private string descripcionCompleta = string.Empty;
+
+    private string nombreGrupo = "Grupo";
+    private List<(string Nombre, string Correo)> miembrosGrupo = new();
+    private List<Categorium> categorias = new();
+
+    private long categoriaSeleccionadaId;
+    private List<string> nombresImagenes = new();
+    private string? nombreArchivoProyecto;
+
     private string? error;
+    private string? mensaje;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -93,15 +169,26 @@ else
                 error = "No se ha podido cargar el evento como participante.";
                 return;
             }
+
+            var grupo = await eventoParticipante.ObtenerMiGrupo();
+            nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
+
+            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
+            categorias = await eventoParticipante.ObtenerCategoriasEvento();
+
+            if (categorias.Any())
+            {
+                categoriaSeleccionadaId = categorias.First().Id;
+            }
         }
         catch (Exception ex)
         {
             error = ex.Message;
         }
-    }
-    protected override void OnInitialized()
-    {
-        eventoParticipante = EventoCtx.EventoActual as EventoParticipante;
+        finally
+        {
+            cargando = false;
+        }
     }
 
     private void VolverHome()
@@ -111,26 +198,55 @@ else
 
     private void VolverEvento()
     {
-        Nav.NavigateTo($"/evento/{EventoId}");
+        Nav.NavigateTo("/eventoparticipante");
     }
 
-    private void Continuar()
+    private void CargarImagenes(InputFileChangeEventArgs e)
+    {
+        nombresImagenes = e.GetMultipleFiles()
+            .Select(f => f.Name)
+            .ToList();
+    }
+
+    private void CargarArchivoProyecto(InputFileChangeEventArgs e)
+    {
+        var archivo = e.File;
+        nombreArchivoProyecto = archivo?.Name;
+    }
+
+    private async Task EntregarProyecto()
     {
         error = null;
+        mensaje = null;
 
-        if (string.IsNullOrWhiteSpace(nombreProyecto))
+        try
         {
-            error = "Debes indicar un nombre para el proyecto.";
-            return;
+            if (eventoParticipante == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(nombreProyecto))
+                throw new Exception("Debes indicar un nombre para el proyecto.");
+
+            if (string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+                throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
+
+            if (!categorias.Any())
+                throw new Exception("El evento no tiene categorías disponibles.");
+
+            await eventoParticipante.CrearProyecto(
+                nombreProyecto,
+                descripcionBreve,
+                descripcionCompleta,
+                categoriaSeleccionadaId
+            );
+
+            mensaje = "Proyecto entregado correctamente.";
+            Nav.NavigateTo("/eventoparticipante");
         }
-
-        var url =
-            $"/evento/{EventoId}/participante/adjuntar" +
-            $"?nombre={Uri.EscapeDataString(nombreProyecto)}" +
-            $"&breve={Uri.EscapeDataString(descripcionBreve ?? string.Empty)}" +
-            $"&descripcion={Uri.EscapeDataString(descripcionCompleta ?? string.Empty)}";
-
-        Nav.NavigateTo(url);
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
     }
 }
 
@@ -233,6 +349,55 @@ else
         font-size: 0.9rem;
     }
 
+    .vpp-card {
+        border: 1px solid #d9d9d9;
+        border-radius: 14px;
+        padding: 20px;
+        background: white;
+    }
+
+    .vpp-group-box {
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fafafa;
+    }
+
+    .vpp-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .vpp-select {
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 1rem;
+    }
+
+    .vpp-files {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .vpp-file-chip {
+        border: 1px solid #d9d9d9;
+        border-radius: 10px;
+        padding: 8px 12px;
+        background: #f7f7f7;
+    }
+
+    .vpp-file-main {
+        margin-top: 12px;
+        font-weight: 600;
+    }
+
     .vpp-actions {
         display: flex;
         justify-content: flex-end;
@@ -249,9 +414,17 @@ else
 
     .vpp-alert {
         margin-bottom: 20px;
-        background: #fff1f1;
-        border: 1px solid #efb8b8;
         border-radius: 10px;
         padding: 12px 16px;
+    }
+
+    .vpp-alert-error {
+        background: #fff1f1;
+        border: 1px solid #efb8b8;
+    }
+
+    .vpp-alert-ok {
+        background: #eefaf1;
+        border: 1px solid #bde2c4;
     }
 </style>
