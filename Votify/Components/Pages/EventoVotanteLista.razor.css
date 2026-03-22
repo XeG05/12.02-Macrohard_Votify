@@ -1,0 +1,7 @@
+﻿.proyectos {
+    border: 1px solid #ccc;
+    border-radius: 12px; 
+    overflow: hidden; 
+    margin-bottom: 15px;
+    background-color: white;
+}
