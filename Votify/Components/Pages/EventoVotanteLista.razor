@@ -1,0 +1,29 @@
+﻿@page "/eventovotantelista/{idEvento:long}"
+@rendermode InteractiveServer
+@using Votify.Modelos
+@using Votify.Modelos.BusinessLogic.Domain
+
+@inject I_Evento_Service EventoService
+
+
+
+
+
+@code {
+    [Parameter] public long idEvento { get; set; }
+
+    Task<List<Proyecto>>? proyectos;
+
+    EventoVotante? eventoVotante;
+
+    protected async override void OnInitialized()
+    {
+        var entrada = await EventoService.EntrarEvento("ana@gmail.com", 1000);
+        if (entrada.Evento is EventoVotante evVot)
+        {
+            eventoVotante = evVot;
+            proyectos = eventoVotante.ListaProyectos(idEvento);
+        }
+
+    }
+}
