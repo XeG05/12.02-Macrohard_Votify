@@ -29,18 +29,49 @@ else
         </div>
 
         <div class="categorias">
-            <h4>Categorias</h4>
+            <h4>Categorías</h4>
             <hr />
-            @foreach (var categoria in categorias)
+            @foreach (var cat in dto.Categorias)
             {
-                <div class="categoria-container" @key="categoria">
-                    
-                        <input type="text" placeholder="Categoria" />
-                        <button type="button" @onclick="() => EliminarCategoria(categoria)">✕</button>
-                    
+                <div class="categoria-container" @key="cat">
+                    <div class="categorias">
+                        <input type="text" placeholder="Nombre categoría"
+                               @bind="cat.Nombre" />
+                        <input type="text" placeholder="Descripción"
+                               @bind="cat.Descripcion" />
+                        <div Class="votos">
+                            <label>
+                                Voto popular %
+                                <input type="number" min="0" max="100"
+                                       @bind="cat.PonderacionPopular" style="width:70px;" />
+                            </label>
+                            <label>
+                                Voto experto %
+                                <input type="number" min="0" max="100"
+                                       @bind="cat.PonderacionExperto" style="width:70px;" />
+                            </label>
+                        </div>
+                        @foreach (var crit in cat.Criterios)
+                        {
+                            <div class="criterios" @key="crit">
+                                <input type="text" placeholder="Nombre criterio"
+                                       @bind="crit.Nombre" />
+                                <input type="text" placeholder="Descripción"
+                                       @bind="crit.Descripcion" />
+                                <input type="number" min="0" max="100" placeholder="Pond %"
+                                       @bind="crit.Ponderacion" style="width:70px;" />
+                                <button type="button" @onclick="() => EliminarCriterio(cat, crit)">✕</button>
+                            </div>
+                        }
+                        <button type="button" @onclick="() => AñadirCriterio(cat)"
+                                style="width:fit-content;margin-left:16px;">
+                            + Añadir criterio
+                        </button>
+                    </div>
+                    <button type="button" @onclick="() => EliminarCategoria(cat)">✕</button>
                 </div>
             }
-            <button type="button" @onclick="AñadirCategoria"> Añadir Categoría </button>
+            <button type="button" @onclick="AñadirCategoria">+ Añadir Categoría</button>
         </div>
 
         <div class="time-container">
@@ -62,23 +93,15 @@ else
         <div class="opciones">
             <h4>Opciones</h4>
             <hr />
-            <div>
-                <input type="checkbox" @bind="dto.TieneGrupos" />
-                <p>El proyecto se realiza en grupos</p>
-            </div>
-
-            @if (dto.TieneGrupos)
-            {
+                <div class="num-participantes">
+                    <p>Número de participantes por grupo:</p>
+                    <input type="number" min="1" max="4"
+                           @bind="dto.NumParticipantes" />
+                </div>
                 <div>
                     <input type="checkbox" @bind="dto.GruposCompletos" />
                     <p>Los grupos han de estar completos</p>
                 </div>
-                <div class="num-participantes">
-                    <p>Número de participantes por grupo:</p>
-                    <input type="number" min="1" max="4"
-                    @bind="dto.NumParticipantes" />
-                </div>
-            }
         </div>
 
         @if (!string.IsNullOrEmpty(mensaje))
@@ -86,42 +109,33 @@ else
             <p class="@(error ? "msg-error" : "msg-ok")">@mensaje</p>
         }
 
-        <div class="participantes">
-            <h4>Participantes</h4>
-            <hr />
-            @foreach (var grupo in grupos)
-            {
-                <div class="grup-container" @key="grupo">
-                    <div class="grup-sup">
-                        <input type="text" placeholder="Nombre de Grupo" />
-                        <button type="button" @onclick="() => EliminarGrupo(grupo)">✕</button>
+            <div class="participantes">
+                <h4>Grupos y participantes</h4>
+                <hr />
+                @foreach (var grupo in dto.Grupos)
+                {
+                    <div class="grup-container" @key="grupo">
+                        <div class="grup-sup">
+                            <input type="text" placeholder="Nombre del grupo"
+                            @bind="grupo.Nombre" />
+                            <button type="button" @onclick="() => EliminarGrupo(grupo)">✕</button>
+                        </div>
+                        <hr />
+                        @for (int i = 0; i < grupo.CorreosParticipantes.Count; i++)
+                        {
+                            var idx = i;
+                            <div class="participante">
+                                <input type="text"
+                                placeholder="correo@ejemplo.com"
+                                value="@grupo.CorreosParticipantes[idx]"
+                                @onchange="e => grupo.CorreosParticipantes[idx] = e.Value?.ToString() ?? string.Empty" />
+                            </div>
+                        }
                     </div>
-                    <hr />
-                    @for (int i = 0; i < dto.NumParticipantes; i++)
-                    {
-                        var key = $"{grupo}-{i}";
-                        var index = i;
-
-                        @if (!activos.Contains(key))
-                        {
-                            <div class="participante">
-                                <button type="button" @onclick="() => ActivarParticipante(grupo, index)"> ➕ </button>
-                                <p>Añadir participante</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="participante">
-                                <button type="button" @onclick="() => DesactivarParticipante(grupo, index)">✖️</button>
-                                <input type="text" placeholder="exp@example.com" />
-                                <span>Nombre</span>
-                            </div>
-                        }
-                    }
-                </div>
-            }
-            <button type="button" @onclick="AñadirGrupo" > Añadir Grupo </button>
-        </div>
+                }
+                <button type="button" @onclick="AñadirGrupo">+ Añadir Grupo</button>
+            </div>   
+        }
         <hr />
         <div class="actions">
             <button type="button" @onclick="Guardar" disabled="@cargando">
@@ -136,16 +150,13 @@ else
 
 @code {
     bool autenticado = false;
-    private List<int> categorias = new();
-    private List<int> grupos = new();
-    private int contadorCategorias = 0;
-    private int contadorGrupos = 0;
-    private HashSet<string> activos = new();
-    private EventoCreacionDto dto = new();
+    private EventoCreacionDto dto = new()
+    {
+        TieneGrupos = true
+    };
     private DateTime? fechaFinInscripciones;
     private DateTime? fechaFinEntrega;
     private DateTime? fechaFinVotaciones;
-
     private string mensaje = "";
     private bool error = false;
     private bool cargando = false;
@@ -168,32 +179,37 @@ else
 
     private void AñadirCategoria()
     {
-        categorias.Add(contadorCategorias++);
+        dto.Categorias.Add(new CategoriaCreacionDto());
     }
 
-    private void EliminarCategoria(int categoria)
+    private void EliminarCategoria(CategoriaCreacionDto cat)
     {
-        categorias.Remove(categoria);
+        dto.Categorias.Remove(cat);
+    }
+
+    private void AñadirCriterio(CategoriaCreacionDto cat)
+    {
+        cat.Criterios.Add(new CriterioCreacionDto());
+    }
+
+    private void EliminarCriterio(CategoriaCreacionDto cat, CriterioCreacionDto crit)
+    {
+        cat.Criterios.Remove(crit);
     }
 
     private void AñadirGrupo()
     {
-        grupos.Add(contadorGrupos++);
+        dto.Grupos.Add(new GrupoCreacionDto
+        {
+            CorreosParticipantes = Enumerable
+                .Repeat(string.Empty, dto.NumParticipantes)
+                .ToList()
+        });
     }
 
-    private void EliminarGrupo(int grupo)
+    private void EliminarGrupo(GrupoCreacionDto grupo)
     {
-        grupos.Remove(grupo);
-    }
-
-    private void ActivarParticipante(int grupo, int index)
-    {
-        activos.Add($"{grupo}-{index}");
-    }
-
-    private void DesactivarParticipante(int grupo, int index)
-    {
-        activos.Remove($"{grupo}-{index}");
+        dto.Grupos.Remove(grupo);
     }
 
     private void SincronizarFechas()
@@ -225,19 +241,17 @@ else
         cargando = true;
         mensaje = "";
         error = false;
- 
+
         try
         {
             var correo = AuthProvider.ObtenerCorreo()!;
             var evento = await EventoService.CrearEvento(correo, dto);
- 
+
             mensaje = publicar
                 ? $"¡Evento '{evento.Nombre}' publicado con éxito!"
                 : $"Borrador '{evento.Nombre}' guardado";
- 
-            // Navegar al panel del evento recién creado
-            if (publicar)
-                Nav.NavigateTo($"/evento/{evento.Id}");
+
+            Nav.NavigateTo($"/evento-creado/{evento.Id}");
         }
         catch (Exception ex)
         {

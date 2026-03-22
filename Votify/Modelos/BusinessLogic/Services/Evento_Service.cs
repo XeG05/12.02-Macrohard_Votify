@@ -1,9 +1,8 @@
 ﻿using Votify.Auth;
+using Votify.Modelos.BusinessLogic.DTOs;
+using Votify.Modelos.BusinessLogic.Factory;
 using Votify.Modelos.BusinessLogic.Interfaces;
 using Votify.Modelos.Persistence.Interfaces;
-using Votify.Modelos.BusinessLogic.Domain;
-using Votify.Modelos.BusinessLogic.Factory;
-using Votify.Modelos.BusinessLogic.DTOs;
 
 namespace Votify.Modelos.BusinessLogic.Services
 {
@@ -22,6 +21,9 @@ namespace Votify.Modelos.BusinessLogic.Services
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly IRepository<InvitacionPendiente> _invitacionRepo;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
         public Evento_Service(IRepository<Evento> eventoRepo, 
             IRepository<Usuario> usuarioRepo, 
             IRepository<Proyecto> proyectoRepo,
@@ -34,7 +36,10 @@ namespace Votify.Modelos.BusinessLogic.Services
             IRepository<Rol> rolRepo,
             IRepository<Criterio> criterioRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo) : base(eventoRepo)
+            IRepository<Comentario> comentarioRepo,
+            IRepository<InvitacionPendiente> invitacionRepo,
+            IEmailService emailService,
+            IConfiguration config) : base(eventoRepo)
         {
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
@@ -49,6 +54,9 @@ namespace Votify.Modelos.BusinessLogic.Services
             _criterioRepo = criterioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _invitacionRepo = invitacionRepo;
+            _emailService = emailService;
+            _config = config;
         }
 
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
@@ -118,9 +126,6 @@ namespace Votify.Modelos.BusinessLogic.Services
                 .FirstOrDefault()
                 ?? throw new Exception("Usuario no encontrado");
 
-            var todos = await _eventoRepo.GetAllAsync();
-            long nuevoId = todos.Any() ? todos.Max(e => e.Id) + 1 : 1;
-
             var evento = new Evento(
                 dto.Nombre,
                 dto.Descripcion,
@@ -130,16 +135,14 @@ namespace Votify.Modelos.BusinessLogic.Services
                 dto.TieneGrupos,
                 dto.GruposCompletos,
                 dto.NumParticipantes
-            )
-            {
-            };
+            );
 
             await _eventoRepo.AddAsync(evento);
 
             var rol = new Rol
             {
                 CorreoUsuario = correoCreador,
-                IdEvento = nuevoId,
+                IdEvento = evento.Id,
                 CorreoUsuarioNavigation = usuario,
                 IdEventoNavigation = evento
             };
@@ -150,13 +153,97 @@ namespace Votify.Modelos.BusinessLogic.Services
             var admin = new Administrador
             {
                 Correo = correoCreador,
-                Id = nuevoId,
+                Id = evento.Id,
                 Rol = rol
             };
 
             await _adminRepo.AddAsync(admin);
 
+            foreach (var catDto in dto.Categorias)
+            {
+                var categoria = new Categorium
+                {
+                    Nombre = catDto.Nombre,
+                    Descripcion = catDto.Descripcion,
+                    IdEvento = evento.Id,
+                    PonderacionPopular = catDto.PonderacionPopular,
+                    PonderacionExperto = catDto.PonderacionExperto
+                };
+                await _categoriumRepo.AddAsync(categoria);
+
+                foreach (var critDto in catDto.Criterios)
+                {
+                    var criterio = new Criterio
+                    {
+                        Nombre = critDto.Nombre,
+                        Descripcion = critDto.Descripcion,
+                        IdCategoria = categoria.Id,
+                        Ponderacion = critDto.Ponderacion
+                    };
+                    await _criterioRepo.AddAsync(criterio);
+                }
+            }
+
+            if (dto.TieneGrupos)
+            {
+                foreach (var grupoDto in dto.Grupos)
+                {
+                    var grupo = new Grupo
+                    {
+                        Nombre = grupoDto.Nombre,
+                        HojaRutaTexto = null
+                    };
+                    await _grupoRepo.AddAsync(grupo);
+                    // grupo.Id disponible aquí
+
+                    foreach (var correo in grupoDto.CorreosParticipantes
+                                                   .Where(c => !string.IsNullOrWhiteSpace(c)))
+                    {
+                        await ProcesarParticipante(correo, grupo.Id, evento, usuario);
+                    }
+                }
+            }
+
             return evento;
         }
+
+        private async Task ProcesarParticipante(string correoInvitado, long idGrupo,
+                                          Evento evento, Usuario creador)
+        {
+            if (string.IsNullOrWhiteSpace(correoInvitado)) return;
+
+            // Evitar duplicados de invitación
+            var invExistente = await _invitacionRepo.FindAsync(
+                i => i.CorreoDestino == correoInvitado &&
+                     i.IdEvento == evento.Id &&
+                     i.IdGrupo == idGrupo &&
+                     !i.Aceptada);
+
+            if (invExistente.Any()) return;
+
+            // Siempre crear invitación pendiente, exista o no el usuario
+            var token = Guid.NewGuid().ToString();
+            var invitacion = new InvitacionPendiente
+            {
+                Token = token,
+                CorreoDestino = correoInvitado,
+                IdGrupo = idGrupo,
+                IdEvento = evento.Id,
+                Aceptada = false,
+                FechaExpiracion = DateTime.UtcNow.AddDays(7),
+                CorreoCreador = creador.Correo
+            };
+            await _invitacionRepo.AddAsync(invitacion);
+
+            var urlBase = _config["App:Url"] ?? "https://localhost:7001";
+            var urlAceptacion = $"{urlBase}/aceptar-invitacion/{token}";
+
+            await _emailService.EnviarInvitacionAsync(
+                correoInvitado,
+                evento.Nombre,
+                creador.Nombre,
+                urlAceptacion);
+        }
     }
+    
 }

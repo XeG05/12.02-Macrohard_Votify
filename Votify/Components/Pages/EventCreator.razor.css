@@ -26,6 +26,14 @@ h3 {
     margin-top: 20px;
 }
 
+.categorias {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    padding: 8px;
+}
+
 .categorias > button {
     margin-top: 5px;
 }
@@ -49,6 +57,18 @@ h3 {
     width:10%;
     background-color: transparent;
     border:none;
+}
+
+.votos {
+    display: flex;
+    gap: 12px;
+}
+
+.criterios {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: 16px;
 }
 
 .time-container > div {

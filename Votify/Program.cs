@@ -15,7 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<Usuario_service>(); //Controlador
 builder.Services.AddScoped<Evento_Service>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IRepository<InvitacionPendiente>, Repository<InvitacionPendiente>>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 builder.Services.AddScoped<I_Evento_Service, Evento_Service>();

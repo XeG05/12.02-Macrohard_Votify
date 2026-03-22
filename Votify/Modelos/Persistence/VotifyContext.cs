@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Votify.Modelos;
 
@@ -44,6 +42,8 @@ public partial class VotifyContext : DbContext
     public virtual DbSet<Votante> Votantes { get; set; }
 
     public virtual DbSet<Voto> Votos { get; set; }
+
+    public virtual DbSet<InvitacionPendiente> InvitacionesPendientes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -369,6 +369,30 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_proyectoFK");
+        });
+
+        modelBuilder.Entity<InvitacionPendiente>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invitacion_pendiente_pkey");
+            entity.ToTable("invitacion_pendiente");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.Token).HasMaxLength(36).HasColumnName("token");
+            entity.Property(e => e.CorreoDestino).HasMaxLength(50).HasColumnName("correo_destino");
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+            entity.Property(e => e.IdEvento).HasColumnName("id_evento");
+            entity.Property(e => e.Aceptada).HasColumnName("aceptada");
+            entity.Property(e => e.FechaExpiracion).HasColumnName("fecha_expiracion");
+            entity.Property(e => e.CorreoCreador).HasMaxLength(50).HasColumnName("correo_creador");
+
+            entity.HasOne(d => d.IdGrupoNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdGrupo)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.IdEventoNavigation)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasForeignKey(d => d.IdEvento);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -1,0 +1,196 @@
+﻿@page "/aceptar-invitacion/{Token}"
+@rendermode InteractiveServer
+@layout NoLayout
+@inject IRepository<Votify.Modelos.Usuario> UsuarioRepo
+@inject I_Usuario_Service UsuarioService
+@inject IRepository<Votify.Modelos.Rol> RolRepo
+@inject IRepository<Votify.Modelos.Participante> ParticipanteRepo
+@inject IRepository<Votify.Modelos.Evento> EventoRepo
+@inject IRepository<InvitacionPendiente> InvitacionRepo
+@inject JwtService JwtService
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@using Votify.Modelos
+@using Votify.Modelos.Persistence.Interfaces
+
+@if (cargando)
+{
+    <p>Verificando invitación...</p>
+}
+else if (invitacion == null)
+{
+    <p>Esta invitación no es válida o ha caducado.</p>
+}
+else if (invitacion.Aceptada)
+{
+    <p>Esta invitación ya fue aceptada.</p>
+}
+else if (aceptada)
+{
+    <p>¡Bienvenido! Redirigiendo...</p>
+}
+else
+{
+    <div class="layout">
+        <h1>Votify</h1>
+        <p>Has sido invitado al evento <strong>@nombreEvento</strong>.</p>
+
+        @if (usuarioExiste)
+        {
+            <!-- Usuario ya tiene cuenta: mostrar login -->
+            <p>Inicia sesión para confirmar tu participación:</p>
+            <div class="input">
+                <p>Contraseña:</p>
+                <input @bind="contraseña" type="password"
+                       placeholder="Introduce tu contraseña" />
+            </div>
+        }
+        else
+        {
+            <!-- Usuario no tiene cuenta: mostrar registro -->
+            <p>Crea tu cuenta para unirte:</p>
+            <div class="input">
+                <p>Nombre:</p>
+                <input @bind="nombre" placeholder="Tu nombre completo" />
+            </div>
+            <div class="input">
+                <p>Contraseña:</p>
+                <input @bind="contraseña" type="password" />
+            </div>
+            <div class="input">
+                <p>Repite contraseña:</p>
+                <input @bind="contraseña2" type="password" />
+            </div>
+        }
+
+        <div class="input">
+            <p>Correo:</p>
+            <input value="@invitacion.CorreoDestino" disabled />
+        </div>
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <p style="color:red">@error</p>
+        }
+
+        <div class="button">
+            <button @onclick="Aceptar">
+                @(usuarioExiste ? "Confirmar participación" : "Crear cuenta y unirme")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+
+    InvitacionPendiente? invitacion;
+    string nombreEvento = "";
+    bool cargando = true;
+    bool aceptada = false;
+    bool usuarioExiste = false;
+    string error = "";
+
+    string nombre = "";
+    string contraseña = "";
+    string contraseña2 = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var lista = await InvitacionRepo.FindAsync(
+            i => i.Token == Token &&
+                 !i.Aceptada &&
+                 i.FechaExpiracion > DateTime.UtcNow);
+        invitacion = lista.FirstOrDefault();
+
+        if (invitacion != null)
+        {
+            var evento = await EventoRepo.GetByIdAsync(invitacion.IdEvento);
+            nombreEvento = evento?.Nombre ?? "";
+
+            // Comprobar si ya tiene cuenta
+            var usuarios = await UsuarioRepo.FindAsync(
+                u => u.Correo == invitacion.CorreoDestino);
+            usuarioExiste = usuarios.Any();
+        }
+
+        cargando = false;
+    }
+
+    async Task Aceptar()
+    {
+        error = "";
+        try
+        {
+            if (invitacion == null) return;
+
+            Votify.Modelos.Usuario? usuario;
+
+            if (usuarioExiste)
+            {
+                usuario = await UsuarioService.Login(
+                    invitacion.CorreoDestino, contraseña);
+            }
+            else
+            {
+                usuario = await UsuarioService.Register(
+                    nombre,
+                    invitacion.CorreoDestino,
+                    contraseña,
+                    contraseña2);
+            }
+
+            if (usuario == null)
+                throw new Exception("No se pudo autenticar.");
+
+            var evento = await EventoRepo.GetByIdAsync(invitacion.IdEvento)
+                ?? throw new Exception("Evento no encontrado.");
+
+            var rolExistente = await RolRepo.FindAsync(
+                r => r.CorreoUsuario == usuario.Correo &&
+                     r.IdEvento == invitacion.IdEvento);
+
+            if (!rolExistente.Any())
+            {
+                var rol = new Votify.Modelos.Rol
+                {
+                    CorreoUsuario = usuario.Correo,
+                    IdEvento = invitacion.IdEvento,
+                    CorreoUsuarioNavigation = usuario,
+                    IdEventoNavigation = evento
+                };
+                await RolRepo.AddAsync(rol);
+            }
+
+            var participanteExistente = await ParticipanteRepo.FindAsync(
+                p => p.Correo == usuario.Correo &&
+                     p.IdGrupo == invitacion.IdGrupo);
+
+            if (!participanteExistente.Any())
+            {
+                var participante = new Votify.Modelos.Participante
+                {
+                    Correo = usuario.Correo,
+                    Id = invitacion.IdEvento,
+                    IdGrupo = invitacion.IdGrupo
+                };
+                await ParticipanteRepo.AddAsync(participante);
+            }
+
+            invitacion.Aceptada = true;
+            await InvitacionRepo.UpdateAsync(invitacion);
+
+            var token = JwtService.GenerateToken(usuario);
+            await AuthProvider.MarcarAutenticado(token);
+
+            aceptada = true;
+            StateHasChanged();
+            await Task.Delay(1500);
+            Nav.NavigateTo($"/evento/{invitacion.IdEvento}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

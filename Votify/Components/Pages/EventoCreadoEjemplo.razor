@@ -1,0 +1,854 @@
+@page "/evento-creado/{EventoId:long}"
+@rendermode InteractiveServer
+@layout NoLayout
+@inject IRepository<Votify.Modelos.Evento> EventoRepo
+@inject IRepository<Votify.Modelos.Categorium> CategoriaRepo
+@inject IRepository<Votify.Modelos.Criterio> CriterioRepo
+@inject IRepository<Votify.Modelos.Grupo> GrupoRepo
+@inject IRepository<Votify.Modelos.Participante> ParticipanteRepo
+@inject IRepository<Votify.Modelos.Usuario> UsuarioRepo
+@inject IRepository<Votify.Modelos.InvitacionPendiente> InvitacionRepo
+@inject IRepository<Votify.Modelos.Rol> RolRepo
+@inject NavigationManager Nav
+@using Votify.Modelos
+@using Votify.Modelos.Persistence.Interfaces
+
+@if (cargando)
+{
+    <div class="ec-loading">
+        <div class="ec-loading-ring"></div>
+        <span>Cargando evento...</span>
+    </div>
+}
+else if (evento == null)
+{
+    <div class="ec-error">
+        <p>No se encontró el evento con ID @EventoId.</p>
+        <button @onclick='() => Nav.NavigateTo("/home")'>Volver al inicio</button>
+    </div>
+}
+else
+{
+    <div class="ec-root">
+
+        <!-- HERO -->
+        <div class="ec-hero">
+            <div class="ec-hero-inner">
+                <div class="ec-pill">Evento creado</div>
+                <h1>@evento.Nombre</h1>
+                <p class="ec-desc">@evento.Descripcion</p>
+
+                <div class="ec-dates">
+                    <div class="ec-date-item">
+                        <span class="ec-date-label">Inscripciones</span>
+                        <span class="ec-date-val">hasta @evento.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                    </div>
+                    <div class="ec-date-sep"></div>
+                    <div class="ec-date-item">
+                        <span class="ec-date-label">Entrega</span>
+                        <span class="ec-date-val">hasta @evento.FechaFinEntrega.ToString("dd MMM yyyy")</span>
+                    </div>
+                    <div class="ec-date-sep"></div>
+                    <div class="ec-date-item">
+                        <span class="ec-date-label">Votaciones</span>
+                        <span class="ec-date-val">hasta @evento.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="ec-stats">
+                    <div class="ec-stat">
+                        <span class="ec-stat-n">@categorias.Count</span>
+                        <span class="ec-stat-l">@(categorias.Count == 1 ? "categoría" : "categorías")</span>
+                    </div>
+                    <div class="ec-stat">
+                        <span class="ec-stat-n">@totalCriterios</span>
+                        <span class="ec-stat-l">@(totalCriterios == 1 ? "criterio" : "criterios")</span>
+                    </div>
+                    <div class="ec-stat">
+                        <span class="ec-stat-n">@grupos.Count</span>
+                        <span class="ec-stat-l">@(grupos.Count == 1 ? "grupo" : "grupos")</span>
+                    </div>
+                    <div class="ec-stat">
+                        <span class="ec-stat-n">@totalParticipantes</span>
+                        <span class="ec-stat-l">@(totalParticipantes == 1 ? "participante" : "participantes")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="ec-content">
+
+            <!-- CATEGORÍAS -->
+            <section class="ec-section">
+                <div class="ec-section-header">
+                    <div class="ec-section-num">01</div>
+                    <h2>Categorías y criterios</h2>
+                </div>
+
+                @if (!categorias.Any())
+                {
+                    <div class="ec-empty">No se definieron categorías</div>
+                }
+                else
+                {
+                    <div class="ec-cat-grid">
+                        @foreach (var cat in categorias)
+                        {
+                            <div class="ec-cat-card">
+                                <div class="ec-cat-top">
+                                    <h3>@cat.Nombre</h3>
+                                    <span class="ec-cat-badge">
+                                        @(criteriosPorCategoria.ContainsKey(cat.Id)
+                                            ? criteriosPorCategoria[cat.Id].Count
+                                            : 0) criterios
+                                    </span>
+                                </div>
+                                <p class="ec-cat-desc">@cat.Descripcion</p>
+
+                                <div class="ec-pond-row">
+                                    <div class="ec-pond">
+                                        <span class="ec-pond-label">Voto popular</span>
+                                        <div class="ec-pond-bar">
+                                            <div class="ec-pond-fill ec-pond-fill--pop"
+                                                 style="width: @Math.Min(cat.PonderacionPopular, 100)%"></div>
+                                        </div>
+                                        <span class="ec-pond-val">@cat.PonderacionPopular%</span>
+                                    </div>
+                                    <div class="ec-pond">
+                                        <span class="ec-pond-label">Voto experto</span>
+                                        <div class="ec-pond-bar">
+                                            <div class="ec-pond-fill ec-pond-fill--exp"
+                                                 style="width: @Math.Min(cat.PonderacionExperto, 100)%"></div>
+                                        </div>
+                                        <span class="ec-pond-val">@cat.PonderacionExperto%</span>
+                                    </div>
+                                </div>
+
+                                @if (criteriosPorCategoria.ContainsKey(cat.Id) && criteriosPorCategoria[cat.Id].Any())
+                                {
+                                    <div class="ec-criterios">
+                                        @foreach (var crit in criteriosPorCategoria[cat.Id])
+                                        {
+                                            <div class="ec-criterio">
+                                                <div class="ec-criterio-dot"></div>
+                                                <div class="ec-criterio-info">
+                                                    <span class="ec-criterio-nombre">@crit.Nombre</span>
+                                                    <span class="ec-criterio-desc">@crit.Descripcion</span>
+                                                </div>
+                                                <span class="ec-criterio-pond">@crit.Ponderacion%</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+
+            <!-- GRUPOS Y PARTICIPANTES -->
+            
+                <section class="ec-section">
+                    <div class="ec-section-header">
+                        <div class="ec-section-num">02</div>
+                        <h2>Grupos y participantes</h2>
+                        <div class="ec-section-meta">
+                            @if (evento.GruposCompletos)
+                            {
+                                <span class="ec-tag ec-tag--dark">Grupos completos</span>
+                            }
+                            <span class="ec-tag">@evento.ParticipantesPorGrupo por grupo</span>
+                        </div>
+                    </div>
+
+                    @if (!grupos.Any())
+                    {
+                        <div class="ec-empty">No se crearon grupos todavía</div>
+                    }
+                    else
+                    {
+                        <div class="ec-grupos-grid">
+                            @foreach (var grupo in grupos)
+                            {
+                                var miembros = participantesPorGrupo.ContainsKey(grupo.Id)
+                                    ? participantesPorGrupo[grupo.Id] : new();
+                                var pendientes = invitacionesPorGrupo.ContainsKey(grupo.Id)
+                                    ? invitacionesPorGrupo[grupo.Id] : new();
+                                var total = miembros.Count + pendientes.Count;
+                                var pct = evento.ParticipantesPorGrupo > 0
+                                    ? (int)((double)miembros.Count / evento.ParticipantesPorGrupo * 100) : 0;
+
+                                <div class="ec-grupo-card">
+                                    <div class="ec-grupo-top">
+                                        <h3>@grupo.Nombre</h3>
+                                        <span class="ec-grupo-count">
+                                            @miembros.Count / @evento.ParticipantesPorGrupo
+                                        </span>
+                                    </div>
+
+                                    <div class="ec-fill-bar">
+                                        <div class="ec-fill-inner" style="width: @pct%"></div>
+                                    </div>
+
+                                    <!-- Participantes activos -->
+                                    @if (miembros.Any())
+                                    {
+                                        <div class="ec-member-list">
+                                            @foreach (var m in miembros)
+                                            {
+                                                <div class="ec-member">
+                                                    <div class="ec-avatar">@(m.Nombre.Length > 0 ? m.Nombre[0].ToString().ToUpper() : "?")</div>
+                                                    <div class="ec-member-data">
+                                                        <span class="ec-member-name">@m.Nombre</span>
+                                                        <span class="ec-member-email">@m.Correo</span>
+                                                    </div>
+                                                    <div class="ec-dot ec-dot--active"></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Invitaciones pendientes -->
+                                    @if (pendientes.Any())
+                                    {
+                                        <div class="ec-member-list ec-member-list--pending">
+                                            @foreach (var inv in pendientes)
+                                            {
+                                                <div class="ec-member">
+                                                    <div class="ec-avatar ec-avatar--pending">
+                                                        @inv.CorreoDestino[0].ToString().ToUpper()
+                                                    </div>
+                                                    <div class="ec-member-data">
+                                                        <span class="ec-member-name">Invitación enviada</span>
+                                                        <span class="ec-member-email">@inv.CorreoDestino</span>
+                                                    </div>
+                                                    <div class="ec-dot ec-dot--pending"></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @if (!miembros.Any() && !pendientes.Any())
+                                    {
+                                        <div class="ec-grupo-empty">Sin participantes aún</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+            
+
+            <!-- CONFIGURACIÓN -->
+            <section class="ec-section">
+                <div class="ec-section-header">
+                    <div class="ec-section-num">@(evento.TieneGrupos ? "03" : "02")</div>
+                    <h2>Configuración del evento</h2>
+                </div>
+
+                <div class="ec-config-grid">
+                    <div class="ec-config-item">
+                        <span class="ec-config-label">Modalidad</span>
+                        <span class="ec-config-val">@(evento.TieneGrupos ? "Trabajo en grupos" : "Individual")</span>
+                    </div>
+                    @if (evento.TieneGrupos)
+                    {
+                        <div class="ec-config-item">
+                            <span class="ec-config-label">Grupos completos</span>
+                            <span class="ec-config-val">@(evento.GruposCompletos ? "Sí, obligatorio" : "No requerido")</span>
+                        </div>
+                        <div class="ec-config-item">
+                            <span class="ec-config-label">Tamaño de grupo</span>
+                            <span class="ec-config-val">@evento.ParticipantesPorGrupo participantes</span>
+                        </div>
+                    }
+                    <div class="ec-config-item">
+                        <span class="ec-config-label">ID del evento</span>
+                        <span class="ec-config-val ec-config-val--mono">#@evento.Id</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ACCIONES -->
+            <div class="ec-actions">
+                <button class="ec-btn ec-btn--secondary" @onclick='() => Nav.NavigateTo("/home")'>
+                    Volver al inicio
+                </button>
+                <button class="ec-btn ec-btn--primary" @onclick='() => Nav.NavigateTo($"/evento/{evento.Id}")'>
+                    Ir al panel del evento
+                </button>
+            </div>
+
+        </div>
+    </div>
+    <div style="background:#1c1b18;color:#6dff49;padding:20px;border-radius:12px;font-family:monospace;font-size:13px;margin-top:32px;">
+        <strong>DEBUG</strong><br/>
+        EventoId: @EventoId<br/>
+        Evento encontrado: @(evento != null ? "SÍ" : "NO")<br/>
+        Categorías: @categorias.Count<br/>
+        Grupos: @grupos.Count<br/>
+        Participantes totales: @totalParticipantes<br/>
+        Invitaciones en BD: @debugInvitaciones<br/>
+        Roles en BD: @debugRoles<br/>
+        Error: @debugError
+    </div>
+}
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+
+    string debugError = "";
+    int debugInvitaciones = 0;
+    int debugRoles = 0;
+    bool cargando = true;
+    Evento? evento;
+
+    List<Categorium> categorias = new();
+    Dictionary<long, List<Criterio>> criteriosPorCategoria = new();
+    int totalCriterios = 0;
+
+    List<Grupo> grupos = new();
+    Dictionary<long, List<(string Nombre, string Correo)>> participantesPorGrupo = new();
+    Dictionary<long, List<InvitacionPendiente>> invitacionesPorGrupo = new();
+    int totalParticipantes = 0;
+
+    protected override async Task OnInitializedAsync()
+{
+        try
+        {
+            evento = await EventoRepo.GetByIdAsync(EventoId);
+            if (evento == null) { cargando = false; return; }
+
+            // Categorías y criterios
+            categorias = await CategoriaRepo.FindAsync(c => c.IdEvento == EventoId);
+            foreach (var cat in categorias)
+            {
+                var criterios = await CriterioRepo.FindAsync(c => c.IdCategoria == cat.Id);
+                criteriosPorCategoria[cat.Id] = criterios;
+                totalCriterios += criterios.Count;
+            }
+
+            // Debug — cuántas invitaciones e invitaciones hay en total
+            var todasInvitaciones = await InvitacionRepo.FindAsync(
+                i => i.IdEvento == EventoId);
+            debugInvitaciones = todasInvitaciones.Count;
+
+            // Obtener Roles del evento para llegar a los grupos
+            // La cadena es: Evento → Rol → Participante → Grupo
+            var roles = await RolRepo.FindAsync(r => r.IdEvento == EventoId);
+            debugRoles = roles.Count;
+
+            // Grupos desde participantes activos
+            foreach (var rol in roles)
+            {
+                var participantes = await ParticipanteRepo.FindAsync(
+                    p => p.Correo == rol.CorreoUsuario && p.Id == rol.IdEvento);
+
+                foreach (var p in participantes)
+                {
+                    var grupo = await GrupoRepo.GetByIdAsync(p.IdGrupo);
+                    if (grupo != null && !grupos.Any(g => g.Id == grupo.Id))
+                        grupos.Add(grupo);
+                }
+            }
+
+            // Grupos desde invitaciones pendientes
+            foreach (var inv in todasInvitaciones)
+            {
+                var grupo = await GrupoRepo.GetByIdAsync(inv.IdGrupo);
+                if (grupo != null && !grupos.Any(g => g.Id == grupo.Id))
+                    grupos.Add(grupo);
+            }
+
+            // Participantes e invitaciones por grupo
+            foreach (var grupo in grupos)
+            {
+                var participantes = await ParticipanteRepo.FindAsync(
+                    p => p.IdGrupo == grupo.Id);
+                var lista = new List<(string, string)>();
+
+                foreach (var p in participantes)
+                {
+                    var u = (await UsuarioRepo.FindAsync(
+                        usr => usr.Correo == p.Correo)).FirstOrDefault();
+                    lista.Add((u?.Nombre ?? p.Correo, p.Correo));
+                }
+
+                participantesPorGrupo[grupo.Id] = lista;
+                totalParticipantes += lista.Count;
+
+                var invs = await InvitacionRepo.FindAsync(
+                    i => i.IdGrupo == grupo.Id && i.IdEvento == EventoId && !i.Aceptada);
+                invitacionesPorGrupo[grupo.Id] = invs;
+            }
+        }
+        catch (Exception ex)
+        {
+            debugError = ex.Message;
+        }
+
+        cargando = false;
+    }
+}
+
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .ec-root {
+        min-height: 100vh;
+        background: #f4f2ee;
+        font-family: 'DM Sans', sans-serif;
+        color: #1c1b18;
+    }
+
+    /* LOADING */
+    .ec-loading {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-size: 0.9rem;
+        color: #888;
+        background: #f4f2ee;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .ec-loading-ring {
+        width: 36px; height: 36px;
+        border: 3px solid #e0ddd7;
+        border-top-color: #1c1b18;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .ec-error {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    /* HERO */
+    .ec-hero {
+        background: #1c1b18;
+        padding: 72px 40px 60px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ec-hero::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 400px; height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(109,255,73,0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .ec-hero-inner {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .ec-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(109,255,73,0.15);
+        color: #6dff49;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 5px 14px;
+        border-radius: 99px;
+        border: 1px solid rgba(109,255,73,0.3);
+        margin-bottom: 20px;
+    }
+
+    .ec-pill::before {
+        content: '';
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #6dff49;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .ec-hero h1 {
+        font-family: 'Fraunces', serif;
+        font-size: clamp(2.2rem, 5vw, 3.8rem);
+        font-weight: 600;
+        color: #f4f2ee;
+        line-height: 1.1;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .ec-desc {
+        font-size: 1rem;
+        color: #8a897f;
+        max-width: 560px;
+        line-height: 1.7;
+        margin-bottom: 36px;
+    }
+
+    /* FECHAS */
+    .ec-dates {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex-wrap: wrap;
+        margin-bottom: 36px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        overflow: hidden;
+        width: fit-content;
+    }
+
+    .ec-date-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 14px 24px;
+    }
+
+    .ec-date-sep {
+        width: 1px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+    }
+
+    .ec-date-label { font-size: 0.72rem; color: #6b6a60; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+    .ec-date-val   { font-size: 0.9rem; color: #f4f2ee; font-weight: 500; }
+
+    /* STATS */
+    .ec-stats {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+
+    .ec-stat { display: flex; flex-direction: column; gap: 2px; }
+    .ec-stat-n { font-family: 'Fraunces', serif; font-size: 2.4rem; font-weight: 600; color: #6dff49; line-height: 1; }
+    .ec-stat-l { font-size: 0.8rem; color: #6b6a60; }
+
+    /* CONTENT */
+    .ec-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 48px 40px 64px;
+    }
+
+    /* SECTION */
+    .ec-section { margin-bottom: 56px; }
+
+    .ec-section-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .ec-section-num {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #6dff49;
+        background: #1c1b18;
+        padding: 4px 9px;
+        border-radius: 6px;
+        letter-spacing: 1px;
+    }
+
+    .ec-section-header h2 {
+        font-family: 'Fraunces', serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1c1b18;
+        flex: 1;
+    }
+
+    .ec-section-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .ec-tag {
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: #ece9e3;
+        color: #5a5950;
+        padding: 4px 12px;
+        border-radius: 99px;
+        border: 1px solid #ddd9d0;
+    }
+
+    .ec-tag--dark { background: #1c1b18; color: #f4f2ee; border-color: #1c1b18; }
+
+    /* CATEGORÍAS */
+    .ec-cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 16px;
+    }
+
+    .ec-cat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid #e4e1da;
+    }
+
+    .ec-cat-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .ec-cat-top h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1c1b18;
+    }
+
+    .ec-cat-badge {
+        font-size: 0.75rem;
+        background: #f4f2ee;
+        color: #7a7870;
+        padding: 3px 10px;
+        border-radius: 99px;
+        border: 1px solid #e4e1da;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .ec-cat-desc {
+        font-size: 0.85rem;
+        color: #8a897f;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    /* PONDERACIONES */
+    .ec-pond-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+    .ec-pond { display: flex; align-items: center; gap: 10px; }
+    .ec-pond-label { font-size: 0.75rem; color: #8a897f; width: 90px; flex-shrink: 0; }
+
+    .ec-pond-bar {
+        flex: 1;
+        height: 6px;
+        background: #f0ede8;
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .ec-pond-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition: width 0.6s ease;
+    }
+
+    .ec-pond-fill--pop { background: #6dff49; }
+    .ec-pond-fill--exp { background: #1c1b18; }
+    .ec-pond-val { font-size: 0.75rem; font-family: 'DM Mono', monospace; color: #5a5950; width: 36px; text-align: right; }
+
+    /* CRITERIOS */
+    .ec-criterios { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0ede8; padding-top: 14px; margin-top: 4px; }
+
+    .ec-criterio {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #faf9f6;
+    }
+
+    .ec-criterio-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #ccc9c0;
+        margin-top: 6px;
+        flex-shrink: 0;
+    }
+
+    .ec-criterio-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .ec-criterio-nombre { font-size: 0.85rem; font-weight: 600; color: #1c1b18; }
+    .ec-criterio-desc   { font-size: 0.78rem; color: #8a897f; }
+    .ec-criterio-pond   { font-size: 0.75rem; font-family: 'DM Mono', monospace; color: #5a5950; white-space: nowrap; }
+
+    /* GRUPOS */
+    .ec-grupos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    .ec-grupo-card {
+        background: white;
+        border-radius: 16px;
+        padding: 22px;
+        border: 1px solid #e4e1da;
+    }
+
+    .ec-grupo-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .ec-grupo-top h3 { font-size: 1rem; font-weight: 600; color: #1c1b18; }
+
+    .ec-grupo-count {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.78rem;
+        color: #8a897f;
+        background: #f4f2ee;
+        padding: 3px 9px;
+        border-radius: 99px;
+    }
+
+    .ec-fill-bar {
+        height: 4px;
+        background: #f0ede8;
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .ec-fill-inner {
+        height: 100%;
+        background: #6dff49;
+        border-radius: 99px;
+        transition: width 0.8s cubic-bezier(.22,1,.36,1);
+    }
+
+    .ec-member-list { display: flex; flex-direction: column; gap: 6px; }
+    .ec-member-list--pending { margin-top: 8px; opacity: 0.7; }
+
+    .ec-member {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: #faf9f6;
+        border: 1px solid #f0ede8;
+    }
+
+    .ec-avatar {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: #1c1b18;
+        color: #6dff49;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .ec-avatar--pending { background: #e4e1da; color: #8a897f; }
+
+    .ec-member-data { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+    .ec-member-name  { font-size: 0.85rem; font-weight: 600; color: #1c1b18; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ec-member-email { font-size: 0.75rem; color: #8a897f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .ec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ec-dot--active  { background: #6dff49; }
+    .ec-dot--pending { background: #f0c040; }
+
+    .ec-grupo-empty {
+        font-size: 0.83rem;
+        color: #b0ada5;
+        text-align: center;
+        padding: 16px 0;
+        border: 1.5px dashed #e4e1da;
+        border-radius: 8px;
+    }
+
+    /* CONFIGURACIÓN */
+    .ec-config-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .ec-config-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: white;
+        border: 1px solid #e4e1da;
+        border-radius: 12px;
+        padding: 16px 20px;
+        min-width: 180px;
+    }
+
+    .ec-config-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.7px; color: #8a897f; font-weight: 600; }
+    .ec-config-val   { font-size: 0.95rem; font-weight: 600; color: #1c1b18; }
+    .ec-config-val--mono { font-family: 'DM Mono', monospace; }
+
+    .ec-empty {
+        font-size: 0.88rem;
+        color: #a0a09a;
+        text-align: center;
+        padding: 24px;
+        border: 1.5px dashed #e0ddd7;
+        border-radius: 12px;
+        background: white;
+    }
+
+    /* ACCIONES */
+    .ec-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 8px;
+    }
+
+    .ec-btn {
+        padding: 12px 28px;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+
+    .ec-btn--secondary {
+        background: white;
+        color: #1c1b18;
+        border: 1.5px solid #e4e1da;
+    }
+
+    .ec-btn--secondary:hover { border-color: #1c1b18; }
+
+    .ec-btn--primary {
+        background: #1c1b18;
+        color: #f4f2ee;
+    }
+
+    .ec-btn--primary:hover { background: #333230; }
+
+    @@media (max-width: 640px) {
+        .ec-hero { padding: 48px 20px 40px; }
+        .ec-content { padding: 32px 20px 48px; }
+        .ec-dates { flex-direction: column; width: 100%; }
+        .ec-date-sep { width: 100%; height: 1px; }
+        .ec-actions { flex-direction: column; }
+        .ec-btn { width: 100%; text-align: center; }
+    }
+</style>
