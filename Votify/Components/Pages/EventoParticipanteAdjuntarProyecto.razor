@@ -132,11 +132,16 @@ else
     {
         try
         {
-            eventoParticipante = EventoCtx.EventoActual as EventoParticipante;
+            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
+
+            if (entradaEvento.Evento is EventoParticipante participante)
+            {
+                eventoParticipante = participante;
+            }
 
             if (eventoParticipante == null)
             {
-                error = "No hay contexto de participante cargado.";
+                error = "No se ha podido cargar el evento como participante.";
                 return;
             }
 

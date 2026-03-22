@@ -77,7 +77,28 @@ else
     private string descripcionBreve = string.Empty;
     private string descripcionCompleta = string.Empty;
     private string? error;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
 
+            if (entradaEvento.Evento is EventoParticipante participante)
+            {
+                eventoParticipante = participante;
+            }
+
+            if (eventoParticipante == null)
+            {
+                error = "No se ha podido cargar el evento como participante.";
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
     protected override void OnInitialized()
     {
         eventoParticipante = EventoCtx.EventoActual as EventoParticipante;
