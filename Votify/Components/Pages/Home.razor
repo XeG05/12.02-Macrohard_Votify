@@ -1,4 +1,5 @@
-﻿@page "/"
+﻿@page "/home"
+@inject NavigationManager Nav
 
 <h3>Home</h3>
 
@@ -18,5 +19,11 @@
     </NavLink>
 </div>
 @code {
-
+    /*protected override void OnInitialized()
+    {
+        if (!estaLogueado)
+        {
+            Nav.NavigateTo("/");
+        }
+    }*/
 }
