@@ -22,8 +22,33 @@ h3 {
     width: 400px;
 }
 
-.time-container, .opciones, .participantes {
+.time-container, .opciones, .participantes, .categorias {
     margin-top: 20px;
+}
+
+.categorias > button {
+    margin-top: 5px;
+}
+
+.categoria-container{
+    display:flex;
+    flex-direction: row;
+    margin: 5px;
+    padding: 2px;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.categoria-container > input {
+    width:90%;
+    margin-left: 10px;
+    border:none;
+}
+
+.categoria-container > button {
+    width:10%;
+    background-color: transparent;
+    border:none;
 }
 
 .time-container > div {

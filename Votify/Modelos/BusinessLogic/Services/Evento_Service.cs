@@ -61,8 +61,6 @@ namespace Votify.Modelos.BusinessLogic.Services
             var evento = await _eventoRepo.GetByIdAsync(eventoId)
                 ?? throw new Exception("Evento no encontrado");
 
-            // Detectar rol consultando cada tabla de sub-rol
-            // El correo y el idEvento actúan como FK hacia Rol
             var tipoRol = await DetectarRol(correo, eventoId);
 
             EventoCreator creator = tipoRol switch
@@ -109,21 +107,16 @@ namespace Votify.Modelos.BusinessLogic.Services
 
         public async Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto)
         {
-            // 1. Validar el DTO
             var (esValido, error) = dto.Validar();
             if (!esValido) throw new Exception(error);
 
-            // 2. Verificar que el usuario existe
             var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correoCreador))
                 .FirstOrDefault()
                 ?? throw new Exception("Usuario no encontrado");
 
-            // 3. Calcular el siguiente ID disponible
-            //    (Si tu BD usa secuencias PostgreSQL cambia esto por ValueGeneratedOnAdd en el contexto)
             var todos = await _eventoRepo.GetAllAsync();
             long nuevoId = todos.Any() ? todos.Max(e => e.Id) + 1 : 1;
 
-            // 4. Construir la entidad Evento
             var evento = new Evento(
                 dto.Nombre,
                 dto.Descripcion,
@@ -137,10 +130,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             {
             };
 
-            // 5. Persistir el evento
             await _eventoRepo.AddAsync(evento);
 
-            // 6. Crear el Rol de Administrador para el creador
             var rol = new Rol
             {
                 CorreoUsuario = correoCreador,
@@ -149,10 +140,9 @@ namespace Votify.Modelos.BusinessLogic.Services
                 IdEventoNavigation = evento
             };
 
-            // Necesitas IRepository<Rol> — ver nota al final
             await _rolRepo.AddAsync(rol);
 
-            // 7. Crear el registro Administrador
+
             var admin = new Administrador
             {
                 Correo = correoCreador,
