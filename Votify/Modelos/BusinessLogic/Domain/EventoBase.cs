@@ -1,4 +1,6 @@
-﻿namespace Votify.Modelos.BusinessLogic.Domain
+﻿using Votify.Modelos.BusinessLogic.Enums;
+
+namespace Votify.Modelos.BusinessLogic.Domain
 {
     public abstract class EventoBase
     {
@@ -21,5 +23,18 @@
         public bool TieneGrupos => evento.TieneGrupos;
         public bool GruposCompletos => evento.GruposCompletos;
         public int ParticipantesPorGrupo => evento.ParticipantesPorGrupo;
+
+        public FasesEvento ObtenerFaseActual()
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.Now);
+
+            if (hoy <= evento.FechaFinInscripciones)
+                return FasesEvento.Inscripciones;
+
+            if (hoy <= evento.FechaFinVotaciones)
+                return FasesEvento.Votaciones;
+
+            return FasesEvento.Resultados;
+        }
     }
 }
