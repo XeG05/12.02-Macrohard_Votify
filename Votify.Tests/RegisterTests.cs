@@ -29,7 +29,7 @@ namespace Votify.Tests
                 .FirstOrDefaultAsync(u => u.Correo == "pablo@gmail.com");
 
             Assert.IsNotNull(usuarioGuardado);
-            Assert.AreEqual("Laura", usuarioGuardado.Nombre);
+            Assert.AreEqual("Pablo", usuarioGuardado.Nombre);
         }
 
         [TestMethod]

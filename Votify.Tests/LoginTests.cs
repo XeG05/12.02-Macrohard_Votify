@@ -21,7 +21,7 @@ namespace Votify.Tests
             var usuario = await UsuarioService.Login("pablo@gmail.com", "12345");
 
             Assert.IsNotNull(usuario);
-            Assert.AreEqual("pablo", usuario.Nombre);
+            Assert.AreEqual("Pablo", usuario.Nombre);
             Assert.AreEqual("pablo@gmail.com", usuario.Correo);
             Assert.AreEqual("12345", usuario.Contraseña);
         }
