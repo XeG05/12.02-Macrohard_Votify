@@ -54,7 +54,7 @@
             {
                 var token = JwtService.GenerateToken(usuario);
                 await AuthProvider.MarcarAutenticado(token);  // ← await
-                Nav.NavigateTo("/");
+                Nav.NavigateTo("/home");
             }
         }
         catch (Exception ex)
