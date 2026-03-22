@@ -24,7 +24,7 @@ namespace Votify.Modelos.BusinessLogic.Factory
             _categoriaRepo = categoriaRepo;
             _usuarioRepo = usuarioRepo;
         }
-
+         
         public override EventoBase CrearEvento(Evento evento, Usuario usuario)
         {
             return new EventoParticipante(

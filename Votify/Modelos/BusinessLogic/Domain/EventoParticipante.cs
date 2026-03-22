@@ -6,7 +6,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
-        private readonly IRepository<Categorium> _categoriaRepo;
+        private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
 
         public EventoParticipante(
@@ -15,14 +15,14 @@ namespace Votify.Modelos.BusinessLogic.Domain
             IRepository<Participante> participanteRepo,
             IRepository<Grupo> grupoRepo,
             IRepository<Proyecto> proyectoRepo,
-            IRepository<Categorium> categoriaRepo,
+            IRepository<Categorium> categoriumRepo,
             IRepository<Usuario> usuarioRepo
         ) : base(evento, usuario)
         {
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
             _proyectoRepo = proyectoRepo;
-            _categoriaRepo = categoriaRepo;
+            _categoriumRepo = categoriumRepo;
             _usuarioRepo = usuarioRepo;
         }
 
@@ -70,7 +70,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Categorium>> ObtenerCategoriasEvento()
         {
-            return await _categoriaRepo.FindAsync(c => c.IdEvento == evento.Id);
+            return await _categoriumRepo.FindAsync(c => c.IdEvento == evento.Id);
         }
 
         public async Task<Proyecto?> ObtenerMiProyecto()
@@ -107,7 +107,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             if (grupo == null)
                 throw new Exception("No se ha encontrado el grupo del participante.");
 
-            var categoria = (await _categoriaRepo.FindAsync(c =>
+            var categoria = (await _categoriumRepo.FindAsync(c =>
                 c.Id == idCategoria &&
                 c.IdEvento == evento.Id))
                 .FirstOrDefault();

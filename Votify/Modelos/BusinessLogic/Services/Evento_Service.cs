@@ -69,7 +69,11 @@ namespace Votify.Modelos.BusinessLogic.Services
                     _eventoRepo, _proyectoRepo,
                     _participanteRepo, _grupoRepo, _categoriumRepo, _votoRepo),
 
-                "PARTICIPANTE" => new EventoParticipanteCreator(),
+                "PARTICIPANTE" => new EventoParticipanteCreator(_participanteRepo,
+            _grupoRepo,
+            _proyectoRepo,
+            _categoriumRepo,
+            _usuarioRepo),
                 /*
                 "VOTANTE" => new EventoVotanteCreator(),
 
