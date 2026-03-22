@@ -1,4 +1,5 @@
 ﻿using Votify.Modelos.BusinessLogic.DTOs;
+using Votify.Modelos.BusinessLogic.Enums;
 using Votify.Modelos.Persistence.Interfaces;
 
 namespace Votify.Modelos.BusinessLogic.Domain
@@ -123,7 +124,46 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             return total;
         }
+        public async Task AñadirGrupo(string nombreGrupo)
+        {
+            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+                throw new Exception("No se pueden añadir grupos fuera de la fase de inscripción");
 
+            var grupo = new Grupo
+            {
+                Nombre = nombreGrupo,
+                HojaRutaTexto = "hoja de ruta ejemplo",
+            };
+
+            await _grupoRepo.AddAsync(grupo);
+        }
+        public async Task EliminarGrupo(long idGrupo)
+        {
+            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+                throw new Exception("No se pueden eliminar grupos fuera de la fase de inscripción");
+
+            var grupo = await _grupoRepo.GetByIdAsync(idGrupo);
+
+            if (grupo == null)
+                throw new Exception("Grupo no encontrado");
+
+            //eliminar proyectos asociados a ese grupo
+            var proyectos = await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
+
+            foreach (var pr in proyectos)
+            {
+                await _proyectoRepo.DeleteAsync(pr);
+            }
+            // eliminar participantes asociados a ese grupo
+            var participantes = await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
+
+            foreach (var p in participantes)
+            {
+                await _participanteRepo.DeleteAsync(p);
+            }
+
+            await _grupoRepo.DeleteAsync(grupo);
+        }
 
     }
 }
