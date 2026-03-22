@@ -1,121 +1,236 @@
-﻿@page "/eventoparticipante3"
+﻿@page "/eventoparticipantepresentar"
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
 @using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
+@inject EventoContextService EventoCtx
+@inject NavigationManager Nav
 
-<h2>@eventoAdmin?.Nombre</h2>
-<p>@eventoAdmin?.Descripcion</p>
-
-<hr />
-
-<h3>Categorías</h3>
-
-@if (categorias == null)
+@if (eventoParticipante is null)
 {
-    <p>Cargando...</p>
+    <div class="vpp-wrapper">
+        <div class="vpp-alert">No se ha cargado el contexto del participante.</div>
+    </div>
 }
 else
 {
-    <ul>
-        @foreach (var c in categorias)
-        {
-            <li>
-                <b>@c.Nombre</b>
-                <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
-            </li>
-        }
-    </ul>
-}
-
-@if (grupos != null)
-{
-    <h3>Grupos</h3>
-
-    @foreach (var g in grupos)
-    {
-        <div style="border:1px solid gray; padding:10px; margin:10px;">
-            <b>@g.Nombre</b>
-
-            <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
-
-            @if (participantesPorGrupo.ContainsKey(g.Id))
-            {
-                <ul>
-                    @foreach (var p in participantesPorGrupo[g.Id])
-                    {
-                        <li>@p.Correo</li>
-                    }
-                </ul>
-            }
+    <div class="vpp-wrapper">
+        <div class="vpp-header">
+            <button class="vpp-home-btn" @onclick="VolverHome">🏠</button>
+            <h1>@eventoParticipante.Nombre</h1>
+            <div class="vpp-logo">V</div>
         </div>
-    }
-}
 
-<hr />
+        <div class="vpp-toolbar">
+            <button class="vpp-back-btn" @onclick="VolverEvento">←</button>
+            <div class="vpp-title-box">Presentar proyecto</div>
+        </div>
 
-<h3>Periodos</h3>
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="vpp-alert">@error</div>
+        }
 
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones</li>
-        <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega</li>
-        <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones</li>
-    </ul>
-}
+        <div class="vpp-form">
+            <div class="vpp-field">
+                <label>Nombre del proyecto:</label>
+                <input class="vpp-input"
+                       maxlength="30"
+                       @bind="nombreProyecto"
+                       @bind:event="oninput"
+                       placeholder="Escribe hasta un máximo de 30 caracteres" />
+                <div class="vpp-counter">@((nombreProyecto ?? string.Empty).Length)/30</div>
+            </div>
 
-<hr />
+            <div class="vpp-field">
+                <label>Descripción breve:</label>
+                <textarea class="vpp-textarea vpp-textarea-small"
+                          maxlength="500"
+                          @bind="descripcionBreve"
+                          @bind:event="oninput"
+                          placeholder="Escribe hasta un máximo de 500 caracteres"></textarea>
+                <div class="vpp-counter">@((descripcionBreve ?? string.Empty).Length)/500</div>
+            </div>
 
-<h3>Configuración</h3>
+            <div class="vpp-field">
+                <label>Descripción:</label>
+                <textarea class="vpp-textarea vpp-textarea-large"
+                          @bind="descripcionCompleta"
+                          @bind:event="oninput"
+                          placeholder="Escribe aquí"></textarea>
+            </div>
 
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Tiene grupos: @(eventoAdmin.TieneGrupos ? "Sí" : "No")</li>
-        <li>Grupos completos: @(eventoAdmin.GruposCompletos ? "Sí" : "No")</li>
-        <li>Participantes por grupo: @eventoAdmin.ParticipantesPorGrupo</li>
-    </ul>
+            <div class="vpp-actions">
+                <button class="vpp-primary" @onclick="Continuar">Continuar</button>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    List<Categorium>? categorias;
-    List<Grupo>? grupos;
+    [Parameter] public long EventoId { get; set; }
 
-    Dictionary<long, List<Participante>> participantesPorGrupo = new();
+    private EventoParticipante? eventoParticipante;
 
-    EventoAdministrador? eventoAdmin;
+    private string nombreProyecto = string.Empty;
+    private string descripcionBreve = string.Empty;
+    private string descripcionCompleta = string.Empty;
+    private string? error;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
-        
-        if (entradaEvento.Evento is EventoAdministrador admin)
-        {
-            eventoAdmin = admin;
-        }
-        if (eventoAdmin != null)
-        {
-            categorias = await eventoAdmin.VerCategoria();
-        }
+        eventoParticipante = EventoCtx.EventoActual as EventoParticipante;
     }
 
-    async Task CargarGrupos(long idCategoria)
+    private void VolverHome()
     {
-        if (eventoAdmin != null)
-        {
-            grupos = await eventoAdmin.VerGrupo(idCategoria);
-        }
+        Nav.NavigateTo("/");
     }
 
-    async Task CargarParticipantes(long idGrupo)
+    private void VolverEvento()
     {
-        if (eventoAdmin != null)
-        {
-            var participantes = await eventoAdmin.VerParticipantes(idGrupo);
+        Nav.NavigateTo($"/evento/{EventoId}");
+    }
 
-            participantesPorGrupo[idGrupo] = participantes;
+    private void Continuar()
+    {
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(nombreProyecto))
+        {
+            error = "Debes indicar un nombre para el proyecto.";
+            return;
         }
+
+        var url =
+            $"/evento/{EventoId}/participante/adjuntar" +
+            $"?nombre={Uri.EscapeDataString(nombreProyecto)}" +
+            $"&breve={Uri.EscapeDataString(descripcionBreve ?? string.Empty)}" +
+            $"&descripcion={Uri.EscapeDataString(descripcionCompleta ?? string.Empty)}";
+
+        Nav.NavigateTo(url);
     }
 }
+
+<style>
+    .vpp-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .vpp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #d9d9d9;
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+    }
+
+        .vpp-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+
+    .vpp-logo {
+        font-size: 2.5rem;
+        font-weight: 800;
+        min-width: 40px;
+        text-align: right;
+    }
+
+    .vpp-home-btn,
+    .vpp-back-btn {
+        border: 1px solid #cfcfcf;
+        background: white;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 1.4rem;
+        cursor: pointer;
+    }
+
+    .vpp-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+
+    .vpp-title-box {
+        flex: 1;
+        border: 1px solid #d9d9d9;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 2rem;
+        background: white;
+    }
+
+    .vpp-form {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .vpp-field label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .vpp-input,
+    .vpp-textarea {
+        width: 100%;
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    .vpp-textarea-small {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .vpp-textarea-large {
+        min-height: 260px;
+        resize: vertical;
+    }
+
+    .vpp-counter {
+        margin-top: 6px;
+        text-align: right;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .vpp-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .vpp-primary {
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        background: white;
+        padding: 12px 22px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .vpp-alert {
+        margin-bottom: 20px;
+        background: #fff1f1;
+        border: 1px solid #efb8b8;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+</style>

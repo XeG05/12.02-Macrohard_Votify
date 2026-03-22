@@ -1,121 +1,346 @@
-﻿@page "/eventoparticipante2"
+﻿@page "/eventoparticipanteadjuntar"
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
 @using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
+@inject EventoContextService EventoCtx
+@inject NavigationManager Nav
 
-<h2>@eventoAdmin?.Nombre</h2>
-<p>@eventoAdmin?.Descripcion</p>
-
-<hr />
-
-<h3>Categorías</h3>
-
-@if (categorias == null)
+@if (cargando)
 {
     <p>Cargando...</p>
 }
+else if (eventoParticipante is null)
+{
+    <div class="vpa-wrapper">
+        <div class="vpa-alert vpa-alert-error">No se ha cargado el contexto del participante.</div>
+    </div>
+}
 else
 {
-    <ul>
-        @foreach (var c in categorias)
+    <div class="vpa-wrapper">
+        <div class="vpa-header">
+            <button class="vpa-home-btn" @onclick="VolverHome">🏠</button>
+            <h1>@eventoParticipante.Nombre</h1>
+            <div class="vpa-logo">V</div>
+        </div>
+
+        <div class="vpa-toolbar">
+            <button class="vpa-back-btn" @onclick="VolverFormulario">←</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(error))
         {
-            <li>
-                <b>@c.Nombre</b>
-                <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
-            </li>
+            <div class="vpa-alert vpa-alert-error">@error</div>
         }
-    </ul>
-}
 
-@if (grupos != null)
-{
-    <h3>Grupos</h3>
+        @if (!string.IsNullOrWhiteSpace(mensaje))
+        {
+            <div class="vpa-alert vpa-alert-ok">@mensaje</div>
+        }
 
-    @foreach (var g in grupos)
-    {
-        <div style="border:1px solid gray; padding:10px; margin:10px;">
-            <b>@g.Nombre</b>
+        <div class="vpa-card">
+            <h3>Participantes:</h3>
 
-            <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
-
-            @if (participantesPorGrupo.ContainsKey(g.Id))
-            {
+            <div class="vpa-group-box">
+                <strong>@nombreGrupo</strong>
                 <ul>
-                    @foreach (var p in participantesPorGrupo[g.Id])
+                    @foreach (var miembro in miembrosGrupo)
                     {
-                        <li>@p.Correo</li>
+                        <li>@miembro.Nombre - @miembro.Correo</li>
                     }
                 </ul>
+            </div>
+        </div>
+
+        <div class="vpa-card">
+            <h3>Resumen del proyecto</h3>
+            <p><strong>Nombre:</strong> @Nombre</p>
+            <p><strong>Descripción breve:</strong> @Breve</p>
+            <p><strong>Descripción:</strong> @Descripcion</p>
+        </div>
+
+        <div class="vpa-card">
+            <label class="vpa-label">Categoría:</label>
+            <select class="vpa-select" @bind="categoriaSeleccionadaId">
+                @foreach (var categoria in categorias)
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </select>
+        </div>
+
+        <div class="vpa-card">
+            <label class="vpa-label">Subir imágenes:</label>
+            <InputFile OnChange="CargarImagenes" multiple />
+
+            @if (nombresImagenes.Count > 0)
+            {
+                <div class="vpa-files">
+                    @foreach (var nombre in nombresImagenes)
+                    {
+                        <div class="vpa-file-chip">@nombre</div>
+                    }
+                </div>
             }
         </div>
-    }
-}
 
-<hr />
+        <div class="vpa-card">
+            <label class="vpa-label">Subir archivo del proyecto (.zip, .rar, .pdf, etc.):</label>
+            <InputFile OnChange="CargarArchivoProyecto" />
 
-<h3>Periodos</h3>
+            @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+            {
+                <p class="vpa-file-main">@nombreArchivoProyecto</p>
+            }
+        </div>
 
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones</li>
-        <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega</li>
-        <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones</li>
-    </ul>
-}
-
-<hr />
-
-<h3>Configuración</h3>
-
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Tiene grupos: @(eventoAdmin.TieneGrupos ? "Sí" : "No")</li>
-        <li>Grupos completos: @(eventoAdmin.GruposCompletos ? "Sí" : "No")</li>
-        <li>Participantes por grupo: @eventoAdmin.ParticipantesPorGrupo</li>
-    </ul>
+        <div class="vpa-actions">
+            <button class="vpa-primary" @onclick="EntregarProyecto">Entregar proyecto</button>
+        </div>
+    </div>
 }
 
 @code {
-    List<Categorium>? categorias;
-    List<Grupo>? grupos;
+    [Parameter] public long EventoId { get; set; }
 
-    Dictionary<long, List<Participante>> participantesPorGrupo = new();
+    [SupplyParameterFromQuery(Name = "nombre")]
+    public string? Nombre { get; set; }
 
-    EventoAdministrador? eventoAdmin;
+    [SupplyParameterFromQuery(Name = "breve")]
+    public string? Breve { get; set; }
+
+    [SupplyParameterFromQuery(Name = "descripcion")]
+    public string? Descripcion { get; set; }
+
+    private EventoParticipante? eventoParticipante;
+    private bool cargando = true;
+
+    private string nombreGrupo = "Grupo";
+    private List<(string Nombre, string Correo)> miembrosGrupo = new();
+    private List<Categorium> categorias = new();
+
+    private long categoriaSeleccionadaId;
+    private List<string> nombresImagenes = new();
+    private string? nombreArchivoProyecto;
+
+    private string? error;
+    private string? mensaje;
 
     protected override async Task OnInitializedAsync()
     {
-        var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
-        
-        if (entradaEvento.Evento is EventoAdministrador admin)
+        try
         {
-            eventoAdmin = admin;
+            eventoParticipante = EventoCtx.EventoActual as EventoParticipante;
+
+            if (eventoParticipante == null)
+            {
+                error = "No hay contexto de participante cargado.";
+                return;
+            }
+
+            var grupo = await eventoParticipante.ObtenerMiGrupo();
+            nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
+
+            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
+            categorias = await eventoParticipante.ObtenerCategoriasEvento();
+
+            if (categorias.Any())
+                categoriaSeleccionadaId = categorias.First().Id;
         }
-        if (eventoAdmin != null)
+        catch (Exception ex)
         {
-            categorias = await eventoAdmin.VerCategoria();
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
         }
     }
 
-    async Task CargarGrupos(long idCategoria)
+    private void VolverHome()
     {
-        if (eventoAdmin != null)
-        {
-            grupos = await eventoAdmin.VerGrupo(idCategoria);
-        }
+        Nav.NavigateTo("/");
     }
 
-    async Task CargarParticipantes(long idGrupo)
+    private void VolverFormulario()
     {
-        if (eventoAdmin != null)
-        {
-            var participantes = await eventoAdmin.VerParticipantes(idGrupo);
+        Nav.NavigateTo($"/evento/{EventoId}/participante/presentar");
+    }
 
-            participantesPorGrupo[idGrupo] = participantes;
+    private void CargarImagenes(InputFileChangeEventArgs e)
+    {
+        nombresImagenes = e.GetMultipleFiles()
+            .Select(f => f.Name)
+            .ToList();
+    }
+
+    private void CargarArchivoProyecto(InputFileChangeEventArgs e)
+    {
+        var archivo = e.File;
+        nombreArchivoProyecto = archivo?.Name;
+    }
+
+    private async Task EntregarProyecto()
+    {
+        error = null;
+        mensaje = null;
+
+        try
+        {
+            if (eventoParticipante == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(Nombre))
+                throw new Exception("Falta el nombre del proyecto.");
+
+            if (string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+                throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
+
+            if (!categorias.Any())
+                throw new Exception("El evento no tiene categorías disponibles.");
+
+            await eventoParticipante.CrearProyecto(
+                Nombre,
+                Breve ?? string.Empty,
+                Descripcion ?? string.Empty,
+                categoriaSeleccionadaId
+            );
+
+            mensaje = "Proyecto entregado correctamente.";
+            Nav.NavigateTo($"/evento/{EventoId}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
         }
     }
 }
+
+<style>
+    .vpa-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .vpa-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #d9d9d9;
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+    }
+
+        .vpa-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+
+    .vpa-logo {
+        font-size: 2.5rem;
+        font-weight: 800;
+        min-width: 40px;
+        text-align: right;
+    }
+
+    .vpa-home-btn,
+    .vpa-back-btn {
+        border: 1px solid #cfcfcf;
+        background: white;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 1.4rem;
+        cursor: pointer;
+    }
+
+    .vpa-toolbar {
+        margin-bottom: 20px;
+    }
+
+    .vpa-card {
+        border: 1px solid #d9d9d9;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: white;
+    }
+
+    .vpa-group-box {
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fafafa;
+    }
+
+    .vpa-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .vpa-select {
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 1rem;
+    }
+
+    .vpa-files {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .vpa-file-chip {
+        border: 1px solid #d9d9d9;
+        border-radius: 10px;
+        padding: 8px 12px;
+        background: #f7f7f7;
+    }
+
+    .vpa-file-main {
+        margin-top: 12px;
+        font-weight: 600;
+    }
+
+    .vpa-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .vpa-primary {
+        border: 1px solid #cfcfcf;
+        border-radius: 10px;
+        background: white;
+        padding: 12px 22px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .vpa-alert {
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+    }
+
+    .vpa-alert-ok {
+        background: #eefaf1;
+        border: 1px solid #bde2c4;
+    }
+
+    .vpa-alert-error {
+        background: #fff1f1;
+        border: 1px solid #efb8b8;
+    }
+</style>
