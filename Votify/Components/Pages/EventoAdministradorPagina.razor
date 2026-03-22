@@ -2,11 +2,14 @@
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
+@using Votify.Modelos.BusinessLogic.Enums
 @using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
 
 <h2>@eventoAdmin?.Nombre</h2>
 <p>@eventoAdmin?.Descripcion</p>
+
+<p><b>Fase actual:</b> @eventoAdmin?.ObtenerFaseActual()</p>
 
 <hr />
 
@@ -33,12 +36,27 @@ else
 {
     <h3>Grupos</h3>
 
+    @*  SOLO EN FASE INSCRIPCIONES *@
+    @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
+    {
+        <div style="margin-bottom:15px;">
+            <input @bind="nombreGrupoNuevo" placeholder="Nombre del grupo" />
+            <button @onclick="CrearGrupo">Añadir grupo</button>
+        </div>
+    }
+
     @foreach (var g in grupos)
     {
         <div style="border:1px solid gray; padding:10px; margin:10px;">
             <b>@g.Nombre</b>
 
             <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
+
+            @*  BOTÓN ELIMINAR SOLO EN INSCRIPCIONES *@
+            @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
+            {
+                <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
+            }
 
             @if (participantesPorGrupo.ContainsKey(g.Id))
             {
@@ -60,9 +78,9 @@ else
 @if (eventoAdmin != null)
 {
     <ul>
-        <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones</li>
-        <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega</li>
-        <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones</li>
+        <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
+        <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
+        <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
     </ul>
 }
 
@@ -87,14 +105,17 @@ else
 
     EventoAdministrador? eventoAdmin;
 
+    string nombreGrupoNuevo = "";
+
     protected override async Task OnInitializedAsync()
     {
         var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
-        
+
         if (entradaEvento.Evento is EventoAdministrador admin)
         {
             eventoAdmin = admin;
         }
+
         if (eventoAdmin != null)
         {
             categorias = await eventoAdmin.VerCategoria();
@@ -114,8 +135,31 @@ else
         if (eventoAdmin != null)
         {
             var participantes = await eventoAdmin.VerParticipantes(idGrupo);
-
             participantesPorGrupo[idGrupo] = participantes;
+        }
+    }
+
+    async Task CrearGrupo()
+    {
+        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo))
+        {
+            await eventoAdmin.AñadirGrupo(nombreGrupoNuevo);
+
+            nombreGrupoNuevo = "";
+
+            //  refrescar lista
+            grupos = null;
+        }
+    }
+
+    async Task EliminarGrupoUI(long idGrupo)
+    {
+        if (eventoAdmin != null)
+        {
+            await eventoAdmin.EliminarGrupo(idGrupo);
+
+            //  refrescar lista
+            grupos = null;
         }
     }
 }
