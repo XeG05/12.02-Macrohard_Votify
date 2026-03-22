@@ -27,6 +27,22 @@ else
                 <small>@dto.Descripcion.Length / 120</small>
             </div>
         </div>
+
+        <div class="categorias">
+            <h4>Categorias</h4>
+            <hr />
+            @foreach (var categoria in categorias)
+            {
+                <div class="categoria-container" @key="categoria">
+                    
+                        <input type="text" placeholder="Categoria" />
+                        <button type="button" @onclick="() => EliminarCategoria(categoria)">✕</button>
+                    
+                </div>
+            }
+            <button type="button" @onclick="AñadirCategoria"> Añadir Categoría </button>
+        </div>
+
         <div class="time-container">
             <h4>Periodos</h4>
             <hr />
@@ -78,7 +94,7 @@ else
                 <div class="grup-container" @key="grupo">
                     <div class="grup-sup">
                         <input type="text" placeholder="Nombre de Grupo" />
-                        <button type="button" @onclick="() => Eliminar(grupo)">✕</button>
+                        <button type="button" @onclick="() => EliminarGrupo(grupo)">✕</button>
                     </div>
                     <hr />
                     @for (int i = 0; i < dto.NumParticipantes; i++)
@@ -89,14 +105,14 @@ else
                         @if (!activos.Contains(key))
                         {
                             <div class="participante">
-                                <button type="button" @onclick="() => Activar(grupo, index)"> ➕ </button>
+                                <button type="button" @onclick="() => ActivarParticipante(grupo, index)"> ➕ </button>
                                 <p>Añadir participante</p>
                             </div>
                         }
                         else
                         {
                             <div class="participante">
-                                <button type="button" @onclick="() => Desactivar(grupo, index)">✖️</button>
+                                <button type="button" @onclick="() => DesactivarParticipante(grupo, index)">✖️</button>
                                 <input type="text" placeholder="exp@example.com" />
                                 <span>Nombre</span>
                             </div>
@@ -104,7 +120,7 @@ else
                     }
                 </div>
             }
-            <button type="button" @onclick="Añadir" > Añadir Grupo </button>
+            <button type="button" @onclick="AñadirGrupo" > Añadir Grupo </button>
         </div>
         <hr />
         <div class="actions">
@@ -120,13 +136,12 @@ else
 
 @code {
     bool autenticado = false;
+    private List<int> categorias = new();
     private List<int> grupos = new();
-    private int contador = 0;
+    private int contadorCategorias = 0;
+    private int contadorGrupos = 0;
     private HashSet<string> activos = new();
     private EventoCreacionDto dto = new();
-
-    // Usamos DateTime? para el bind de <input type="date">
-    // y convertimos a DateOnly al guardar
     private DateTime? fechaFinInscripciones;
     private DateTime? fechaFinEntrega;
     private DateTime? fechaFinVotaciones;
@@ -151,22 +166,32 @@ else
         StateHasChanged();
     }
 
-    private void Añadir()
+    private void AñadirCategoria()
     {
-        grupos.Add(contador++);
+        categorias.Add(contadorCategorias++);
     }
 
-    private void Eliminar(int grupo)
+    private void EliminarCategoria(int categoria)
+    {
+        categorias.Remove(categoria);
+    }
+
+    private void AñadirGrupo()
+    {
+        grupos.Add(contadorGrupos++);
+    }
+
+    private void EliminarGrupo(int grupo)
     {
         grupos.Remove(grupo);
     }
 
-    private void Activar(int grupo, int index)
+    private void ActivarParticipante(int grupo, int index)
     {
         activos.Add($"{grupo}-{index}");
     }
 
-    private void Desactivar(int grupo, int index)
+    private void DesactivarParticipante(int grupo, int index)
     {
         activos.Remove($"{grupo}-{index}");
     }
