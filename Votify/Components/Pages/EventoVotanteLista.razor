@@ -5,24 +5,49 @@
 
 @inject I_Evento_Service EventoService
 
-
+@if (proyectos == null || proyectos.Count == 0)
+{
+    <p>No hay proyectos para mostrar</p>
+}
+else
+{
+    @foreach (var p in proyectos)
+    {
+        <div class="proyectos">
+            <div class="nombreProyecto">
+                <p>@p.Nombre</p>
+            </div>
+            <div class="informacionProyecto">
+                <div class="participantesProyecto">
+                    @foreach (var pa in p.IdGrupoNavigation.Participantes)
+                    {
+                        <p>@pa.Rol.CorreoUsuarioNavigation.Nombre</p>
+                    }
+                </div>
+                <div class="descripcionProyecto">
+                    <p>Placeholder</p>
+                </div>
+            </div>
+        </div>
+    }
+}
 
 
 
 @code {
     [Parameter] public long idEvento { get; set; }
 
-    Task<List<Proyecto>>? proyectos;
+    List<Proyecto>? proyectos;
 
     EventoVotante? eventoVotante;
 
     protected async override void OnInitialized()
     {
-        var entrada = await EventoService.EntrarEvento("ana@gmail.com", 1000);
+        var entrada = await EventoService.EntrarEvento("antonio@gmail.com", 1000);
         if (entrada.Evento is EventoVotante evVot)
         {
             eventoVotante = evVot;
-            proyectos = eventoVotante.ListaProyectos(idEvento);
+            proyectos = await eventoVotante.ListaProyectos(idEvento);
         }
 
     }
