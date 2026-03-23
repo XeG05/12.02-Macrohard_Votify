@@ -83,7 +83,7 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categorias)
                 .HasForeignKey(d => d.IdEvento)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_eventoFK");
         });
 
@@ -130,7 +130,7 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Criterios)
                 .HasForeignKey(d => d.IdCategoria)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_categoriaFK");
         });
 
@@ -225,7 +225,7 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Participantes)
                 .HasForeignKey(d => d.IdGrupo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_grupo");
 
             entity.HasOne(d => d.Rol).WithOne(p => p.Participante)
@@ -248,12 +248,12 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Proyectos)
                 .HasForeignKey(d => d.IdCategoria)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_categoria");
 
             entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Proyectos)
                 .HasForeignKey(d => d.IdGrupo)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_grupoFK");
         });
 
@@ -294,12 +294,12 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Roles)
                 .HasForeignKey(d => d.CorreoUsuario)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("correo_usuarioFK");
 
             entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Roles)
                 .HasForeignKey(d => d.IdEvento)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_eventoFK");
         });
 
@@ -357,7 +357,7 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Votos)
                 .HasForeignKey(d => d.IdCriterio)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_criterio");
 
             entity.HasOne(d => d.Rol).WithMany(p => p.Votos)
@@ -367,7 +367,7 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Votos)
                 .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
         });
 
