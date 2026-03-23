@@ -193,12 +193,12 @@ else
 
     private void VolverHome()
     {
-        Nav.NavigateTo("/");
+        Nav.NavigateTo("/home");
     }
 
     private void VolverEvento()
     {
-        Nav.NavigateTo("/eventoparticipante");
+        Nav.NavigateTo("/eventoparticipante/{EventoId:long}");
     }
 
     private void CargarImagenes(InputFileChangeEventArgs e)
