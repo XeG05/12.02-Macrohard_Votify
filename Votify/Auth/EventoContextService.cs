@@ -2,7 +2,7 @@
 
 namespace Votify.Auth
 {
-    // Scoped: persiste durante la sesión del circuito
+
     public class EventoContextService
     {
         private EventoBase? _eventoActual;
@@ -14,7 +14,6 @@ namespace Votify.Auth
         public long? IdEventoActual => _idEventoActual;
         public bool EstaEnEvento => _eventoActual != null;
 
-        // Notifica a componentes suscritos cuando cambia el contexto
         public event Action? OnCambio;
 
         public void EstablecerEvento(EventoBase evento, string rol, long idEvento)
@@ -33,7 +32,6 @@ namespace Votify.Auth
             OnCambio?.Invoke();
         }
 
-        // Helpers de conveniencia
         public bool EsAdministrador => _rolActual == "ADMIN";
         public bool EsJurado => _rolActual == "JURADO";
         public bool EsParticipante => _rolActual == "PARTICIPANTE";

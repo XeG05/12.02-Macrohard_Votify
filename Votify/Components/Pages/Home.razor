@@ -1,23 +1,185 @@
 ﻿@page "/home"
+@using Votify.Modelos
+@rendermode InteractiveServer
+@inject I_Evento_Service EventoService
+@inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
-<h3>Home</h3>
+<div class="home-wrapper">
 
-<div>
-    <NavLink href="EventCreator">
-        <span>
-            +
-        </span>
-    </NavLink>
+    <div class="home-header">
+        <div class="home-header-text">
+            <h1>Bienvenido, <span class="nombre-usuario">@nombre</span></h1>
+            <p>Gestiona tus eventos o únete a los de tu comunidad</p>
+        </div>
+        <a class="btn-crear" href="EventCreator">
+            <span class="btn-crear-icon">＋</span>
+            Crear evento
+        </a>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando eventos...</p>
+        </div>
+    }
+    else
+    {
+        <section class="seccion">
+            <div class="seccion-header">
+                <div class="seccion-indicador admin-color"></div>
+                <h2>Mis eventos</h2>
+                <span class="badge">@eventosCreados.Count</span>
+            </div>
+
+            @if (eventosCreados.Count == 0)
+            {
+                <div class="empty-state">
+                    <span class="empty-icon">📋</span>
+                    <p>Todavía no has creado ningún evento.</p>
+                    <a href="EventCreator" class="link-accion">Crea tu primer evento →</a>
+                </div>
+            }
+            else
+            {
+                <div class="eventos-grid">
+                    @foreach (var ev in eventosCreados)
+                    {
+                        var eventoId = ev.Id;
+                        <div class="evento-card" @onclick="() => IrAEventoAdmin(eventoId)">
+                            <div class="evento-card-top">
+                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                <span class="rol-badge admin-badge">Administrador</span>
+                            </div>
+                            <h3 class="evento-nombre">@ev.Nombre</h3>
+                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                            <div class="evento-fechas">
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Inscripciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="evento-footer">
+                                <span class="ver-mas">Ver evento →</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="seccion">
+            <div class="seccion-header">
+                <div class="seccion-indicador participante-color"></div>
+                <h2>Participando en</h2>
+                <span class="badge">@eventosParticipacion.Count</span>
+            </div>
+
+            @if (eventosParticipacion.Count == 0)
+            {
+                <div class="empty-state">
+                    <span class="empty-icon">🔍</span>
+                    <p>No estás participando en ningún evento actualmente.</p>
+                </div>
+            }
+            else
+            {
+                <div class="eventos-grid">
+                    @foreach (var ev in eventosParticipacion)
+                    {
+                        var eventoId = ev.Id;
+                        <div class="evento-card" @onclick="() => IrAEventoParticipante(eventoId)">
+                            <div class="evento-card-top">
+                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                <span class="rol-badge participante-badge">Participante</span>
+                            </div>
+                            <h3 class="evento-nombre">@ev.Nombre</h3>
+                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                            <div class="evento-fechas">
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Inscripciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="evento-footer">
+                                <span class="ver-mas">Ver evento →</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    }
 </div>
 
-<div>
-    <NavLink href="auth-debug">
-        <span>
-            +
-        </span>
-    </NavLink>
-</div>
 @code {
-   
+    private string nombre = "";
+    private bool cargando = true;
+    private List<Evento> eventosCreados = new();
+    private List<Evento> eventosParticipacion = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (!AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        var correo = AuthProvider.ObtenerCorreo()!;
+        nombre = AuthProvider.ObtenerNombre() ?? correo;
+
+        try
+        {
+            eventosCreados = await EventoService.GetEventosCreados(correo);
+            eventosParticipacion = await EventoService.GetEventosParticipacion(correo);
+        }
+        catch
+        {
+            // Si falla la carga, simplemente dejamos las listas vacías
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetFaseLabel(Evento ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
+        if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
+        return "Finalizado";
+    }
+
+    private string GetFaseClass(Evento ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        return "fase-finalizado";
+    }
+
+    private void IrAEventoAdmin(long id) => Nav.NavigateTo($"/eventoadmin/{id}");
+
+    private void IrAEventoParticipante(long id) => Nav.NavigateTo($"/eventoparticipante/{id}");
+
+    private string TruncarTexto(string texto, int max)
+    {
+        if (string.IsNullOrEmpty(texto)) return "";
+        return texto.Length <= max ? texto : texto[..max] + "…";
+    }
 }

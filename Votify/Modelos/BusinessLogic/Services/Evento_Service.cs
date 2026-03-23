@@ -59,6 +59,29 @@ namespace Votify.Modelos.BusinessLogic.Services
             _config = config;
         }
 
+        public async Task<List<Evento>> GetEventosCreados(string correo)
+        {
+            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
+            var eventIds = admins.Select(a => a.Id).ToHashSet();
+            var todos = await _eventoRepo.GetAllAsync();
+            return todos.Where(e => eventIds.Contains(e.Id)).ToList();
+        }
+
+        public async Task<List<Evento>> GetEventosParticipacion(string correo)
+        {
+            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
+            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
+
+            var roles = await _rolRepo.FindAsync(r => r.CorreoUsuario == correo);
+            var participacionIds = roles
+                .Select(r => r.IdEvento)
+                .Where(id => !adminEventIds.Contains(id))
+                .ToHashSet();
+
+            var todos = await _eventoRepo.GetAllAsync();
+            return todos.Where(e => participacionIds.Contains(e.Id)).ToList();
+        }
+
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
         {
             var usuario = (await _usuarioRepo

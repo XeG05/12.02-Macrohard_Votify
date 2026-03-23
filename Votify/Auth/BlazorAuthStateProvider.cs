@@ -31,12 +31,11 @@ public class BlazorAuthStateProvider : AuthenticationStateProvider
                     if (principal != null)
                         _currentUser = principal;
                 }
-                _initialized = true; // ← solo aquí, si JS funcionó
+                _initialized = true;
             }
             catch
             {
-                // Prerender: JS no disponible, _initialized sigue false
-                // y lo reintentará cuando el circuito SignalR esté activo
+                
             }
         }
 

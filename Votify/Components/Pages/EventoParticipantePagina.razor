@@ -1,4 +1,4 @@
-﻿@page "/eventoparticipante"
+﻿@page "/eventoparticipante/{EventoId:long}"
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
@@ -142,12 +142,12 @@ else
 
     private void VolverHome()
     {
-        Nav.NavigateTo("/");
+        Nav.NavigateTo("/home");
     }
 
     private void VolverAtras()
     {
-        Nav.NavigateTo("/");
+        Nav.NavigateTo("/home");
     }
 
     private void IrAPresentarProyecto()

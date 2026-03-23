@@ -1,103 +1,118 @@
-﻿@page "/eventoadmin"
+﻿@page "/eventoadmin/{EventoId:long}"
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
 @using Votify.Modelos.BusinessLogic.Enums
 @using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 
-<h2>@eventoAdmin?.Nombre</h2>
-<p>@eventoAdmin?.Descripcion</p>
 
-<p><b>Fase actual:</b> @eventoAdmin?.ObtenerFaseActual()</p>
 
-<hr />
-
-<h3>Categorías</h3>
-
-@if (categorias == null)
+@if (cargando)
 {
     <p>Cargando...</p>
 }
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div style="color:red">@error</div>
+}
 else
 {
-    <ul>
-        @foreach (var c in categorias)
+    <h2>@eventoAdmin?.Nombre</h2>
+    <p>@eventoAdmin?.Descripcion</p>
+
+    <p><b>Fase actual:</b> @eventoAdmin?.ObtenerFaseActual()</p>
+
+    <hr />
+
+    <h3>Categorías</h3>
+
+    @if (categorias == null)
+    {
+        <p>Cargando...</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var c in categorias)
+            {
+                <li>
+                    <b>@c.Nombre</b>
+                    <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (grupos != null)
+    {
+        <h3>Grupos</h3>
+
+        @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
         {
-            <li>
-                <b>@c.Nombre</b>
-                <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
-            </li>
+            <div style="margin-bottom:15px;">
+                <input @bind="nombreGrupoNuevo" placeholder="Nombre del grupo" />
+                <button @onclick="CrearGrupo">Añadir grupo</button>
+            </div>
         }
-    </ul>
-}
 
-@if (grupos != null)
-{
-    <h3>Grupos</h3>
+        @foreach (var g in grupos)
+        {
+            <div style="border:1px solid gray; padding:10px; margin:10px;">
+                <b>@g.Nombre</b>
 
-    @*  SOLO EN FASE INSCRIPCIONES *@
-    @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
-    {
-        <div style="margin-bottom:15px;">
-            <input @bind="nombreGrupoNuevo" placeholder="Nombre del grupo" />
-            <button @onclick="CrearGrupo">Añadir grupo</button>
-        </div>
+                <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
+
+                @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
+                {
+                    <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
+                }
+
+                @if (participantesPorGrupo.ContainsKey(g.Id))
+                {
+                    <ul>
+                        @foreach (var p in participantesPorGrupo[g.Id])
+                        {
+                            <li>@p.Correo</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
     }
 
-    @foreach (var g in grupos)
+    <hr />
+
+    <h3>Periodos</h3>
+
+    @if (eventoAdmin != null)
     {
-        <div style="border:1px solid gray; padding:10px; margin:10px;">
-            <b>@g.Nombre</b>
-
-            <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
-
-            @*  BOTÓN ELIMINAR SOLO EN INSCRIPCIONES *@
-            @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
-            {
-                <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
-            }
-
-            @if (participantesPorGrupo.ContainsKey(g.Id))
-            {
-                <ul>
-                    @foreach (var p in participantesPorGrupo[g.Id])
-                    {
-                        <li>@p.Correo</li>
-                    }
-                </ul>
-            }
-        </div>
+        <ul>
+            <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
+            <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
+            <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
+        </ul>
     }
-}
 
-<hr />
+    <hr />
 
-<h3>Periodos</h3>
+    <h3>Configuración</h3>
 
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
-        <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
-        <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
-    </ul>
-}
-
-<hr />
-
-<h3>Configuración</h3>
-
-@if (eventoAdmin != null)
-{
-    <ul>
-        <li>Tiene grupos: @(eventoAdmin.TieneGrupos ? "Sí" : "No")</li>
-        <li>Grupos completos: @(eventoAdmin.GruposCompletos ? "Sí" : "No")</li>
-        <li>Participantes por grupo: @eventoAdmin.ParticipantesPorGrupo</li>
-    </ul>
+    @if (eventoAdmin != null)
+    {
+        <ul>
+            <li>Tiene grupos: @(eventoAdmin.TieneGrupos ? "Sí" : "No")</li>
+            <li>Grupos completos: @(eventoAdmin.GruposCompletos ? "Sí" : "No")</li>
+            <li>Participantes por grupo: @eventoAdmin.ParticipantesPorGrupo</li>
+        </ul>
+    }
 }
 
 @code {
+    [Parameter] public long EventoId { get; set; }
+
     List<Categorium>? categorias;
     List<Grupo>? grupos;
 
@@ -107,19 +122,54 @@ else
 
     string nombreGrupoNuevo = "";
     public long? categoriaSeleccionadaId;
+    bool cargando = true;
+    string error = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", 1000);
+        var correo = AuthProvider.ObtenerCorreo();
 
-        if (entradaEvento.Evento is EventoAdministrador admin)
+        if (string.IsNullOrWhiteSpace(correo))
         {
-            eventoAdmin = admin;
+            Nav.NavigateTo("/login");
+            return;
         }
 
-        if (eventoAdmin != null)
+        try
         {
-            categorias = await eventoAdmin.VerCategoria();
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+
+            if (entradaEvento.Evento is EventoAdministrador admin)
+            {
+                eventoAdmin = admin;
+                categorias = await eventoAdmin.VerCategoria();
+            }
+            else
+            {
+                error = "No tienes permisos de administrador en este evento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
         }
     }
 
@@ -147,10 +197,7 @@ else
         && categoriaSeleccionadaId is long idCat)
         {
             await eventoAdmin.AñadirGrupo(nombreGrupoNuevo, idCat);
-            
             nombreGrupoNuevo = "";
-
-            //  refrescar lista
             grupos = await eventoAdmin.VerGrupo(idCat);
         }
     }
@@ -160,8 +207,6 @@ else
         if (eventoAdmin != null)
         {
             await eventoAdmin.EliminarGrupo(idGrupo);
-
-            //  refrescar lista
             grupos = null;
         }
     }

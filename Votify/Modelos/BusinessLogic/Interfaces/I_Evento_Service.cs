@@ -9,5 +9,9 @@ namespace Votify.Modelos.BusinessLogic.Interfaces
         Task<EntradaEvento> EntrarEvento(string correo, long eventoId);
 
         Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto);
+
+        Task<List<Evento>> GetEventosCreados(string correo);
+
+        Task<List<Evento>> GetEventosParticipacion(string correo);
     }
 }
