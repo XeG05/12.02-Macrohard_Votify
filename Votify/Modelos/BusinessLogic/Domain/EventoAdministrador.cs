@@ -6,6 +6,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 {
     public class EventoAdministrador : EventoBase
     {
+        private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Participante> _participanteRepo;
@@ -13,7 +14,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Voto> _votoRepo;
         public EventoAdministrador(Evento evento, 
-            Usuario usuario, 
+            Usuario usuario,
+            IRepository<Usuario> usuarioRepo,
             IRepository<Evento> eventoRepo, 
             IRepository<Proyecto> proyectoRepo, 
             IRepository<Participante> participanteRepo,
@@ -173,6 +175,25 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             await _grupoRepo.DeleteAsync(grupo);
         }
+        /*public async Task AñadirParticipante(string correo, long idGrupo)
+        {
+            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+                throw new Exception("Solo se pueden añadir participantes en fase de inscripciones");
+
+            var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correo))
+                .FirstOrDefault();
+
+            if (usuario == null)
+                throw new Exception("Usuario no encontrado");
+
+            var participante = new Participante
+            {
+                Correo = correo,
+                IdGrupo = idGrupo
+            };
+
+            await _participanteRepo.AddAsync(participante);
+        }*/ //EN PROCESO
 
     }
 }

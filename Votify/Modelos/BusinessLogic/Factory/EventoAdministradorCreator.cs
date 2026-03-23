@@ -5,6 +5,7 @@ namespace Votify.Modelos.BusinessLogic.Factory
 {
     public class EventoAdministradorCreator : EventoCreator
     {
+        private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Participante> _participanteRepo;
@@ -12,8 +13,9 @@ namespace Votify.Modelos.BusinessLogic.Factory
         private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Voto> _votoRepo;
 
-        public EventoAdministradorCreator(IRepository<Evento> eventoRepo, IRepository<Proyecto> proyectoRepo, IRepository<Participante> participanteRepo, IRepository<Grupo> grupoRepo, IRepository<Categorium> categoriumRepo, IRepository<Voto> votoRepo)
+        public EventoAdministradorCreator(IRepository<Usuario> usuarioRepo, IRepository<Evento> eventoRepo, IRepository<Proyecto> proyectoRepo, IRepository<Participante> participanteRepo, IRepository<Grupo> grupoRepo, IRepository<Categorium> categoriumRepo, IRepository<Voto> votoRepo)
         {
+            _usuarioRepo = usuarioRepo;
             _eventoRepo = eventoRepo;
             _proyectoRepo = proyectoRepo;
             _participanteRepo = participanteRepo;
@@ -27,6 +29,7 @@ namespace Votify.Modelos.BusinessLogic.Factory
         {
             return new EventoAdministrador(evento,
                 usuario,
+                _usuarioRepo,
                 _eventoRepo,
                 _proyectoRepo,
                 _participanteRepo,

@@ -125,7 +125,7 @@ else
     bool cargando = true;
     string error = "";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    /*protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
@@ -137,21 +137,21 @@ else
             return;
         }
         StateHasChanged();
-    }
+    }*/ //NO FUNCIONA
 
     protected override async Task OnInitializedAsync()
     {
-        var correo = AuthProvider.ObtenerCorreo();
+        /*var correo = AuthProvider.ObtenerCorreo(); 
 
         if (string.IsNullOrWhiteSpace(correo))
         {
             Nav.NavigateTo("/login");
             return;
         }
-
+        */ //VA CON LO DE ARRIBA,NO FUNCIONA
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", EventoId);
 
             if (entradaEvento.Evento is EventoAdministrador admin)
             {
@@ -210,4 +210,5 @@ else
             grupos = null;
         }
     }
+
 }
