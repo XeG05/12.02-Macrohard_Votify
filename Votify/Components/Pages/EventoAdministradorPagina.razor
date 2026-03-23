@@ -106,6 +106,7 @@ else
     EventoAdministrador? eventoAdmin;
 
     string nombreGrupoNuevo = "";
+    public long? categoriaSeleccionadaId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,6 +127,7 @@ else
     {
         if (eventoAdmin != null)
         {
+            categoriaSeleccionadaId = idCategoria;
             grupos = await eventoAdmin.VerGrupo(idCategoria);
         }
     }
@@ -141,14 +143,15 @@ else
 
     async Task CrearGrupo()
     {
-        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo))
+        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
+        && categoriaSeleccionadaId is long idCat)
         {
-            await eventoAdmin.AñadirGrupo(nombreGrupoNuevo);
-
+            await eventoAdmin.AñadirGrupo(nombreGrupoNuevo, idCat);
+            
             nombreGrupoNuevo = "";
 
             //  refrescar lista
-            grupos = null;
+            grupos = await eventoAdmin.VerGrupo(idCat);
         }
     }
 

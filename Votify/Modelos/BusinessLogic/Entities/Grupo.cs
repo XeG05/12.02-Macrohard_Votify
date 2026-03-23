@@ -10,13 +10,12 @@ public partial class Grupo
         Participantes = new List<Participante>();
         Proyectos = new List<Proyecto>();
     }
-    public Grupo(string nombre, string? hojaRutaTexto, Participante participante1)
+    public Grupo(string nombre, string? hojaRutaTexto)
     {
         Nombre = nombre;
         HojaRutaTexto = hojaRutaTexto;
         Participantes = new List<Participante>();
         Proyectos = new List<Proyecto>();
 
-        Participantes.Add(participante1); //añadimos elemento a la lista por la cardinalidad minima 1
     }
 }

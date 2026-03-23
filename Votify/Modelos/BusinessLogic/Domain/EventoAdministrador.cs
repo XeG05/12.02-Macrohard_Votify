@@ -124,7 +124,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             return total;
         }
-        public async Task AñadirGrupo(string nombreGrupo)
+        public async Task AñadirGrupo(string nombreGrupo, long idCategoria)
         {
             if (ObtenerFaseActual() != FasesEvento.Inscripciones)
                 throw new Exception("No se pueden añadir grupos fuera de la fase de inscripción");
@@ -132,10 +132,19 @@ namespace Votify.Modelos.BusinessLogic.Domain
             var grupo = new Grupo
             {
                 Nombre = nombreGrupo,
-                HojaRutaTexto = "hoja de ruta ejemplo",
+                HojaRutaTexto = ""
             };
 
             await _grupoRepo.AddAsync(grupo);
+
+            var proyecto = new Proyecto
+            {
+                Nombre = "Sin nombre",
+                IdGrupo = grupo.Id,
+                IdCategoria = idCategoria
+            };
+
+            await _proyectoRepo.AddAsync(proyecto);
         }
         public async Task EliminarGrupo(long idGrupo)
         {
