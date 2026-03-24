@@ -12,11 +12,11 @@
 
     <div class="input">
         <p>Correo electrónico:</p>
-        <input @bind="correo" placeholder="Inserte su correo electrónico" />
+        <input @bind="correo" @bind:event="oninput" placeholder="Inserte su correo electrónico" />
     </div>
     <div class="input">
         <p>Contraseña:</p>
-        <input @bind="contraseña" type="password" placeholder="Inserte su contraseña" @onkeydown="OnKeyDown" />
+        <input @bind="contraseña" @bind:event="oninput" type="password" placeholder="Inserte su contraseña" @onkeydown="OnKeyDown" />
     </div>
     <div class="button">
         <button @onclick="SignIn" disabled="@cargando">
