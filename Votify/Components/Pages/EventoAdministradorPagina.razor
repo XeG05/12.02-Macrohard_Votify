@@ -142,13 +142,13 @@ else
     protected override async Task OnInitializedAsync()
     {
         /*var correo = AuthProvider.ObtenerCorreo(); 
-
+         * 
         if (string.IsNullOrWhiteSpace(correo))
         {
             Nav.NavigateTo("/login");
             return;
         }
-        */ //VA CON LO DE ARRIBA,NO FUNCIONA
+        */ //CON LO DE ARRIBA,NO FUNCIONA
         try
         {
             var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", EventoId);
