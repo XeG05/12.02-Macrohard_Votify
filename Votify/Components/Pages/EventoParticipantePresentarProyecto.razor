@@ -129,7 +129,7 @@ else
             </div>
 
             <div class="vpp-actions">
-                <button class="vpp-primary" @onclick="EntregarProyecto">Entregar proyecto</button>
+                <button class="vpp-primary" @onclick="EntregarProyecto" disabled="@tieneProyecto">Entregar proyecto</button>
             </div>
         </div>
     </div>
@@ -140,6 +140,7 @@ else
 
     private EventoParticipante? eventoParticipante;
     private bool cargando = true;
+    private bool tieneProyecto = false;
 
     private string nombreProyecto = string.Empty;
     private string descripcionBreve = string.Empty;
@@ -194,6 +195,20 @@ else
             {
                 categoriaSeleccionadaId = categorias.First().Id;
             }
+
+            // Comprobar si el grupo ya tiene un proyecto entregado
+            try
+            {
+                tieneProyecto = await eventoParticipante.TieneProyecto();
+                if (tieneProyecto)
+                {
+                    mensaje = "Tu grupo ya tiene un proyecto entregado para este evento.";
+                }
+            }
+            catch
+            {
+                // ignorar fallo en la comprobación
+            }
         }
         catch (Exception ex)
         {
@@ -238,6 +253,9 @@ else
         {
             if (eventoParticipante == null)
                 return;
+            // Comprobar de nuevo por seguridad que no haya ya proyecto
+            if (await eventoParticipante.TieneProyecto())
+                throw new Exception("No puedes entregar un nuevo proyecto: ya existe uno entregado por tu grupo.");
 
             if (string.IsNullOrWhiteSpace(nombreProyecto))
                 throw new Exception("Debes indicar un nombre para el proyecto.");

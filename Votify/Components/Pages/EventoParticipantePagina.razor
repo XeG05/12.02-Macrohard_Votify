@@ -62,9 +62,9 @@ else
         }
 
         <div class="vp-grid">
-            <button class="vp-action" @onclick="IrAPresentarProyecto">
+            <button class="vp-action" @onclick="IrAPresentarProyecto" disabled="@tieneProyecto" title="@(tieneProyecto ? "Ya has entregado un proyecto" : "Subir proyecto")">
                 <span class="vp-icon">📤</span>
-                <span>Subir proyecto</span>
+                <span>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</span>
             </button>
 
             <button class="vp-action vp-danger" @onclick="EliminarProyecto" disabled="@(!tieneProyecto)">
@@ -167,6 +167,12 @@ else
 
     private void IrAPresentarProyecto()
     {
+        if (tieneProyecto)
+        {
+            mensaje = "Ya tienes un proyecto entregado para este evento.";
+            return;
+        }
+
         // Navegar a la página de presentar proyecto incluyendo el id del evento
         Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
     }
