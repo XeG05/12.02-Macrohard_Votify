@@ -96,7 +96,7 @@ namespace Votify.Modelos.BusinessLogic.Services
 
             EventoCreator creator = tipoRol switch
             {
-                "ADMIN" => new EventoAdministradorCreator(
+                "ADMIN" => new EventoAdministradorCreator(_usuarioRepo,
                     _eventoRepo, _proyectoRepo,
                     _participanteRepo, _grupoRepo, _categoriumRepo, _votoRepo),
 
