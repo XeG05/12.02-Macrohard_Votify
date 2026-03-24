@@ -9,46 +9,54 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #d9d9d9;
-    padding-bottom: 18px;
-    margin-bottom: 18px;
-}
-
-    .vp-header h1 {
-        margin: 0;
-        font-size: 2.2rem;
-        font-weight: 600;
-        text-align: center;
-        flex: 1;
-    }
-
-.vp-logo {
-    font-size: 2.5rem;
-    font-weight: 800;
-    min-width: 40px;
-    text-align: right;
-}
-
-.vp-home-btn,
-.vp-back-btn {
-    border: 1px solid #cfcfcf;
-    background: white;
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 1.4rem;
-    cursor: pointer;
-}
-
-.vp-toolbar {
+    background: linear-gradient(90deg, #2b8a3e, #38a169);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
     margin-bottom: 20px;
 }
 
+    .vp-header-left,
+    .vp-header-right {
+        display: flex;
+        align-items: center;
+        min-width: 80px;
+    }
+
+    .vp-header-title {
+        margin: 0 12px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-align: center;
+        flex: 1;
+        color: white;
+    }
+
+    .vp-back-btn {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .rol-badge {
+        background: rgba(255,255,255,0.12);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: white;
+    }
+
 .vp-card {
-    border: 1px solid #d9d9d9;
+    border: 1px solid #e6e6e6;
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 22px;
-    background: #fff;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
     .vp-card h3 {
@@ -79,12 +87,18 @@
     justify-content: center;
     gap: 14px;
     min-height: 110px;
-    border: 1px solid #d9d9d9;
+    border: 1px solid #e6e6e6;
     border-radius: 16px;
     background: white;
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
 }
+
+    .vp-action:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
 
     .vp-action:disabled {
         opacity: 0.6;
@@ -96,7 +110,7 @@
 }
 
 .vp-icon {
-    font-size: 2rem;
+    font-size: 1.9rem;
 }
 
 .vp-alert {

@@ -24,13 +24,15 @@ else
 {
     <div class="vp-wrapper">
         <div class="vp-header">
-            <button class="vp-home-btn" @onclick="VolverHome">🏠</button>
-            <h1>@eventoParticipante.Nombre</h1>
-            <div class="vp-logo">V</div>
-        </div>
+            <div class="vp-header-left">
+                <button class="vp-back-btn" @onclick="VolverHome">← Volver</button>
+            </div>
 
-        <div class="vp-toolbar">
-            <button class="vp-back-btn" @onclick="VolverAtras">←</button>
+            <h1 class="vp-header-title">@eventoParticipante.Nombre</h1>
+
+            <div class="vp-header-right">
+                <span class="rol-badge participante-badge">Participante</span>
+            </div>
         </div>
 
         <div class="vp-card">
@@ -86,11 +88,11 @@ else
         <div class="vp-foot-note">
             @if (tieneProyecto)
             {
-                <p><strong>Estado actual:</strong> ya tienes un proyecto entregado para este evento.</p>
+                <p><strong>Estado actual:</strong> Ya tienes un proyecto entregado para este evento.</p>
             }
             else
             {
-                <p><strong>Estado actual:</strong> todavía no has entregado ningún proyecto.</p>
+                <p><strong>Estado actual:</strong> Todavía no has entregado ningún proyecto.</p>
             }
         </div>
     </div>

@@ -10,7 +10,7 @@ public partial class Proyecto
         Comentarios = new List<Comentario>();
         Votos = new List<Voto>();
     }
-    public Proyecto(string nombre, long idGrupo, long idCategoria, Categorium idCategoriaNavigation, Grupo idGrupoNavigation)
+    public Proyecto(string nombre, long idGrupo, long idCategoria, Categorium idCategoriaNavigation, Grupo idGrupoNavigation, string descripcionBreve, string descripcionCompleta)
     {
         Nombre = nombre;
         IdGrupo = idGrupo;
@@ -19,6 +19,10 @@ public partial class Proyecto
         IdGrupoNavigation = idGrupoNavigation;
         Comentarios = new List<Comentario>();
         Votos = new List<Voto>();
+
+        // Asignar descripciones (no pueden ser null según la BD); asumimos cadenas no nulas
+        DescripcionBreve = descripcionBreve.Trim();
+        Descripcion = descripcionCompleta.Trim();
     }
 
     public override bool Equals(object? obj)

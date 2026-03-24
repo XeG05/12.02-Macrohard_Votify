@@ -22,14 +22,15 @@ else
 {
     <div class="vpp-wrapper">
         <div class="vpp-header">
-            <button class="vpp-home-btn" @onclick="VolverHome">🏠</button>
-            <h1>@eventoParticipante.Nombre</h1>
-            <div class="vpp-logo">V</div>
-        </div>
+            <div class="vpp-header-left">
+                <button class="vpp-back-btn" @onclick="VolverHome">← Volver</button>
+            </div>
 
-        <div class="vpp-toolbar">
-            <button class="vpp-back-btn" @onclick="VolverEvento">←</button>
-            <div class="vpp-title-box">Presentar proyecto</div>
+            <h1 class="vpp-header-title">@eventoParticipante.Nombre</h1>
+
+            <div class="vpp-header-right">
+                <span class="rol-badge participante-badge">Participante</span>
+            </div>
         </div>
 
         @if (!string.IsNullOrWhiteSpace(error))
