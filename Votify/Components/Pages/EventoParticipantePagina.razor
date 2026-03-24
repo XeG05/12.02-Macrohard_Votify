@@ -6,6 +6,7 @@
 @inject I_Evento_Service Evento_Service
 @inject EventoContextService EventoCtx
 @inject NavigationManager Nav
+@inject BlazorAuthStateProvider AuthProvider
 
 @if (cargando)
 {
@@ -107,11 +108,21 @@ else
     private string nombreGrupo = "Grupo";
     private List<(string Nombre, string Correo)> miembrosGrupo = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            // usuario no autenticado, volver al login
+            Nav.NavigateTo("/");
+            return;
+        }
+
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -123,6 +134,9 @@ else
                 error = "No se ha podido cargar el evento como participante.";
                 return;
             }
+
+            // Establecer contexto del evento (no romper si falla)
+            try { EventoCtx.EstablecerEvento(entradaEvento.Evento, "PARTICIPANTE", EventoId); } catch { }
 
             var grupo = await eventoParticipante.ObtenerMiGrupo();
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
@@ -137,6 +151,7 @@ else
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
     }
 
@@ -152,7 +167,8 @@ else
 
     private void IrAPresentarProyecto()
     {
-        Nav.NavigateTo($"/eventoparticipantepresentar");
+        // Navegar a la página de presentar proyecto incluyendo el id del evento
+        Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
     }
 
     private async Task EliminarProyecto()

@@ -1,4 +1,4 @@
-﻿@page "/eventoparticipantepresentar"
+﻿@page "/eventoparticipantepresentar/{EventoId:long}"
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
@@ -6,6 +6,7 @@
 @inject I_Evento_Service Evento_Service
 @inject NavigationManager Nav
 @inject EventoContextService EventoCtx
+@inject BlazorAuthStateProvider AuthProvider
 
 @if (cargando)
 {
@@ -135,6 +136,8 @@ else
 }
 
 @code {
+    [Parameter] public long EventoId { get; set; }
+
     private EventoParticipante? eventoParticipante;
     private bool cargando = true;
 
@@ -153,11 +156,20 @@ else
     private string? error;
     private string? mensaje;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", 1000);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -169,6 +181,8 @@ else
                 error = "No se ha podido cargar el evento como participante.";
                 return;
             }
+
+            try { EventoCtx.EstablecerEvento(entradaEvento.Evento, "PARTICIPANTE", EventoId); } catch { }
 
             var grupo = await eventoParticipante.ObtenerMiGrupo();
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
@@ -188,6 +202,7 @@ else
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
     }
 
@@ -198,7 +213,7 @@ else
 
     private void VolverEvento()
     {
-        Nav.NavigateTo("/eventoparticipante/{EventoId:long}");
+        Nav.NavigateTo($"/eventoparticipante/{EventoId}");
     }
 
     private void CargarImagenes(InputFileChangeEventArgs e)
@@ -241,7 +256,7 @@ else
             );
 
             mensaje = "Proyecto entregado correctamente.";
-            Nav.NavigateTo("/eventoparticipante");
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
         }
         catch (Exception ex)
         {
