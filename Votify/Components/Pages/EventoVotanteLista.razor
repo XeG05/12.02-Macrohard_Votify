@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 @using Votify.Modelos
 @using Votify.Modelos.BusinessLogic.Domain
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 
 @inject I_Evento_Service EventoService
 
@@ -41,13 +43,17 @@ else
 
     EventoVotante? eventoVotante;
 
-    protected async override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var entrada = await EventoService.EntrarEvento("antonio@gmail.com", 1000);
+
+        var entrada = await EventoService.EntrarEvento("sonia@gmail.com", idEvento);
         if (entrada.Evento is EventoVotante evVot)
         {
             eventoVotante = evVot;
             proyectos = await eventoVotante.ListaProyectos(idEvento);
+        } else
+        {
+            
         }
 
     }

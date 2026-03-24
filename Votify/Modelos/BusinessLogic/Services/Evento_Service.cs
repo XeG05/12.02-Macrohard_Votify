@@ -105,13 +105,22 @@ namespace Votify.Modelos.BusinessLogic.Services
             _proyectoRepo,
             _categoriumRepo,
             _usuarioRepo),
-                /*
-                "VOTANTE" => new EventoVotanteCreator(),
 
+                "VOTANTE" => new EventoVotanteCreator(_eventoRepo,
+            _proyectoRepo,
+            _participanteRepo,
+            _grupoRepo,
+            _categoriumRepo,
+            _rolRepo,
+            _criterioRepo,
+            _votoRepo,
+            _comentarioRepo),
+                /*
                 // Jurado puede reutilizar VotanteCreator o tener el suyo propio
                 "JURADO" => new EventoVotanteCreator(),*/
 
-                _ => throw new Exception(
+                _ =>
+                throw new Exception(
                     $"No tienes ningún rol asignado en el evento {eventoId}")
             };
 
