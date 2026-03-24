@@ -1,4 +1,5 @@
-﻿using Votify.Modelos.Persistence.Interfaces;
+﻿using System.Text.RegularExpressions;
+using Votify.Modelos.Persistence.Interfaces;
 
 namespace Votify.Modelos.BusinessLogic.Domain
 {
@@ -37,19 +38,34 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Proyecto>> ListaProyectos(long idEvento)
         {
-            Evento? eventoActual = await _eventoRepo.GetByIdAsync(idEvento);
-            List<Proyecto> proyectos = new List<Proyecto>();
-            if (eventoActual != null)
+            List<Proyecto> proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoriaNavigation.IdEvento == idEvento);
+            List<Grupo> grupos = new List<Grupo>();
+            List<Participante> participantes = new List<Participante>();
+            foreach (Proyecto pr in proyectos)
             {
-                foreach (Categorium cat in eventoActual.Categorias)
+                grupos.Add(await _grupoRepo.GetByIdAsync(pr.IdGrupo));
+
+                List<Participante> participantesGrupo = await _participanteRepo.FindAsync(par => par.IdGrupo == pr.IdGrupo);
+                foreach (Participante par in participantesGrupo)
                 {
-                    proyectos = proyectos.Union(cat.Proyectos).ToList();
+                    participantes.Add(par);
                 }
+                
             }
             return proyectos;
         }
 
-        public async void votarProyecto(Voto voto)
+        public async Task<Grupo> GrupoProyecto(long idGrupo)
+        {
+            return await _grupoRepo.GetByIdAsync(idGrupo);
+        }
+
+        public async Task<List<Participante>> ParticipantesGrupo(long idGrupo)
+        {
+            return await _participanteRepo.FindAsync(par => par.IdGrupo == idGrupo);
+        }
+
+        public async Task votarProyecto(Voto voto)
         {
             Proyecto pr = voto.Proyecto;
             Rol rol = voto.Rol;
