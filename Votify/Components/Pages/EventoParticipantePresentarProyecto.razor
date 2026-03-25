@@ -37,8 +37,6 @@ else
 
                     <div class="epr-hero-side">
                         <span class="epr-role-badge">Participante</span>
-                        <span class="epr-phase-pill @GetFaseClass(eventoParticipante)">@GetFaseLabel(eventoParticipante)</span>
-
                         <div class="epr-mini-status @(tieneProyecto ? "is-ok" : "is-pending")">
                             @(tieneProyecto ? "Entrega ya registrada" : "Entrega disponible")
                         </div>
@@ -111,8 +109,8 @@ else
                     <h2>Archivos y categoría</h2>
                 </div>
 
-                <div class="epr-form-grid">
-                    <div class="epr-card">
+                <div class="epr-upload-layout">
+                    <div class="epr-card epr-card-full">
                         <div class="epr-card-header">
                             <h3>Categoría</h3>
                             <span class="epr-card-badge">@categorias.Count</span>
@@ -136,50 +134,54 @@ else
                         }
                     </div>
 
-                    <div class="epr-card">
-                        <div class="epr-card-header">
-                            <h3>Archivo principal</h3>
-                        </div>
-
-                        <label class="epr-upload-box">
-                            <span class="epr-upload-icon">📎</span>
-                            <div>
-                                <strong>Subir archivo del proyecto</strong>
-                                <p>.zip, .rar, .pdf u otros formatos</p>
+                    <div class="epr-upload-grid">
+                        <div class="epr-card epr-compact-card">
+                            <div class="epr-card-header">
+                                <h3>Archivo principal</h3>
                             </div>
-                            <InputFile OnChange="CargarArchivoProyecto" />
-                        </label>
 
-                        @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
-                        {
-                            <div class="epr-file-main">@nombreArchivoProyecto</div>
-                        }
-                    </div>
-                </div>
+                            <label class="epr-picker-box">
+                                <div class="epr-picker-content">
+                                    <span class="epr-picker-icon">📎</span>
+                                    <div class="epr-picker-text">
+                                        <strong>Seleccionar archivo</strong>
+                                    </div>
+                                </div>
+                                <InputFile OnChange="CargarArchivoProyecto" class="epr-hidden-input" />
+                            </label>
 
-                <div class="epr-card">
-                    <div class="epr-card-header">
-                        <h3>Imágenes del proyecto</h3>
-                    </div>
-
-                    <label class="epr-upload-box">
-                        <span class="epr-upload-icon">🖼️</span>
-                        <div>
-                            <strong>Subir imágenes</strong>
-                            <p>Puedes seleccionar varias a la vez</p>
-                        </div>
-                        <InputFile OnChange="CargarImagenes" multiple />
-                    </label>
-
-                    @if (nombresImagenes.Count > 0)
-                    {
-                        <div class="epr-files">
-                            @foreach (var nombre in nombresImagenes)
+                            @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
                             {
-                                <div class="epr-file-chip">@nombre</div>
+                                <div class="epr-file-inline">@nombreArchivoProyecto</div>
                             }
                         </div>
-                    }
+
+                        <div class="epr-card epr-compact-card">
+                            <div class="epr-card-header">
+                                <h3>Imágenes</h3>
+                            </div>
+
+                            <label class="epr-picker-box">
+                                <div class="epr-picker-content">
+                                    <span class="epr-picker-icon">🖼️</span>
+                                    <div class="epr-picker-text">
+                                        <strong>Seleccionar imágenes</strong>
+                                    </div>
+                                </div>
+                                <InputFile OnChange="CargarImagenes" multiple class="epr-hidden-input" />
+                            </label>
+
+                            @if (nombresImagenes.Count > 0)
+                            {
+                                <div class="epr-files">
+                                    @foreach (var nombre in nombresImagenes)
+                                    {
+                                        <div class="epr-file-chip">@nombre</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -389,21 +391,5 @@ else
             .Select(p => char.ToUpperInvariant(p[0]));
 
         return string.Concat(partes);
-    }
-
-    private string GetFaseLabel(EventoBase ev)
-    {
-        var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
-        if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
-        return "Finalizado";
-    }
-
-    private string GetFaseClass(EventoBase ev)
-    {
-        var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
-        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
-        return "fase-finalizado";
     }
 }
