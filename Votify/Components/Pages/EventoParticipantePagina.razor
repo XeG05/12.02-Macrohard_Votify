@@ -290,8 +290,8 @@ else
     private string GetFaseLabel(EventoBase ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
-        if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
         return "Finalizado";
     }
 

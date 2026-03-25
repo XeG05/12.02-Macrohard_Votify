@@ -37,9 +37,14 @@ else
 
                     <div class="epr-hero-side">
                         <span class="epr-role-badge">Participante</span>
+
                         <div class="epr-mini-status @(tieneProyecto ? "is-ok" : "is-pending")">
                             @(tieneProyecto ? "Entrega ya registrada" : "Entrega disponible")
                         </div>
+
+                        <span class="epr-fase-badge @GetFaseClass(eventoParticipante)">
+                            @GetFaseLabel(eventoParticipante)
+                        </span>
                     </div>
                 </div>
             </div>
@@ -144,10 +149,10 @@ else
                                 <div class="epr-picker-content">
                                     <span class="epr-picker-icon">📎</span>
                                     <div class="epr-picker-text">
-                                        <strong>Seleccionar archivo</strong>
+                                        <strong>Haz clic para subir archivo</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarArchivoProyecto" class="epr-hidden-input" />
+                                <InputFile OnChange="CargarArchivoProyecto" class="epr-native-file" />
                             </label>
 
                             @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
@@ -165,10 +170,10 @@ else
                                 <div class="epr-picker-content">
                                     <span class="epr-picker-icon">🖼️</span>
                                     <div class="epr-picker-text">
-                                        <strong>Seleccionar imágenes</strong>
+                                        <strong>Haz clic para subir imágenes</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarImagenes" multiple class="epr-hidden-input" />
+                                <InputFile OnChange="CargarImagenes" multiple class="epr-native-file" />
                             </label>
 
                             @if (nombresImagenes.Count > 0)
@@ -391,5 +396,20 @@ else
             .Select(p => char.ToUpperInvariant(p[0]));
 
         return string.Concat(partes);
+    }
+    private string GetFaseLabel(EventoBase ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        return "Finalizado";
+    }
+
+    private string GetFaseClass(EventoBase ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        return "fase-finalizado";
     }
 }
