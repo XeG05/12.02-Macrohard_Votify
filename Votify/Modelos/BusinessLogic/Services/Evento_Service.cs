@@ -114,7 +114,8 @@ namespace Votify.Modelos.BusinessLogic.Services
             _rolRepo,
             _criterioRepo,
             _votoRepo,
-            _comentarioRepo),
+            _comentarioRepo,
+            _usuarioRepo),
                 /*
                 // Jurado puede reutilizar VotanteCreator o tener el suyo propio
                 "JURADO" => new EventoVotanteCreator(),*/

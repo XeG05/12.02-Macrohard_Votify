@@ -9,13 +9,13 @@
 
 @if (proyectos == null)
 {
-    <p>Ha habido un error al cargar los proyectos</p>
+    <p>Cargando proyectos...</p>
 }
 else if (proyectos.Count == 0)
 {
     <p>No hay proyectos para mostrar</p>
 }
-@* else
+else
 {
     @foreach (var p in proyectos)
     {
@@ -26,9 +26,12 @@ else if (proyectos.Count == 0)
             <div class="informacionProyecto">
                 <div class="participantesProyecto">
 
-                    @foreach (var pa in await eventoVotante.ParticipantesGrupo(p.IdGrupo))
+                    @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
                     {
-                        <p>@pa.Rol.CorreoUsuarioNavigation.Nombre</p>
+                        foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                        {
+                            <p>@pa.Nombre</p>
+                        }
                     }
                 </div>
                 <div class="descripcionProyecto">
@@ -38,7 +41,7 @@ else if (proyectos.Count == 0)
         </div>
     }
 }
-*@
+
 
 
 
@@ -49,15 +52,26 @@ else if (proyectos.Count == 0)
 
     EventoVotante? eventoVotante;
 
+    Dictionary<long, List<Usuario>> participantesPorGrupo = new();
+
     protected override async Task OnParametersSetAsync()
     {
         try
         {
             var entrada = await EventoService.EntrarEvento("sonia@gmail.com", idEvento);
+
             if (entrada.Evento is EventoVotante evVot)
             {
                 eventoVotante = evVot;
                 proyectos = await eventoVotante.ListaProyectos(idEvento);
+
+                participantesPorGrupo = new();
+
+                foreach (var p in proyectos)
+                {
+                    var participantes = await eventoVotante.UsuariosParticipantesGrupo(p.IdGrupo);
+                    participantesPorGrupo[p.IdGrupo] = participantes;
+                }
             }
             else
             {
@@ -66,9 +80,8 @@ else if (proyectos.Count == 0)
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
-            proyectos = new List<Proyecto>();
+            Console.WriteLine(ex.ToString());
+            throw;
         }
-
     }
 }
