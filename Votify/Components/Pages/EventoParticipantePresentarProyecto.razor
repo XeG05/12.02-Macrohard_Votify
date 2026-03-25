@@ -10,128 +10,228 @@
 
 @if (cargando)
 {
-    <p>Cargando...</p>
+    <div class="epr-loading-state">
+        <div class="epr-spinner"></div>
+        <p>Cargando formulario del proyecto...</p>
+    </div>
 }
 else if (eventoParticipante is null)
 {
-    <div class="vpp-wrapper">
-        <div class="vpp-alert vpp-alert-error">No se ha podido cargar el evento como participante.</div>
+    <div class="epr-wrapper">
+        <div class="epr-alert epr-alert-error">No se ha podido cargar el evento como participante.</div>
     </div>
 }
 else
 {
-    <div class="vpp-wrapper">
-        <div class="vpp-header">
-            <div class="vpp-header-left">
-                <button class="vpp-back-btn" @onclick="VolverHome">← Volver</button>
-            </div>
+    <div class="epr-wrapper">
+        <div class="epr-hero">
+            <div class="epr-hero-content">
+                <div class="epr-breadcrumb" @onclick="VolverEvento">← Volver al evento</div>
 
-            <h1 class="vpp-header-title">@eventoParticipante.Nombre</h1>
+                <div class="epr-hero-top">
+                    <div>
+                        <div class="epr-eyebrow">Entrega de proyecto</div>
+                        <h1>@eventoParticipante.Nombre</h1>
+                        <p>Prepara la presentación de tu propuesta y completa todos los datos antes de enviarla.</p>
+                    </div>
 
-            <div class="vpp-header-right">
-                <span class="rol-badge participante-badge">Participante</span>
+                    <div class="epr-hero-side">
+                        <span class="epr-role-badge">Participante</span>
+                        <div class="epr-mini-status @(tieneProyecto ? "is-ok" : "is-pending")">
+                            @(tieneProyecto ? "Entrega ya registrada" : "Entrega disponible")
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         @if (!string.IsNullOrWhiteSpace(error))
         {
-            <div class="vpp-alert vpp-alert-error">@error</div>
+            <div class="epr-alert epr-alert-error">@error</div>
         }
 
         @if (!string.IsNullOrWhiteSpace(mensaje))
         {
-            <div class="vpp-alert vpp-alert-ok">@mensaje</div>
+            <div class="epr-alert epr-alert-ok">@mensaje</div>
         }
 
-        <div class="vpp-form">
-            <div class="vpp-field">
-                <label>Nombre del proyecto:</label>
-                <input class="vpp-input"
-                       maxlength="30"
-                       @bind="nombreProyecto"
-                       @bind:event="oninput"
-                       placeholder="Escribe hasta un máximo de 30 caracteres" />
-                <div class="vpp-counter">@nombreProyecto.Length/30</div>
-            </div>
-
-            <div class="vpp-field">
-                <label>Descripción breve:</label>
-                <textarea class="vpp-textarea vpp-textarea-small"
-                          maxlength="500"
-                          @bind="descripcionBreve"
-                          @bind:event="oninput"
-                          placeholder="Escribe hasta un máximo de 500 caracteres"></textarea>
-                <div class="vpp-counter">@descripcionBreve.Length/500</div>
-            </div>
-
-            <div class="vpp-field">
-                <label>Descripción:</label>
-                <textarea class="vpp-textarea vpp-textarea-large"
-                          @bind="descripcionCompleta"
-                          @bind:event="oninput"
-                          placeholder="Escribe aquí"></textarea>
-            </div>
-
-            <div class="vpp-card">
-                <h3>Participantes:</h3>
-
-                <div class="vpp-group-box">
-                    <strong>@nombreGrupo</strong>
-                    <ul>
-                        @foreach (var miembro in miembrosGrupo)
-                        {
-                            <li>@miembro.Nombre - @miembro.Correo</li>
-                        }
-                    </ul>
+        <div class="epr-layout">
+            <section class="epr-main">
+                <div class="epr-section-header">
+                    <div class="epr-section-indicator"></div>
+                    <h2>Información del proyecto</h2>
                 </div>
-            </div>
 
-            <div class="vpp-card">
-                <label class="vpp-label">Categoría:</label>
+                <div class="epr-form-card">
+                    <div class="epr-field">
+                        <div class="epr-label-row">
+                            <label for="nombreProyecto">Nombre del proyecto</label>
+                            <span class="epr-counter">@nombreProyecto.Length/30</span>
+                        </div>
 
-                @if (categorias.Any())
-                {
-                    <select class="vpp-select" @bind="categoriaSeleccionadaId">
-                        @foreach (var categoria in categorias)
+                        <input id="nombreProyecto"
+                               class="epr-input"
+                               maxlength="30"
+                               @bind="nombreProyecto"
+                               @bind:event="oninput"
+                               placeholder="Escribe un nombre breve y claro" />
+                    </div>
+
+                    <div class="epr-field">
+                        <div class="epr-label-row">
+                            <label for="descripcionBreve">Descripción breve</label>
+                            <span class="epr-counter">@descripcionBreve.Length/500</span>
+                        </div>
+
+                        <textarea id="descripcionBreve"
+                                  class="epr-textarea epr-textarea-small"
+                                  maxlength="500"
+                                  @bind="descripcionBreve"
+                                  @bind:event="oninput"
+                                  placeholder="Resume tu proyecto en pocas líneas"></textarea>
+                    </div>
+
+                    <div class="epr-field">
+                        <div class="epr-label-row">
+                            <label for="descripcionCompleta">Descripción completa</label>
+                        </div>
+
+                        <textarea id="descripcionCompleta"
+                                  class="epr-textarea epr-textarea-large"
+                                  @bind="descripcionCompleta"
+                                  @bind:event="oninput"
+                                  placeholder="Describe la propuesta, objetivos, funcionalidades y valor del proyecto"></textarea>
+                    </div>
+                </div>
+
+                <div class="epr-section-header">
+                    <div class="epr-section-indicator"></div>
+                    <h2>Archivos y categoría</h2>
+                </div>
+
+                <div class="epr-form-grid">
+                    <div class="epr-card">
+                        <div class="epr-card-header">
+                            <h3>Categoría</h3>
+                            <span class="epr-card-badge">@categorias.Count</span>
+                        </div>
+
+                        @if (categorias.Any())
                         {
-                            <option value="@categoria.Id">@categoria.Nombre</option>
+                            <select class="epr-select" @bind="categoriaSeleccionadaId">
+                                @foreach (var categoria in categorias)
+                                {
+                                    <option value="@categoria.Id">@categoria.Nombre</option>
+                                }
+                            </select>
                         }
-                    </select>
-                }
-                else
-                {
-                    <p>No hay categorías disponibles para este evento.</p>
-                }
-            </div>
-
-            <div class="vpp-card">
-                <label class="vpp-label">Subir imágenes:</label>
-                <InputFile OnChange="CargarImagenes" multiple />
-
-                @if (nombresImagenes.Count > 0)
-                {
-                    <div class="vpp-files">
-                        @foreach (var nombre in nombresImagenes)
+                        else
                         {
-                            <div class="vpp-file-chip">@nombre</div>
+                            <div class="epr-empty-box">
+                                <span>📂</span>
+                                <p>No hay categorías disponibles para este evento.</p>
+                            </div>
                         }
                     </div>
-                }
-            </div>
 
-            <div class="vpp-card">
-                <label class="vpp-label">Subir archivo del proyecto (.zip, .rar, .pdf, etc.):</label>
-                <InputFile OnChange="CargarArchivoProyecto" />
+                    <div class="epr-card">
+                        <div class="epr-card-header">
+                            <h3>Archivo principal</h3>
+                        </div>
 
-                @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
-                {
-                    <p class="vpp-file-main">@nombreArchivoProyecto</p>
-                }
-            </div>
+                        <label class="epr-upload-box">
+                            <span class="epr-upload-icon">📎</span>
+                            <div>
+                                <strong>Subir archivo del proyecto</strong>
+                                <p>.zip, .rar, .pdf u otros formatos</p>
+                            </div>
+                            <InputFile OnChange="CargarArchivoProyecto" />
+                        </label>
 
-            <div class="vpp-actions">
-                <button class="vpp-primary" @onclick="EntregarProyecto" disabled="@tieneProyecto">Entregar proyecto</button>
-            </div>
+                        @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+                        {
+                            <div class="epr-file-main">@nombreArchivoProyecto</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="epr-card">
+                    <div class="epr-card-header">
+                        <h3>Imágenes del proyecto</h3>
+                    </div>
+
+                    <label class="epr-upload-box">
+                        <span class="epr-upload-icon">🖼️</span>
+                        <div>
+                            <strong>Subir imágenes</strong>
+                            <p>Puedes seleccionar varias a la vez</p>
+                        </div>
+                        <InputFile OnChange="CargarImagenes" multiple />
+                    </label>
+
+                    @if (nombresImagenes.Count > 0)
+                    {
+                        <div class="epr-files">
+                            @foreach (var nombre in nombresImagenes)
+                            {
+                                <div class="epr-file-chip">@nombre</div>
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <aside class="epr-side">
+                <div class="epr-card epr-sticky">
+                    <div class="epr-card-header">
+                        <h3>Equipo participante</h3>
+                        <span class="epr-card-badge">@miembrosGrupo.Count</span>
+                    </div>
+
+                    <div class="epr-group-box">
+                        <div class="epr-group-title">@nombreGrupo</div>
+
+                        @if (miembrosGrupo.Count == 0)
+                        {
+                            <div class="epr-empty-box">
+                                <span>👥</span>
+                                <p>No hay participantes cargados en el grupo.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="epr-members">
+                                @foreach (var miembro in miembrosGrupo)
+                                {
+                                    <div class="epr-member-item">
+                                        <div class="epr-member-avatar">@ObtenerIniciales(miembro.Nombre)</div>
+                                        <div class="epr-member-info">
+                                            <strong>@miembro.Nombre</strong>
+                                            <span>@miembro.Correo</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="epr-summary-box">
+                        <strong>Antes de entregar</strong>
+                        <ul>
+                            <li>Revisa el nombre del proyecto.</li>
+                            <li>Selecciona una categoría válida.</li>
+                            <li>Adjunta el archivo principal.</li>
+                        </ul>
+                    </div>
+
+                    <div class="epr-actions">
+                        <button class="epr-secondary" @onclick="VolverEvento">Cancelar</button>
+                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@tieneProyecto">
+                            @(tieneProyecto ? "Proyecto ya entregado" : "Entregar proyecto")
+                        </button>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 }
@@ -197,7 +297,6 @@ else
                 categoriaSeleccionadaId = categorias.First().Id;
             }
 
-            // Comprobar si el grupo ya tiene un proyecto entregado
             try
             {
                 tieneProyecto = await eventoParticipante.TieneProyecto();
@@ -208,7 +307,6 @@ else
             }
             catch
             {
-                // ignorar fallo en la comprobación
             }
         }
         catch (Exception ex)
@@ -220,11 +318,6 @@ else
             cargando = false;
             StateHasChanged();
         }
-    }
-
-    private void VolverHome()
-    {
-        Nav.NavigateTo("/home");
     }
 
     private void VolverEvento()
@@ -254,7 +347,7 @@ else
         {
             if (eventoParticipante == null)
                 return;
-            // Comprobar de nuevo por seguridad que no haya ya proyecto
+
             if (await eventoParticipante.TieneProyecto())
                 throw new Exception("No puedes entregar un nuevo proyecto: ya existe uno entregado por tu grupo.");
 
@@ -281,5 +374,18 @@ else
         {
             error = ex.Message;
         }
+    }
+
+    private string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "?";
+
+        var partes = nombre
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(p => char.ToUpperInvariant(p[0]));
+
+        return string.Concat(partes);
     }
 }

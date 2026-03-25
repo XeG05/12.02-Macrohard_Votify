@@ -10,91 +10,172 @@
 
 @if (cargando)
 {
-    <p>Cargando vista del participante...</p>
+    <div class="epp-loading-state">
+        <div class="epp-spinner"></div>
+        <p>Cargando vista del participante...</p>
+    </div>
 }
 else if (!string.IsNullOrWhiteSpace(error))
 {
-    <div class="vp-alert vp-alert-error">@error</div>
+    <div class="epp-wrapper">
+        <div class="epp-alert epp-alert-error">@error</div>
+    </div>
 }
 else if (eventoParticipante is null)
 {
-    <div class="vp-alert vp-alert-error">No se ha podido cargar el evento del participante.</div>
+    <div class="epp-wrapper">
+        <div class="epp-alert epp-alert-error">No se ha podido cargar el evento del participante.</div>
+    </div>
 }
 else
 {
-    <div class="vp-wrapper">
-        <div class="vp-header">
-            <div class="vp-header-left">
-                <button class="vp-back-btn" @onclick="VolverHome">← Volver</button>
+    <div class="epp-wrapper">
+        <div class="epp-hero">
+            <div class="epp-hero-content">
+                <div class="epp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
+
+                <div class="epp-hero-top">
+                    <div>
+                        <div class="epp-eyebrow">Panel de participante</div>
+                        <h1>@eventoParticipante.Nombre</h1>
+                        <p>Gestiona tu proyecto, revisa tu grupo y accede a las opciones del evento desde un único sitio.</p>
+                    </div>
+
+                    <div class="epp-hero-badges">
+                        <span class="epp-role-badge">Participante</span>
+                        <span class="epp-status-badge @(tieneProyecto ? "is-ok" : "is-pending")">
+                            @(tieneProyecto ? "Proyecto entregado" : "Pendiente de entrega")
+                        </span>
+                    </div>
+                </div>
             </div>
-
-            <h1 class="vp-header-title">@eventoParticipante.Nombre</h1>
-
-            <div class="vp-header-right">
-                <span class="rol-badge participante-badge">Participante</span>
-            </div>
-        </div>
-
-        <div class="vp-card">
-            <h3>@nombreGrupo</h3>
-
-            @if (miembrosGrupo.Count == 0)
-            {
-                <p>No hay participantes cargados en el grupo.</p>
-            }
-            else
-            {
-                <table class="vp-table">
-                    <tbody>
-                        @foreach (var miembro in miembrosGrupo)
-                        {
-                            <tr>
-                                <td>@miembro.Nombre</td>
-                                <td>@miembro.Correo</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
         </div>
 
         @if (!string.IsNullOrWhiteSpace(mensaje))
         {
-            <div class="vp-alert vp-alert-ok">@mensaje</div>
+            <div class="epp-alert epp-alert-ok">@mensaje</div>
         }
 
-        <div class="vp-grid">
-            <button class="vp-action" @onclick="IrAPresentarProyecto" disabled="@tieneProyecto" title="@(tieneProyecto ? "Ya has entregado un proyecto" : "Subir proyecto")">
-                <span class="vp-icon">📤</span>
-                <span>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</span>
-            </button>
+        <div class="epp-main-grid">
+            <section class="epp-panel epp-group-panel">
+                <div class="epp-panel-header">
+                    <div>
+                        <span class="epp-panel-kicker">Tu equipo</span>
+                        <h2>@nombreGrupo</h2>
+                    </div>
+                    <span class="epp-count-badge">@miembrosGrupo.Count</span>
+                </div>
 
-            <button class="vp-action vp-danger" @onclick="EliminarProyecto" disabled="@(!tieneProyecto)">
-                <span class="vp-icon">🗑️</span>
-                <span>Eliminar proyecto</span>
-            </button>
+                @if (miembrosGrupo.Count == 0)
+                {
+                    <div class="epp-empty-state">
+                        <span class="epp-empty-icon">👥</span>
+                        <p>No hay participantes cargados en el grupo.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="epp-members-list">
+                        @foreach (var miembro in miembrosGrupo)
+                        {
+                            <div class="epp-member-card">
+                                <div class="epp-member-avatar">
+                                    @ObtenerIniciales(miembro.Nombre)
+                                </div>
+                                <div class="epp-member-info">
+                                    <strong>@miembro.Nombre</strong>
+                                    <span>@miembro.Correo</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
 
-            <button class="vp-action" disabled title="Pendiente de implementar">
-                <span class="vp-icon">📊</span>
-                <span>Ver dashboard</span>
-            </button>
+            <section class="epp-panel epp-status-panel">
+                <div class="epp-panel-header">
+                    <div>
+                        <span class="epp-panel-kicker">Estado</span>
+                        <h2>Resumen rápido</h2>
+                    </div>
+                </div>
 
-            <button class="vp-action" disabled title="Pendiente de implementar">
-                <span class="vp-icon">📋</span>
-                <span>Lista de proyectos</span>
-            </button>
+                <div class="epp-status-card @(tieneProyecto ? "is-ok" : "is-pending")">
+                    <div class="epp-status-icon">@(tieneProyecto ? "✅" : "⏳")</div>
+                    <div>
+                        <strong>@(tieneProyecto ? "Entrega completada" : "Entrega pendiente")</strong>
+                        <p>
+                            @(tieneProyecto
+                                                    ? "Tu grupo ya tiene un proyecto entregado para este evento."
+                                                    : "Todavía no has entregado ningún proyecto.")
+                        </p>
+                    </div>
+                </div>
+
+                <div class="epp-tip-box">
+                    <strong>Siguiente paso</strong>
+                    <p>
+                        @(tieneProyecto
+                                            ? "Puedes eliminar la entrega si necesitas volver a subir una nueva versión."
+                                            : "Sube el proyecto para dejar registrada la propuesta de tu grupo.")
+                    </p>
+                </div>
+            </section>
         </div>
 
-        <div class="vp-foot-note">
-            @if (tieneProyecto)
-            {
-                <p><strong>Estado actual:</strong> Ya tienes un proyecto entregado para este evento.</p>
-            }
-            else
-            {
-                <p><strong>Estado actual:</strong> Todavía no has entregado ningún proyecto.</p>
-            }
-        </div>
+        <section class="epp-actions-section">
+            <div class="epp-section-header">
+                <div class="epp-section-indicator"></div>
+                <h2>Acciones del evento</h2>
+            </div>
+
+            <div class="epp-actions-grid">
+                <button class="epp-action-card epp-action-primary"
+                        @onclick="IrAPresentarProyecto"
+                        disabled="@tieneProyecto"
+                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : "Subir proyecto")">
+                    <div class="epp-action-icon">📤</div>
+                    <div class="epp-action-text">
+                        <strong>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</strong>
+                        <span>
+                            @(tieneProyecto
+                                                    ? "Ya existe una entrega registrada para tu grupo."
+                                                    : "Completa el formulario y adjunta el material de tu proyecto.")
+                        </span>
+                    </div>
+                </button>
+
+                <button class="epp-action-card epp-action-danger"
+                        @onclick="EliminarProyecto"
+                        disabled="@(!tieneProyecto)">
+                    <div class="epp-action-icon">🗑️</div>
+                    <div class="epp-action-text">
+                        <strong>Eliminar proyecto</strong>
+                        <span>Quita la entrega actual para poder volver a presentarla.</span>
+                    </div>
+                </button>
+
+                <button class="epp-action-card"
+                        disabled
+                        title="Pendiente de implementar">
+                    <div class="epp-action-icon">📊</div>
+                    <div class="epp-action-text">
+                        <strong>Ver dashboard</strong>
+                        <span>Consulta métricas, evolución y resultados del evento.</span>
+                    </div>
+                </button>
+
+                <button class="epp-action-card"
+                        disabled
+                        title="Pendiente de implementar">
+                    <div class="epp-action-icon">📋</div>
+                    <div class="epp-action-text">
+                        <strong>Lista de proyectos</strong>
+                        <span>Explora las propuestas presentadas dentro del evento.</span>
+                    </div>
+                </button>
+            </div>
+        </section>
     </div>
 }
 
@@ -117,7 +198,6 @@ else
         var correo = AuthProvider.ObtenerCorreo();
         if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
         {
-            // usuario no autenticado, volver al login
             Nav.NavigateTo("/login");
             return;
         }
@@ -137,7 +217,6 @@ else
                 return;
             }
 
-            // Establecer contexto del evento (no romper si falla)
             try { EventoCtx.EstablecerEvento(entradaEvento.Evento, "PARTICIPANTE", EventoId); } catch { }
 
             var grupo = await eventoParticipante.ObtenerMiGrupo();
@@ -162,11 +241,6 @@ else
         Nav.NavigateTo("/home");
     }
 
-    private void VolverAtras()
-    {
-        Nav.NavigateTo("/home");
-    }
-
     private void IrAPresentarProyecto()
     {
         if (tieneProyecto)
@@ -175,7 +249,6 @@ else
             return;
         }
 
-        // Navegar a la página de presentar proyecto incluyendo el id del evento
         Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
     }
 
@@ -197,5 +270,18 @@ else
         {
             error = ex.Message;
         }
+    }
+
+    private string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "?";
+
+        var partes = nombre
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(p => char.ToUpperInvariant(p[0]));
+
+        return string.Concat(partes);
     }
 }
