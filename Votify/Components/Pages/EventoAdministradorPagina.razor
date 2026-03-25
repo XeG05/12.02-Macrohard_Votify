@@ -8,8 +8,6 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
-
-
 @if (cargando)
 {
     <p>Cargando...</p>
@@ -70,6 +68,7 @@ else
                     <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
                 }
 
+                @*  PARTICIPANTES *@
                 @if (participantesPorGrupo.ContainsKey(g.Id))
                 {
                     <ul>
@@ -118,9 +117,12 @@ else
 
     Dictionary<long, List<Participante>> participantesPorGrupo = new();
 
+    Dictionary<long, string> nuevoCorreoPorGrupo = new();
+
     EventoAdministrador? eventoAdmin;
 
     string nombreGrupoNuevo = "";
+    
     public long? categoriaSeleccionadaId;
     bool cargando = true;
     string error = "";
@@ -179,6 +181,12 @@ else
         {
             categoriaSeleccionadaId = idCategoria;
             grupos = await eventoAdmin.VerGrupo(idCategoria);
+
+            foreach (var g in grupos)
+            {
+                if (!nuevoCorreoPorGrupo.ContainsKey(g.Id))
+                    nuevoCorreoPorGrupo[g.Id] = "";
+            }
         }
     }
 
@@ -210,5 +218,33 @@ else
             grupos = null;
         }
     }
+    
+    /*
+    async Task AñadirParticipanteUI(long idGrupo)
+    {
+        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nuevoCorreoPorGrupo[idGrupo]))
+        {
+            await eventoAdmin.AñadirParticipante(nuevoCorreoPorGrupo[idGrupo], idGrupo);
+
+            var participantes = await eventoAdmin.VerParticipantes(idGrupo);
+            participantesPorGrupo[idGrupo] = participantes;
+
+            nuevoCorreoPorGrupo[idGrupo] = "";
+        }
+    }
+    async Task EliminarParticipanteUI(long idParticipante)
+    {
+        if (eventoAdmin != null)
+        {
+            await eventoAdmin.EliminarParticipante(idParticipante);
+
+            // recargar TODOS los grupos visibles
+            foreach (var g in grupos!)
+            {
+                var participantes = await eventoAdmin.VerParticipantes(g.Id);
+                participantesPorGrupo[g.Id] = participantes;
+            }
+        }
+    }*/
 
 }

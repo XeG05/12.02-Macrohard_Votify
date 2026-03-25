@@ -23,6 +23,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             IRepository<Grupo> grupoRepo,
             IRepository<Voto> votoRepo) : base(evento, usuario)
         {
+            _usuarioRepo = usuarioRepo;
             _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
             _participanteRepo = participanteRepo;
@@ -175,7 +176,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             await _grupoRepo.DeleteAsync(grupo);
         }
-        /*public async Task AñadirParticipante(string correo, long idGrupo)
+        /*
+        public async Task AñadirParticipante(string correo, long idGrupo)
         {
             if (ObtenerFaseActual() != FasesEvento.Inscripciones)
                 throw new Exception("Solo se pueden añadir participantes en fase de inscripciones");
@@ -193,7 +195,18 @@ namespace Votify.Modelos.BusinessLogic.Domain
             };
 
             await _participanteRepo.AddAsync(participante);
-        }*/ //EN PROCESO
+        }
+        public async Task EliminarParticipante(long idParticipante)
+        {
+            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+                throw new Exception("Solo se pueden eliminar participantes en fase de inscripciones");
 
+            var participante = await _participanteRepo.GetByIdAsync(idParticipante);
+
+            if (participante == null)
+                throw new Exception("Participante no encontrado");
+
+            await _participanteRepo.DeleteAsync(participante);
+        }*/
     }
 }
