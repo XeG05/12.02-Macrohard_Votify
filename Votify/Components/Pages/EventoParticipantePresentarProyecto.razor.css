@@ -125,6 +125,32 @@
     gap: 0.7rem;
 }
 
+/* Phase pill */
+.epr-phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    color: #fff;
+}
+
+.fase-inscripciones {
+    background: linear-gradient(180deg, #2563eb, #1d4ed8); /* azul */
+}
+
+.fase-votaciones {
+    background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-finalizado {
+    background: linear-gradient(180deg, #6b7280, #374151); /* gris */
+}
+
 .epr-role-badge {
     display: inline-flex;
     align-items: center;
