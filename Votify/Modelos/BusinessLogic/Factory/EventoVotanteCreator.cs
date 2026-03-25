@@ -13,6 +13,7 @@ namespace Votify.Modelos.BusinessLogic.Factory
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly IRepository<Usuario> _usuarioRepo;
 
         public EventoVotanteCreator(
             IRepository<Evento> eventoRepo,
@@ -23,7 +24,8 @@ namespace Votify.Modelos.BusinessLogic.Factory
             IRepository<Rol> rolRepo, 
             IRepository<Criterio> criterioRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo)
+            IRepository<Comentario> comentarioRepo,
+            IRepository<Usuario> usuarioRepo)
         {
             _eventoRepo = eventoRepo;
             _proyectoRepo = proyectoRepo;
@@ -34,11 +36,12 @@ namespace Votify.Modelos.BusinessLogic.Factory
             _criterioRepo = criterioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _usuarioRepo = usuarioRepo;
         }
 
         public override EventoBase CrearEvento(Evento evento, Usuario usuario)
         {
-            return new EventoVotante(evento, usuario, _eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo, _rolRepo, _criterioRepo, _votoRepo, _comentarioRepo);
+            return new EventoVotante(evento, usuario, _eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo, _rolRepo, _criterioRepo, _votoRepo, _comentarioRepo, _usuarioRepo);
         }
     }
 }

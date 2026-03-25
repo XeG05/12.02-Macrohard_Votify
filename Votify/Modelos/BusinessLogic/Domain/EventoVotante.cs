@@ -14,6 +14,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly IRepository<Usuario> _usuarioRepo;
         public EventoVotante(Evento evento, Usuario usuario, 
             IRepository<Evento> eventoRepo, 
             IRepository<Proyecto> proyectoRepo, 
@@ -23,7 +24,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
             IRepository<Rol> rolRepo, 
             IRepository<Criterio> criterioRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo) : base(evento, usuario)
+            IRepository<Comentario> comentarioRepo,
+            IRepository<Usuario> usuarioRepo) : base(evento, usuario)
         {
             _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
@@ -34,25 +36,12 @@ namespace Votify.Modelos.BusinessLogic.Domain
             _criterioRepo = criterioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _usuarioRepo = usuarioRepo;
         }
 
         public async Task<List<Proyecto>> ListaProyectos(long idEvento)
         {
-            List<Proyecto> proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoriaNavigation.IdEvento == idEvento);
-            List<Grupo> grupos = new List<Grupo>();
-            List<Participante> participantes = new List<Participante>();
-            foreach (Proyecto pr in proyectos)
-            {
-                grupos.Add(await _grupoRepo.GetByIdAsync(pr.IdGrupo));
-
-                List<Participante> participantesGrupo = await _participanteRepo.FindAsync(par => par.IdGrupo == pr.IdGrupo);
-                foreach (Participante par in participantesGrupo)
-                {
-                    participantes.Add(par);
-                }
-                
-            }
-            return proyectos;
+            return await _proyectoRepo.FindAsync(p => p.IdCategoriaNavigation.IdEvento == idEvento);
         }
 
         public async Task<Grupo> GrupoProyecto(long idGrupo)
@@ -60,9 +49,16 @@ namespace Votify.Modelos.BusinessLogic.Domain
             return await _grupoRepo.GetByIdAsync(idGrupo);
         }
 
-        public async Task<List<Participante>> ParticipantesGrupo(long idGrupo)
+        public async Task<List<Usuario>> UsuariosParticipantesGrupo(long idGrupo)
         {
-            return await _participanteRepo.FindAsync(par => par.IdGrupo == idGrupo);
+            List<Participante> participantes = await _participanteRepo.FindAsync(par => par.IdGrupo == idGrupo);
+            List<Usuario> usuarios = new List<Usuario>();
+            foreach (Participante par in participantes)
+            {
+                List<Usuario> usuario = await _usuarioRepo.FindAsync(us => us.Correo == par.Correo);
+                usuarios.AddRange(usuario);
+            }
+            return usuarios;
         }
 
         public async Task votarProyecto(Voto voto)
