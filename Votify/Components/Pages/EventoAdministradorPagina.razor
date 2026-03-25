@@ -122,38 +122,26 @@ else
     EventoAdministrador? eventoAdmin;
 
     string nombreGrupoNuevo = "";
-    
+
     public long? categoriaSeleccionadaId;
     bool cargando = true;
     string error = "";
 
-    /*protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-
-        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
         {
-            Nav.NavigateTo("/login");
+            // usuario no autenticado, volver al login
+            Nav.NavigateTo("/");
             return;
         }
-        StateHasChanged();
-    }*/ //NO FUNCIONA
 
-    protected override async Task OnInitializedAsync()
-    {
-        /*var correo = AuthProvider.ObtenerCorreo(); 
-         * 
-        if (string.IsNullOrWhiteSpace(correo))
-        {
-            Nav.NavigateTo("/login");
-            return;
-        }
-        */ //CON LO DE ARRIBA,NO FUNCIONA
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento("ana@gmail.com", EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
 
             if (entradaEvento.Evento is EventoAdministrador admin)
             {
@@ -172,7 +160,15 @@ else
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
+
+    } //NO FUNCIONA
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        
     }
 
     async Task CargarGrupos(long idCategoria)
