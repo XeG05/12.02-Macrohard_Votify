@@ -43,6 +43,8 @@ else
 
                     <div class="epp-hero-badges">
                         <span class="epp-role-badge">Participante</span>
+                        <span class="epp-phase-pill @GetFaseClass(eventoParticipante)">@GetFaseLabel(eventoParticipante)</span>
+
                         <span class="epp-status-badge @(tieneProyecto ? "is-ok" : "is-pending")">
                             @(tieneProyecto ? "Proyecto entregado" : "Pendiente de entrega")
                         </span>
@@ -283,5 +285,21 @@ else
             .Select(p => char.ToUpperInvariant(p[0]));
 
         return string.Concat(partes);
+    }
+
+    private string GetFaseLabel(EventoBase ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
+        if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
+        return "Finalizado";
+    }
+
+    private string GetFaseClass(EventoBase ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        return "fase-finalizado";
     }
 }
