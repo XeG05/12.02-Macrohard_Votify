@@ -118,7 +118,7 @@ else
         if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
         {
             // usuario no autenticado, volver al login
-            Nav.NavigateTo("/");
+            Nav.NavigateTo("/login");
             return;
         }
 
