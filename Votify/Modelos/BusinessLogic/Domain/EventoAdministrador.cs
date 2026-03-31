@@ -207,6 +207,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 throw new Exception("Participante no encontrado");
 
             await _participanteRepo.DeleteAsync(participante);
-        }*/
+        }*/ //PARA EL SPRINT 2
     }
 }
