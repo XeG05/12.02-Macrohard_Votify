@@ -7,8 +7,8 @@
         public byte[] Archivo { get; set; } = null!;
 
 
-        public int ProyectoIdGrupo { get; set; }
-        public int ProyectoIdCategoria { get; set; }
+        public long ProyectoIdGrupo { get; set; }
+        public long ProyectoIdCategoria { get; set; }
 
         public Proyecto Proyecto { get; set; } = null!;
     }

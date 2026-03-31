@@ -342,27 +342,31 @@ namespace Votify.Migrations
 
             modelBuilder.Entity("Votify.Modelos.Persistence.Entities.ImagenProyecto", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("Archivo")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("archivo");
 
                     b.Property<long>("ProyectoIdCategoria")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("proyecto_id_categoria");
 
                     b.Property<long>("ProyectoIdGrupo")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("bigint")
+                        .HasColumnName("proyecto_id_grupo");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProyectoIdGrupo", "ProyectoIdCategoria");
 
-                    b.ToTable("ImagenProyecto");
+                    b.ToTable("imagen_proyecto", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Modelos.Proyecto", b =>
@@ -374,6 +378,11 @@ namespace Votify.Migrations
                     b.Property<long>("IdCategoria")
                         .HasColumnType("bigint")
                         .HasColumnName("id_categoria");
+
+                    b.Property<byte[]>("Archivo")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("archivo");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -388,9 +397,6 @@ namespace Votify.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("character varying(25)")
                         .HasColumnName("nombre");
-
-                    b.Property<string>("URLDescarga")
-                        .HasColumnType("text");
 
                     b.HasKey("IdGrupo", "IdCategoria")
                         .HasName("proyecto_pkey");

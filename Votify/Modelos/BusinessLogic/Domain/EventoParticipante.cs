@@ -125,7 +125,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             if (proyectoExistente != null)
                 throw new Exception("Ya existe un proyecto entregado para esta categoría. Elimínalo antes de volver a entregarlo.");
 
-            
+
             string descBreve;
             if (descripcionBreve == null)
                 descBreve = string.Empty;
@@ -173,6 +173,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 await _proyectoRepo.DeleteAsync(proyecto);
             }
         }
+    }
+}
         /*public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria)
         {
             if (ObtenerFaseActual() != FasesEvento.Resultados)
@@ -184,6 +186,5 @@ namespace Votify.Modelos.BusinessLogic.Domain
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
 
 
-        }/* //En proceso
-    }
-}
+        }*/ //En proceso
+ 
