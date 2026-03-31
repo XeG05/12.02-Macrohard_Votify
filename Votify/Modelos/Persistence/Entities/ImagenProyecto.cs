@@ -2,13 +2,14 @@
 {
     public class ImagenProyecto
     {
-        public long Id { get; set; }
+        public int Id { get; set; }
 
-        public string Url { get; set; } = "";
+        public byte[] Archivo { get; set; } = null!;
 
-        public long ProyectoIdGrupo { get; set; }
-        public long ProyectoIdCategoria { get; set; }
 
-        public Proyecto Proyecto { get; set; }
+        public int ProyectoIdGrupo { get; set; }
+        public int ProyectoIdCategoria { get; set; }
+
+        public Proyecto Proyecto { get; set; } = null!;
     }
 }

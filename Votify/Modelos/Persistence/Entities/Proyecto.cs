@@ -18,7 +18,7 @@ public partial class Proyecto
 
     public List<ImagenProyecto> Imagenes { get; set; } = new();
 
-    public string? URLDescarga { get; set; }
+    public byte[] Archivo { get; set; } = null!;
 
     public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
 

@@ -237,25 +237,37 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Proyecto>(entity =>
         {
-            entity.HasKey(e => new { e.IdGrupo, e.IdCategoria }).HasName("proyecto_pkey");
+            entity.HasKey(e => new { e.IdGrupo, e.IdCategoria })
+                  .HasName("proyecto_pkey");
 
             entity.ToTable("proyecto");
 
-            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
-            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(e => e.IdGrupo)
+                  .HasColumnName("id_grupo");
+
+            entity.Property(e => e.IdCategoria)
+                  .HasColumnName("id_categoria");
+
             entity.Property(e => e.Nombre)
-                .HasMaxLength(25)
-                .HasColumnName("nombre");
+                  .HasMaxLength(25)
+                  .HasColumnName("nombre");
 
-            entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Proyectos)
-                .HasForeignKey(d => d.IdCategoria)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("id_categoria");
+            entity.Property(e => e.Archivo)
+                  .IsRequired()
+                  .HasColumnType("bytea")
+                  .HasColumnName("archivo");
 
-            entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Proyectos)
-                .HasForeignKey(d => d.IdGrupo)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("id_grupoFK");
+            entity.HasOne(d => d.IdCategoriaNavigation)
+                  .WithMany(p => p.Proyectos)
+                  .HasForeignKey(d => d.IdCategoria)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("id_categoria");
+
+            entity.HasOne(d => d.IdGrupoNavigation)
+                  .WithMany(p => p.Proyectos)
+                  .HasForeignKey(d => d.IdGrupo)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("id_grupoFK");
         });
 
         modelBuilder.Entity<Reclamacion>(entity =>
@@ -373,10 +385,24 @@ public partial class VotifyContext : DbContext
         });
         modelBuilder.Entity<ImagenProyecto>(entity =>
         {
+            entity.ToTable("imagen_proyecto");
+
             entity.HasKey(i => i.Id);
 
-            entity.Property(i => i.Url)
-                  .IsRequired();
+            entity.Property(i => i.Id)
+                  .ValueGeneratedOnAdd()
+                  .HasColumnName("id");
+
+            entity.Property(i => i.Archivo)
+                  .IsRequired()
+                  .HasColumnType("bytea")
+                  .HasColumnName("archivo");
+
+            entity.Property(i => i.ProyectoIdGrupo)
+                  .HasColumnName("proyecto_id_grupo");
+
+            entity.Property(i => i.ProyectoIdCategoria)
+                  .HasColumnName("proyecto_id_categoria");
 
             entity.HasOne(i => i.Proyecto)
                   .WithMany(p => p.Imagenes)
