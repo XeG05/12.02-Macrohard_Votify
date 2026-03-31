@@ -19,7 +19,7 @@ else
 {
     @foreach (var p in proyectos)
     {
-        <div class="proyectos">
+        <div class="proyectos" @onclick="() => IrAProyecto(p.IdCategoria, p.IdGrupo)">
             <div class="nombreProyecto">
                 <p>@p.Nombre</p>
             </div>
@@ -83,5 +83,10 @@ else
             Console.WriteLine(ex.ToString());
             throw;
         }
+    }
+
+    protected async Task IrAProyecto(long idCategoria, long idGrupo)
+    {
+        Nav.NavigateTo($"/proyecto/{idCategoria}/{idGrupo}");
     }
 }

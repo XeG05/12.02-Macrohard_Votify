@@ -6,11 +6,13 @@
     background-color: white;
     width: 100%;
     transition: all 0.2s ease;
+    margin:10px;
 }
 
     .proyectos:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         transform: translateY(-2px);
+        cursor:pointer;
     }
 
 .nombreProyecto {
