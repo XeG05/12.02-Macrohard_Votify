@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Votify.Modelos.Persistence.Entities;
 
 namespace Votify.Modelos;
 
@@ -44,7 +45,7 @@ public partial class VotifyContext : DbContext
     public virtual DbSet<Voto> Votos { get; set; }
 
     public virtual DbSet<InvitacionPendiente> InvitacionesPendientes { get; set; }
-
+    public DbSet<ImagenProyecto> ImagenProyecto { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Administrador>(entity =>
@@ -369,6 +370,19 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
+        });
+        modelBuilder.Entity<ImagenProyecto>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+
+            entity.Property(i => i.Url)
+                  .IsRequired();
+
+            entity.HasOne(i => i.Proyecto)
+                  .WithMany(p => p.Imagenes)
+                  .HasForeignKey(i => new { i.ProyectoIdGrupo, i.ProyectoIdCategoria })
+                  .HasPrincipalKey(p => new { p.IdGrupo, p.IdCategoria })
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<InvitacionPendiente>(entity =>

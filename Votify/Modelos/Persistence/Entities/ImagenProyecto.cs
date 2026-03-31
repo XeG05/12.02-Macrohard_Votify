@@ -6,7 +6,8 @@
 
         public string Url { get; set; } = "";
 
-        public long IdProyecto { get; set; }
+        public long ProyectoIdGrupo { get; set; }
+        public long ProyectoIdCategoria { get; set; }
 
         public Proyecto Proyecto { get; set; }
     }

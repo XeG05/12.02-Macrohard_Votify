@@ -348,9 +348,6 @@ namespace Votify.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("IdProyecto")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("ProyectoIdCategoria")
                         .HasColumnType("bigint");
 

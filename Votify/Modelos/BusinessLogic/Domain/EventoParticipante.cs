@@ -1,4 +1,5 @@
 ﻿using Votify.Modelos.Persistence.Interfaces;
+using Votify.Modelos.BusinessLogic.Enums;
 namespace Votify.Modelos.BusinessLogic.Domain
 {
     public class EventoParticipante : EventoBase
@@ -171,7 +172,11 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 await _proyectoRepo.DeleteAsync(proyecto);
             }
         }
+        /*if (ObtenerFaseActual() != FasesEvento.Resultados)
+        {
+            throw new Exception("Los resultados aún no están disponibles");
+        }*/
 
 
-    }
+}
 }
