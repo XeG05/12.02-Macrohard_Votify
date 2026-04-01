@@ -57,9 +57,9 @@ namespace Votify.Tests
             await _context.Database.EnsureDeletedAsync();
             await _context.DisposeAsync();
         }
-
+        //Admin puede cambiar el nombre de un evento
         [TestMethod]
-        public async Task UnAdministradorPuedeCambiarElNombreDelEvento()
+        public async Task CambiarNombreAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -71,9 +71,9 @@ namespace Votify.Tests
             Assert.IsNotNull(eventoActualizado);
             Assert.AreEqual("DemoDay 2026", eventoActualizado.Nombre);
         }
-
+        //Admin puede cambiar la descripcion de un evento
         [TestMethod]
-        public async Task UnAdministradorPuedeCambiarLaDescripcionDelEvento()
+        public async Task CambiarDescrpAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -85,77 +85,77 @@ namespace Votify.Tests
             Assert.IsNotNull(eventoActualizado);
             Assert.AreEqual("Nueva descripcion funcional del evento", eventoActualizado.Descripcion);
         }
-
+        //Admin puede consultar las Categorias de un evento
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLasCategoriasDelEvento()
+        public async Task CategoriasEventoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             var categorias = await admin.VerCategoria();
 
-            Assert.AreEqual(2, categorias.Count);
+            Assert.HasCount(2, categorias);
             CollectionAssert.AreEquivalent(
                 new List<string> { "Web", "IA" },
                 categorias.Select(c => c.Nombre).ToList());
         }
-
+        //Admin puede consultar los Grupos de una categoria
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosGruposDeUnaCategoria()
+        public async Task GruposEventoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             var grupos = await admin.VerGrupo(datos.CategoriaPrincipal.Id);
 
-            Assert.AreEqual(2, grupos.Count);
+            Assert.HasCount(2, grupos);
             CollectionAssert.AreEquivalent(
                 new List<string> { "Grupo A", "Grupo B" },
                 grupos.Select(g => g.Nombre).ToList());
         }
-
+        //Admin puede consultar los Proyectos de un grupo
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosProyectosDeUnGrupo()
+        public async Task ProyectosGrupoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             var proyectos = await admin.VerProyectoDeGrupo(datos.GrupoA.Id);
 
-            Assert.AreEqual(1, proyectos.Count);
+            Assert.HasCount(1, proyectos);
             Assert.AreEqual("Proyecto A", proyectos[0].Nombre);
         }
-
+        //Admin puede consultar los Participantes de un grupo
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosParticipantesDeUnGrupo()
+        public async Task ParticipantesGrupoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             var participantes = await admin.VerParticipantes(datos.GrupoA.Id);
 
-            Assert.AreEqual(2, participantes.Count);
+            Assert.HasCount(2, participantes);
             CollectionAssert.AreEquivalent(
                 new List<string> { "eva@gmail.com", "luis@gmail.com" },
                 participantes.Select(p => p.Correo).ToList());
         }
-
+        //Admin puede consultar los Proyectos de una categoria
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosProyectosDeUnaCategoria()
+        public async Task ProyectosCategoriaAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             var proyectos = await admin.VerProyectosCategoria(datos.CategoriaPrincipal.Id);
 
-            Assert.AreEqual(2, proyectos.Count);
+            Assert.HasCount(2, proyectos);
             CollectionAssert.AreEquivalent(
                 new List<string> { "Proyecto A", "Proyecto B" },
                 proyectos.Select(p => p.Nombre).ToList());
         }
-
+        //Admin puede consultar los votos de un proyecto
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosVotosDeUnProyecto()
+        public async Task VotosProyectoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -166,16 +166,16 @@ namespace Votify.Tests
             Assert.AreEqual(2, votosGrupoA);
             Assert.AreEqual(1, votosGrupoB);
         }
-
+        //Admin puede consultar los resultados de una categoria
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarLosResultadosDeUnaCategoria()
+        public async Task ResultadosCategoriaAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
 
             List<ProyectoResumenDTO> resultados = await admin.ObtenerResultadosCategoria(datos.CategoriaPrincipal.Id);
 
-            Assert.AreEqual(2, resultados.Count);
+            Assert.HasCount(2, resultados);
 
             var resultadoProyectoA = resultados.Single(r => r.NombreProyecto == "Proyecto A");
             var resultadoProyectoB = resultados.Single(r => r.NombreProyecto == "Proyecto B");
@@ -186,9 +186,9 @@ namespace Votify.Tests
             Assert.AreEqual("Grupo B", resultadoProyectoB.NombreGrupo);
             Assert.AreEqual(1, resultadoProyectoB.CantidadVotos);
         }
-
+        //Admin puede consultar el total de votos de una categoria
         [TestMethod]
-        public async Task UnAdministradorPuedeConsultarElTotalDeVotosDeUnaCategoria()
+        public async Task VotosTotalesCategoriaAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -197,9 +197,9 @@ namespace Votify.Tests
 
             Assert.AreEqual(3, totalVotos);
         }
-
+        //Admin puede añadir un grupo a una categoria durante la fase de inscripciones
         [TestMethod]
-        public async Task UnAdministradorPuedeAnadirUnGrupoDuranteLaFaseDeInscripciones()
+        public async Task GrupoFaseinscripionAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -216,9 +216,9 @@ namespace Votify.Tests
             Assert.IsNotNull(proyectoAsociado);
             Assert.AreEqual("Sin nombre", proyectoAsociado.Nombre);
         }
-
+        //Admin no puede añadir un grupo a una categoria fuera de la fase de inscripciones
         [TestMethod]
-        public async Task UnAdministradorNoPuedeAnadirUnGrupoFueraDeLaFaseDeInscripciones()
+        public async Task GrupoOtraFaseAdmin()
         {
             var datos = await CrearEscenarioAdminAsync(
                 fechaFinInscripciones: DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
@@ -232,9 +232,9 @@ namespace Votify.Tests
 
             Assert.AreEqual("No se pueden añadir grupos fuera de la fase de inscripción", ex.Message);
         }
-
+        //Admin puede eliminar un grupo en la fase de Inscripciones
         [TestMethod]
-        public async Task UnAdministradorPuedeEliminarUnGrupoDuranteLaFaseDeInscripciones()
+        public async Task EliminarGrupoAdmin()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
@@ -246,12 +246,12 @@ namespace Votify.Tests
             var participantes = await _context.Participantes.Where(p => p.IdGrupo == datos.GrupoA.Id).ToListAsync();
 
             Assert.IsNull(grupo);
-            Assert.AreEqual(0, proyectos.Count);
-            Assert.AreEqual(0, participantes.Count);
+            Assert.IsEmpty(proyectos);
+            Assert.IsEmpty(participantes);
         }
-
+        //Admin no puede eliminar un grupo fuera de la fase de Inscripciones
         [TestMethod]
-        public async Task UnAdministradorNoPuedeEliminarUnGrupoFueraDeLaFaseDeInscripciones()
+        public async Task EliminarGrupoOtraFaseAdmin()
         {
             var datos = await CrearEscenarioAdminAsync(
                 fechaFinInscripciones: DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
@@ -265,9 +265,9 @@ namespace Votify.Tests
 
             Assert.AreEqual("No se pueden eliminar grupos fuera de la fase de inscripción", ex.Message);
         }
-
+        //Error al eliminar grupo inexistente
         [TestMethod]
-        public async Task SiSeIntentaEliminarUnGrupoInexistente_SeInformaDelError()
+        public async Task EliminarGrupoInexistente()
         {
             var datos = await CrearEscenarioAdminAsync();
             var admin = await ObtenerEventoAdministrador(datos);
