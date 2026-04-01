@@ -144,7 +144,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 Nombre = "Sin nombre",
                 IdGrupo = grupo.Id,
-                IdCategoria = idCategoria
+                IdCategoria = idCategoria,
+                Archivo = Array.Empty<byte>()
             };
 
             await _proyectoRepo.AddAsync(proyecto);

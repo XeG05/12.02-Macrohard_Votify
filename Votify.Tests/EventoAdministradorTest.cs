@@ -403,9 +403,20 @@ namespace Votify.Tests
 
             await _context.SaveChangesAsync();
 
+            var criterio = new Criterio
+            {
+                Nombre = "General",
+                Descripcion = "Criterio General",
+                IdCategoria = categoriaPrincipal.Id,
+                Ponderacion = 100
+            };
+            await _context.Criterios.AddAsync(criterio);
+            await _context.SaveChangesAsync();
+
             await _context.Votos.AddRangeAsync(
                 new Voto
                 {
+                    IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante1.Correo,
                     IdProyectoCat = categoriaPrincipal.Id,
@@ -414,6 +425,7 @@ namespace Votify.Tests
                 },
                 new Voto
                 {
+                    IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante2.Correo,
                     IdProyectoCat = categoriaPrincipal.Id,
@@ -422,6 +434,7 @@ namespace Votify.Tests
                 },
                 new Voto
                 {
+                    IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante1.Correo,
                     IdProyectoCat = categoriaPrincipal.Id,
