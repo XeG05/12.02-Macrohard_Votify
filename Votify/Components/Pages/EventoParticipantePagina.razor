@@ -38,7 +38,7 @@ else
                     <div>
                         <div class="epp-eyebrow">Panel de participante</div>
                         <h1>@eventoParticipante.Nombre</h1>
-                        <p>Gestiona tu proyecto, revisa tu grupo y accede a las opciones del evento desde un único sitio.</p>
+                        <p>@eventoParticipante.Descripcion</p>
                     </div>
 
                     <div class="epp-hero-side">
@@ -168,8 +168,8 @@ else
                 </button>
 
                 <button class="epp-action-card"
-                        disabled
-                        title="Pendiente de implementar">
+                        @onclick="IrAListaProyectos"
+                        title="Ver proyectos">
                     <div class="epp-action-icon">📋</div>
                     <div class="epp-action-text">
                         <strong>Lista de proyectos</strong>
@@ -252,6 +252,11 @@ else
         }
 
         Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
+    }
+
+    private void IrAListaProyectos()
+    {
+        Nav.NavigateTo($"/eventovotantelista/{EventoId}");
     }
 
     private async Task EliminarProyecto()
