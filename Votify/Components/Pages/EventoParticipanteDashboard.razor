@@ -1,0 +1,96 @@
+﻿@page "/dashboard/{EventoId:long}/{CategoriaId:long}"
+@rendermode InteractiveServer
+
+@using Votify.Modelos.BusinessLogic.DTOs
+@using Votify.Modelos.BusinessLogic.Domain
+@using Votify.Modelos.BusinessLogic.Services
+
+@inject I_Evento_Service Evento_Service
+
+<h2>Dashboard del participante</h2>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div style="color:red">@error</div>
+}
+else if (dashboard != null)
+{
+    <hr />
+
+    <h3>📊 Información del proyecto</h3>
+
+    <p><b>Proyecto:</b> @dashboard.NombreProyecto</p>
+    <p><b>Grupo:</b> @dashboard.NombreGrupo</p>
+
+    <hr />
+
+    <h3>🏆 Resultados</h3>
+
+    <p><b>Total votos:</b> @dashboard.TotalVotos</p>
+    <p><b>Posición en ranking:</b> @dashboard.Posicion</p>
+
+    <hr />
+
+    <h3>💬 Comentarios recibidos</h3>
+
+    @if (dashboard.Comentarios == null || dashboard.Comentarios.Count == 0)
+    {
+        <p>No hay comentarios todavía.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var comentario in dashboard.Comentarios)
+            {
+                <li>@comentario</li>
+            }
+        </ul>
+    }
+}
+else
+{
+    <p>No se pudieron cargar los datos.</p>
+}
+@code {
+
+    [Parameter] public long EventoId { get; set; }
+    [Parameter] public long CategoriaId { get; set; }
+
+    EventoParticipante? eventoParticipante;
+    DashboardParticipanteDTO? dashboard;
+
+    bool cargando = true;
+    string error = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            //  De momento hardcodeado (igual que en tu otra página)
+            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", EventoId);
+
+            if (entradaEvento.Evento is EventoParticipante participante)
+            {
+                eventoParticipante = participante;
+
+                dashboard = await eventoParticipante.ObtenerDashboard(CategoriaId);
+            }
+            else
+            {
+                error = "No tienes permisos de participante en este evento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}

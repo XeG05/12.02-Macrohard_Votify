@@ -96,26 +96,35 @@ namespace Votify.Modelos.BusinessLogic.Services
 
             EventoCreator creator = tipoRol switch
             {
-                "ADMIN" => new EventoAdministradorCreator(_usuarioRepo,
-                    _eventoRepo, _proyectoRepo,
-                    _participanteRepo, _grupoRepo, _categoriumRepo, _votoRepo),
+                "ADMIN" => new EventoAdministradorCreator(
+                    _usuarioRepo,
+                    _eventoRepo,
+                    _proyectoRepo,
+                    _participanteRepo,
+                    _grupoRepo,
+                    _categoriumRepo,
+                    _votoRepo),
 
-                "PARTICIPANTE" => new EventoParticipanteCreator(_participanteRepo,
-            _grupoRepo,
-            _proyectoRepo,
-            _categoriumRepo,
-            _usuarioRepo),
+                "PARTICIPANTE" => new EventoParticipanteCreator(
+                    _participanteRepo,
+                    _grupoRepo,
+                    _proyectoRepo,
+                    _categoriumRepo,
+                    _usuarioRepo,
+                    _votoRepo,
+                    _comentarioRepo),
 
-                "VOTANTE" => new EventoVotanteCreator(_eventoRepo,
-            _proyectoRepo,
-            _participanteRepo,
-            _grupoRepo,
-            _categoriumRepo,
-            _rolRepo,
-            _criterioRepo,
-            _votoRepo,
-            _comentarioRepo,
-            _usuarioRepo),
+                "VOTANTE" => new EventoVotanteCreator(
+                    _eventoRepo,
+                    _proyectoRepo,
+                    _participanteRepo,
+                    _grupoRepo,
+                    _categoriumRepo,
+                    _rolRepo,
+                    _criterioRepo,
+                    _votoRepo,
+                    _comentarioRepo,
+                    _usuarioRepo),
                 /*
                 // Jurado puede reutilizar VotanteCreator o tener el suyo propio
                 "JURADO" => new EventoVotanteCreator(),*/

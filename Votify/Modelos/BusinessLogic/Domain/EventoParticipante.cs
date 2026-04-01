@@ -11,6 +11,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
+        private readonly IRepository<Voto> _votoRepo;
+        private readonly IRepository<Comentario> _comentarioRepo;
 
         public EventoParticipante(
             Evento evento,
@@ -19,7 +21,9 @@ namespace Votify.Modelos.BusinessLogic.Domain
             IRepository<Grupo> grupoRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Categorium> categoriumRepo,
-            IRepository<Usuario> usuarioRepo
+            IRepository<Usuario> usuarioRepo,
+            IRepository<Voto> votoRepo,
+            IRepository<Comentario> comentarioRepo
         ) : base(evento, usuario)
         {
             _participanteRepo = participanteRepo;
@@ -27,6 +31,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
             _proyectoRepo = proyectoRepo;
             _categoriumRepo = categoriumRepo;
             _usuarioRepo = usuarioRepo;
+            _votoRepo = votoRepo;
+            _comentarioRepo = comentarioRepo;
         }
 
         private async Task<Participante> ObtenerRegistroParticipante()
@@ -190,18 +196,54 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 await _proyectoRepo.DeleteAsync(proyecto);
             }
         }
-    }
-}
-        /*public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria)
+        public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria)
         {
             if (ObtenerFaseActual() != FasesEvento.Resultados)
             {
                 throw new Exception("Los resultados aún no están disponibles");
             }
-            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == Participante.IdGrupo && p.IdCategoria == idCategoria)).FirstOrDefault();
+            var participante = (await _participanteRepo.FindAsync(p => p.Correo == usuario.Correo)).FirstOrDefault();
+
+            if (participante == null)
+                throw new Exception("Participante no encontrado");
+
+            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo && p.IdCategoria == idCategoria)).FirstOrDefault();
+
+            var grupo = (await _grupoRepo.FindAsync(g => g.Id == proyecto.IdGrupo)).FirstOrDefault();
 
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
 
+            var ranking = new List<(Proyecto proyecto, int votos)>();
 
-        }*/ //En proceso
+            foreach (var p in proyectos)
+            {
+                var votos = await _votoRepo.FindAsync(v =>
+                    v.IdProyectoGru == p.IdGrupo &&
+                    v.IdProyectoCat == p.IdCategoria);
+
+                ranking.Add((p, votos.Count));
+            }
+
+            var rankingOrdenado = ranking.OrderByDescending(r => r.votos).ToList();
+
+            var posicion = rankingOrdenado.FindIndex(r => r.proyecto.Equals(proyecto)) + 1;
+
+            var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
+
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
+
+            return new DashboardParticipanteDTO
+            {
+                NombreProyecto = proyecto.Nombre,
+                NombreGrupo = grupo?.Nombre ?? "Sin grupo",
+
+                TotalVotos = totalVotos,
+                Posicion = posicion,
+
+                Comentarios = comentarios.Select(c => c.Contenido).ToList()
+            };
+        }
+    }
+}
+        
  
