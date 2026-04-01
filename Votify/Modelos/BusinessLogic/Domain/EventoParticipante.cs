@@ -1,6 +1,7 @@
 ﻿using Votify.Modelos.BusinessLogic.DTOs;
 using Votify.Modelos.BusinessLogic.Enums;
 using Votify.Modelos.Persistence.Interfaces;
+using Votify.Modelos.Persistence.Entities;
 namespace Votify.Modelos.BusinessLogic.Domain
 {
     public class EventoParticipante : EventoBase
@@ -98,7 +99,9 @@ namespace Votify.Modelos.BusinessLogic.Domain
             string nombreProyecto,
             string descripcionBreve,
             string descripcionCompleta,
-            long idCategoria)
+            long idCategoria,
+            byte[] archivo,
+            List<byte[]> imagenes)
         {
             if (string.IsNullOrWhiteSpace(nombreProyecto))
                 throw new Exception("El nombre del proyecto es obligatorio.");
@@ -146,7 +149,21 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 grupo,
                 descBreve,
                 descCompleta
-            );
+            )
+            {
+                Archivo = archivo
+            };
+
+            if (imagenes != null && imagenes.Any())
+            {
+                nuevoProyecto.Imagenes = imagenes.Select(img => new ImagenProyecto
+                {
+                    Archivo = img,
+                    Proyecto = nuevoProyecto,
+                    ProyectoIdCategoria = categoria.Id,
+                    ProyectoIdGrupo = grupo.Id
+                }).ToList();
+            }
 
             await _proyectoRepo.AddAsync(nuevoProyecto);
         }

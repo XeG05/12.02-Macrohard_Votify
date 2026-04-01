@@ -260,6 +260,9 @@ else
     private List<(string Nombre, string Correo)> miembrosGrupo = new();
     private List<Categorium> categorias = new();
 
+    private IBrowserFile? archivoProyecto;
+    private List<IBrowserFile> imagenesProyecto = new();
+
     private long categoriaSeleccionadaId;
     private List<string> nombresImagenes = new();
     private string? nombreArchivoProyecto;
@@ -336,15 +339,16 @@ else
 
     private void CargarImagenes(InputFileChangeEventArgs e)
     {
-        nombresImagenes = e.GetMultipleFiles()
+        imagenesProyecto = e.GetMultipleFiles().ToList();
+        nombresImagenes = imagenesProyecto
             .Select(f => f.Name)
             .ToList();
     }
 
     private void CargarArchivoProyecto(InputFileChangeEventArgs e)
     {
-        var archivo = e.File;
-        nombreArchivoProyecto = archivo?.Name;
+        archivoProyecto = e.File;
+        nombreArchivoProyecto = archivoProyecto?.Name;
     }
 
     private async Task EntregarProyecto()
@@ -363,17 +367,37 @@ else
             if (string.IsNullOrWhiteSpace(nombreProyecto))
                 throw new Exception("Debes indicar un nombre para el proyecto.");
 
-            if (string.IsNullOrWhiteSpace(nombreArchivoProyecto))
+            if (string.IsNullOrWhiteSpace(nombreArchivoProyecto) || archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
 
             if (!categorias.Any())
                 throw new Exception("El evento no tiene categorías disponibles.");
 
+            byte[] archivoBytes;
+            var maxFileSize = 10 * 1024 * 1024; // 10 MB limit
+            using (var ms = new MemoryStream())
+            {
+                await archivoProyecto.OpenReadStream(maxFileSize).CopyToAsync(ms);
+                archivoBytes = ms.ToArray();
+            }
+
+            List<byte[]> imagenesBytes = new();
+            foreach (var img in imagenesProyecto)
+            {
+                using (var msImg = new MemoryStream())
+                {
+                    await img.OpenReadStream(maxFileSize).CopyToAsync(msImg);
+                    imagenesBytes.Add(msImg.ToArray());
+                }
+            }
+
             await eventoParticipante.CrearProyecto(
                 nombreProyecto,
                 descripcionBreve,
                 descripcionCompleta,
-                categoriaSeleccionadaId
+                categoriaSeleccionadaId,
+                archivoBytes,
+                imagenesBytes
             );
 
             mensaje = "Proyecto entregado correctamente.";
