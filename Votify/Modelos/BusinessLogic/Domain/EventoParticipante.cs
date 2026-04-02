@@ -84,6 +84,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<Proyecto?> ObtenerMiProyecto()
         {
+            // (PABLO) LO QUE HABIA ANTES:
+            /*
             var participante = await ObtenerRegistroParticipante();
 
             var categoriasEvento = await ObtenerCategoriasEvento();
@@ -92,7 +94,15 @@ namespace Votify.Modelos.BusinessLogic.Domain
             var proyectosGrupo = await _proyectoRepo.FindAsync(p =>
                 p.IdGrupo == participante.IdGrupo);
 
-            return proyectosGrupo.FirstOrDefault(p => idsCategorias.Contains(p.IdCategoria));
+            return proyectosGrupo.FirstOrDefault(p => idsCategorias.Contains(p.IdCategoria));*/
+
+
+            //LO NUEVO CORREGIDO (CREO):
+            var participante = await ObtenerRegistroParticipante();
+
+            return (await _proyectoRepo
+                .FindAsync(p => p.IdGrupo == participante.IdGrupo))
+                .FirstOrDefault();
         }
 
         public async Task<bool> TieneProyecto()
@@ -176,6 +186,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task EliminarProyecto()
         {
+            //(PABLO) LO QUE HABIA ANTES:
+            /*
             var participante = await ObtenerRegistroParticipante();
 
             var categoriasEvento = await ObtenerCategoriasEvento();
@@ -194,7 +206,19 @@ namespace Votify.Modelos.BusinessLogic.Domain
             foreach (var proyecto in proyectosEvento)
             {
                 await _proyectoRepo.DeleteAsync(proyecto);
-            }
+            }*/
+
+            //LO NUEVO CORREGIDO (CREO):
+            var participante = await ObtenerRegistroParticipante();
+
+            var proyecto = (await _proyectoRepo
+                .FindAsync(p => p.IdGrupo == participante.IdGrupo))
+                .FirstOrDefault();
+
+            if (proyecto == null)
+                throw new Exception("No hay ningún proyecto para este grupo.");
+
+            await _proyectoRepo.DeleteAsync(proyecto);
         }
         public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria)
         {
@@ -238,7 +262,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 NombreProyecto = proyecto.Nombre,
                 NombreGrupo = grupo?.Nombre ?? "Sin grupo",
-
                 TotalVotos = totalVotos,
                 Posicion = posicion,
 

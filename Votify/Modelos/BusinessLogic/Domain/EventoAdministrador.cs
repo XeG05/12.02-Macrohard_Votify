@@ -99,20 +99,23 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<ProyectoResumenDTO>> ObtenerResultadosCategoria(long idCategoria)
         {
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
 
             var resultado = new List<ProyectoResumenDTO>();
 
-            foreach (var p in proyectos)
+            foreach (var g in grupos)
             {
-                var grupo = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == g.Id)).FirstOrDefault();
 
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == p.IdGrupo);
+                if (proyecto == null)
+                    continue;
+
+                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
 
                 resultado.Add(new ProyectoResumenDTO
                 {
-                    NombreProyecto = p.Nombre,
-                    NombreGrupo = grupo?.Nombre ?? "Sin grupo", //en caso de que grupo sea NULL, pone de nombre "sin grupo"
+                    NombreProyecto = proyecto.Nombre,
+                    NombreGrupo = g.Nombre,
                     CantidadVotos = votos.Count
                 });
             }
@@ -122,14 +125,13 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<int> TotalVotosCategoria(long idCategoria)
         {
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
 
             int total = 0;
 
-            foreach (var p in proyectos)
+            foreach (var g in grupos)
             {
-
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == p.IdGrupo);
+                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
                 total += votos.Count;
             }
 
@@ -152,7 +154,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 Nombre = "Sin nombre",
                 IdGrupo = grupo.Id,
-                IdCategoria = idCategoria,
                 Archivo = Array.Empty<byte>()
             };
 
