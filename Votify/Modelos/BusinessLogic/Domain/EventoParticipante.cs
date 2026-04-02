@@ -207,11 +207,13 @@ namespace Votify.Modelos.BusinessLogic.Domain
             if (participante == null)
                 throw new Exception("Participante no encontrado");
 
-            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo && p.IdCategoria == idCategoria)).FirstOrDefault();
+            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo)).FirstOrDefault();
 
             var grupo = (await _grupoRepo.FindAsync(g => g.Id == proyecto.IdGrupo)).FirstOrDefault();
 
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var gruposCategoria = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            var idsGruposCat = gruposCategoria.Select(g => g.Id).ToList();
+            var proyectos = (await _proyectoRepo.FindAsync(p => idsGruposCat.Contains(p.IdGrupo))).ToList();
 
             var ranking = new List<(Proyecto proyecto, int votos)>();
 
@@ -219,7 +221,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 var votos = await _votoRepo.FindAsync(v =>
                     v.IdProyectoGru == p.IdGrupo &&
-                    v.IdProyectoCat == p.IdCategoria);
+                    v.IdProyectoCat == idCategoria);
 
                 ranking.Add((p, votos.Count));
             }
