@@ -19,7 +19,7 @@ else
 {
     @foreach (var p in proyectos)
     {
-        <div class="proyectos" @onclick="() => IrAProyecto(p.IdCategoria, p.IdGrupo)">
+        <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
             <div class="nombreProyecto">
                 <p>@p.Nombre</p>
             </div>
@@ -85,8 +85,8 @@ else
         }
     }
 
-    protected async Task IrAProyecto(long idCategoria, long idGrupo)
+    protected async Task IrAProyecto( long id)
     {
-        Nav.NavigateTo($"/proyecto/{idCategoria}/{idGrupo}");
+        Nav.NavigateTo($"/proyecto/{id}");
     }
 }

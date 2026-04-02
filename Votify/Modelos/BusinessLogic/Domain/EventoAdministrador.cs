@@ -51,6 +51,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Grupo>> VerGrupo(long idCategoria)
         {
+            return await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            /*
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
 
             var grupos = new List<Grupo>();
@@ -65,8 +67,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 }
             }
             
-            return grupos;
-            
+            return grupos;*/
+
         }
 
         public async Task<List<Proyecto>> VerProyectoDeGrupo(long idGrupo)
@@ -81,7 +83,13 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Proyecto>> VerProyectosCategoria(long idCategoria)
         {
-            return await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+
+            var idsGrupos = grupos.Select(g => g.Id).ToList();
+
+            var proyectos = await _proyectoRepo.FindAsync(p => idsGrupos.Contains(p.IdGrupo));
+
+            return proyectos;
         }
         public async Task<int> ContarVotosProyecto(long idProyecto)
         {
@@ -91,20 +99,23 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<ProyectoResumenDTO>> ObtenerResultadosCategoria(long idCategoria)
         {
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
 
             var resultado = new List<ProyectoResumenDTO>();
 
-            foreach (var p in proyectos)
+            foreach (var g in grupos)
             {
-                var grupo = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == g.Id)).FirstOrDefault();
 
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == p.IdGrupo);
+                if (proyecto == null)
+                    continue;
+
+                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
 
                 resultado.Add(new ProyectoResumenDTO
                 {
-                    NombreProyecto = p.Nombre,
-                    NombreGrupo = grupo?.Nombre ?? "Sin grupo", //en caso de que grupo sea NULL, pone de nombre "sin grupo"
+                    NombreProyecto = proyecto.Nombre,
+                    NombreGrupo = g.Nombre,
                     CantidadVotos = votos.Count
                 });
             }
@@ -114,14 +125,13 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<int> TotalVotosCategoria(long idCategoria)
         {
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
 
             int total = 0;
 
-            foreach (var p in proyectos)
+            foreach (var g in grupos)
             {
-
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == p.IdGrupo);
+                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
                 total += votos.Count;
             }
 
@@ -144,7 +154,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
             {
                 Nombre = "Sin nombre",
                 IdGrupo = grupo.Id,
-                IdCategoria = idCategoria,
                 Archivo = Array.Empty<byte>()
             };
 

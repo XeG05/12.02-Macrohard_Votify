@@ -65,12 +65,12 @@ else
 
     bool cargando = true;
     string error = "";
-
+    
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            //  De momento hardcodeado (igual que en tu otra página)
+            
             var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", EventoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
