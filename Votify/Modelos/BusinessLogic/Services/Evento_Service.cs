@@ -269,24 +269,25 @@ namespace Votify.Modelos.BusinessLogic.Services
                     };
                     await _criterioRepo.AddAsync(criterio);
                 }
-            }
 
-            if (dto.TieneGrupos)
-            {
-                foreach (var grupoDto in dto.Grupos)
+
+                if (dto.TieneGrupos)
                 {
-                    var grupo = new Grupo
+                    foreach (var grupoDto in catDto.Grupos)
                     {
-                        Nombre = grupoDto.Nombre,
-                        HojaRutaTexto = null
-                    };
-                    await _grupoRepo.AddAsync(grupo);
-                    // grupo.Id disponible aquí
+                        var grupo = new Grupo
+                        {
+                            Nombre = grupoDto.Nombre,
+                            IdCategoria = categoria.Id,
+                            HojaRutaTexto = null
+                        };
+                        await _grupoRepo.AddAsync(grupo);
 
-                    foreach (var correo in grupoDto.CorreosParticipantes
-                                                   .Where(c => !string.IsNullOrWhiteSpace(c)))
-                    {
-                        await ProcesarParticipante(correo, grupo.Id, evento, usuario);
+                        foreach (var correo in grupoDto.CorreosParticipantes
+                                                       .Where(c => !string.IsNullOrWhiteSpace(c)))
+                        {
+                            await ProcesarParticipante(correo, grupo.Id, evento, usuario);
+                        }
                     }
                 }
             }

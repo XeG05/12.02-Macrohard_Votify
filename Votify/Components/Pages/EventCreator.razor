@@ -28,6 +28,36 @@ else
             </div>
         </div>
 
+        <div class="time-container">
+            <h4>Periodos</h4>
+            <hr />
+            <div>
+                <h6>Fin de inscripciones:</h6>
+                <input type="date" @bind="fechaFinInscripciones" @bind:format="yyyy-MM-dd" />
+            </div>
+            <div>
+                <h6>Fin de entrega / inicio de votaciones:</h6>
+                <input type="date" @bind="fechaFinEntrega" @bind:format="yyyy-MM-dd" />
+            </div>
+            <div>
+                <h6>Fin de votaciones:</h6>
+                <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
+            </div>
+        </div>
+        <div class="opciones">
+            <h4>Opciones</h4>
+            <hr />
+            <div class="num-participantes">
+                <p>Número de participantes por grupo:</p>
+                <input type="number" min="1" max="4"
+                       @bind="dto.NumParticipantes" />
+            </div>
+            <div>
+                <input type="checkbox" @bind="dto.GruposCompletos" />
+                <p>Los grupos han de estar completos</p>
+            </div>
+        </div>
+
         <div class="categorias">
             <h4>Categorías</h4>
             <hr />
@@ -67,6 +97,39 @@ else
                                 style="width:fit-content;margin-left:16px;">
                             + Añadir criterio
                         </button>
+                        <div class="participantes">
+                            <h4>Grupos y participantes</h4>
+                            <hr />
+                            @foreach (var grupo in cat.Grupos)   @* ← cat.Grupos, no dto.Grupos *@
+                            {
+                                <div class="grup-container" @key="grupo">
+                                    <div class="grup-sup">
+                                        <input type="text" placeholder="Nombre del grupo"
+                                               @bind="grupo.Nombre" />
+                                        <button type="button"
+                                                @onclick="() => EliminarGrupo(cat, grupo)">
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <hr />
+                                    @for (int i = 0; i < grupo.CorreosParticipantes.Count; i++)
+                                    {
+                                        var idx = i;
+                                        <div class="participante">
+                                            <input type="text"
+                                                   placeholder="correo@ejemplo.com"
+                                                   value="@grupo.CorreosParticipantes[idx]"
+                                                   @onchange="e => grupo.CorreosParticipantes[idx] =
+                                                                               e.Value?.ToString() ?? string.Empty" />
+</div>
+                                    }
+                                </div>
+                            }
+                            <button type="button"
+                                    @onclick="() => AñadirGrupo(cat)">
+                                + Añadir Grupo
+                            </button>
+                        </div>
                     </div>
                     <button type="button" @onclick="() => EliminarCategoria(cat)">✕</button>
                 </div>
@@ -74,68 +137,11 @@ else
             <button type="button" @onclick="AñadirCategoria">+ Añadir Categoría</button>
         </div>
 
-        <div class="time-container">
-            <h4>Periodos</h4>
-            <hr />
-            <div>
-                <h6>Fin de inscripciones:</h6>
-                <input type="date" @bind="fechaFinInscripciones" @bind:format="yyyy-MM-dd" />
-            </div>
-            <div>
-                <h6>Fin de entrega / inicio de votaciones:</h6>
-                <input type="date" @bind="fechaFinEntrega" @bind:format="yyyy-MM-dd" />
-            </div>
-            <div>
-                <h6>Fin de votaciones:</h6>
-                <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
-            </div>
-        </div>
-        <div class="opciones">
-            <h4>Opciones</h4>
-            <hr />
-                <div class="num-participantes">
-                    <p>Número de participantes por grupo:</p>
-                    <input type="number" min="1" max="4"
-                           @bind="dto.NumParticipantes" />
-                </div>
-                <div>
-                    <input type="checkbox" @bind="dto.GruposCompletos" />
-                    <p>Los grupos han de estar completos</p>
-                </div>
-        </div>
-
         @if (!string.IsNullOrEmpty(mensaje))
         {
             <p class="@(error ? "msg-error" : "msg-ok")">@mensaje</p>
         }
-
-            <div class="participantes">
-                <h4>Grupos y participantes</h4>
-                <hr />
-                @foreach (var grupo in dto.Grupos)
-                {
-                    <div class="grup-container" @key="grupo">
-                        <div class="grup-sup">
-                            <input type="text" placeholder="Nombre del grupo"
-                            @bind="grupo.Nombre" />
-                            <button type="button" @onclick="() => EliminarGrupo(grupo)">✕</button>
-                        </div>
-                        <hr />
-                        @for (int i = 0; i < grupo.CorreosParticipantes.Count; i++)
-                        {
-                            var idx = i;
-                            <div class="participante">
-                                <input type="text"
-                                placeholder="correo@ejemplo.com"
-                                value="@grupo.CorreosParticipantes[idx]"
-                                @onchange="e => grupo.CorreosParticipantes[idx] = e.Value?.ToString() ?? string.Empty" />
-                            </div>
-                        }
-                    </div>
-                }
-                <button type="button" @onclick="AñadirGrupo">+ Añadir Grupo</button>
-            </div>   
-        }
+        
         <hr />
         <div class="actions">
             <button type="button" @onclick="Guardar" disabled="@cargando">
@@ -197,9 +203,9 @@ else
         cat.Criterios.Remove(crit);
     }
 
-    private void AñadirGrupo()
+    private void AñadirGrupo(CategoriaCreacionDto cat)
     {
-        dto.Grupos.Add(new GrupoCreacionDto
+        cat.Grupos.Add(new GrupoCreacionDto
         {
             CorreosParticipantes = Enumerable
                 .Repeat(string.Empty, dto.NumParticipantes)
@@ -207,9 +213,9 @@ else
         });
     }
 
-    private void EliminarGrupo(GrupoCreacionDto grupo)
+    private void EliminarGrupo(CategoriaCreacionDto cat, GrupoCreacionDto grupo)
     {
-        dto.Grupos.Remove(grupo);
+        cat.Grupos.Remove(grupo);
     }
 
     private void SincronizarFechas()

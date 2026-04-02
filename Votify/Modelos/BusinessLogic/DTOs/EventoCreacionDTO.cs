@@ -14,7 +14,6 @@ namespace Votify.Modelos.BusinessLogic.DTOs
         public int NumParticipantes { get; set; } = 1;
 
         public List<CategoriaCreacionDto> Categorias { get; set; } = new();
-        public List<GrupoCreacionDto> Grupos { get; set; } = new();
 
         public (bool esValido, string error) Validar()
         {

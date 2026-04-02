@@ -7,5 +7,6 @@
         public long PonderacionPopular { get; set; }
         public long PonderacionExperto { get; set; }
         public List<CriterioCreacionDto> Criterios { get; set; } = new();
+        public List<GrupoCreacionDto> Grupos { get; set; } = new();
     }
 }
