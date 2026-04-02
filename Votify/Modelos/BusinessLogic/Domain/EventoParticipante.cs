@@ -244,8 +244,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             foreach (var p in proyectos)
             {
                 var votos = await _votoRepo.FindAsync(v =>
-                    v.IdProyectoGru == p.IdGrupo &&
-                    v.IdProyectoCat == idCategoria);
+                    v.IdProyectoGru == p.IdGrupo );
 
                 ranking.Add((p, votos.Count));
             }
@@ -256,8 +255,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
 
-            //var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == idCategoria);
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo);
 
             return new DashboardParticipanteDTO
             {

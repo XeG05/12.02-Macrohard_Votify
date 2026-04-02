@@ -14,7 +14,6 @@ public partial class Voto
         IdCriterio = idCriterio;
         Nota = nota;
         CorreoRol = correoRol;
-        IdProyectoCat = idProyectoCat;
         IdProyectoGru = idProyectoGru;
         IdCriterioNavigation = idCriterioNavigation;
         Proyecto = proyecto;

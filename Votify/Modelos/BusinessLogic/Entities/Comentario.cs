@@ -15,7 +15,6 @@ public partial class Comentario
         CorreoRol = correoRol;
         Contenido = contenido;
         IdProyectoGru = idProyectoGru;
-        IdProyectoCat = idProyectoCat;
         Proyecto = proyecto;
         Rol = rol;
     }
