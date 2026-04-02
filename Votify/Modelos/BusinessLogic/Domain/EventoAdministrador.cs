@@ -51,6 +51,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Grupo>> VerGrupo(long idCategoria)
         {
+            return await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            /*
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
 
             var grupos = new List<Grupo>();
@@ -65,8 +67,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 }
             }
             
-            return grupos;
-            
+            return grupos;*/
+
         }
 
         public async Task<List<Proyecto>> VerProyectoDeGrupo(long idGrupo)
@@ -81,7 +83,13 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Proyecto>> VerProyectosCategoria(long idCategoria)
         {
-            return await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+
+            var idsGrupos = grupos.Select(g => g.Id).ToList();
+
+            var proyectos = await _proyectoRepo.FindAsync(p => idsGrupos.Contains(p.IdGrupo));
+
+            return proyectos;
         }
         public async Task<int> ContarVotosProyecto(long idProyecto)
         {
