@@ -1,5 +1,4 @@
-﻿using Votify.Auth;
-using Votify.Modelos.BusinessLogic.DTOs;
+﻿using Votify.Modelos.BusinessLogic.DTOs;
 using Votify.Modelos.BusinessLogic.Factory;
 using Votify.Modelos.BusinessLogic.Interfaces;
 using Votify.Modelos.Persistence.Interfaces;
@@ -82,6 +81,17 @@ namespace Votify.Modelos.BusinessLogic.Services
             return todos.Where(e => participacionIds.Contains(e.Id)).ToList();
         }
 
+        public async Task<List<Evento>> GetEventosDisponibles(string correo)
+        {
+            var eventosCreados = await GetEventosCreados(correo);
+            var eventosParticipacion = await GetEventosParticipacion(correo);
+            var eventosExcluidos = new HashSet<long>(
+                eventosCreados.Select(e => e.Id)
+                .Concat(eventosParticipacion.Select(e => e.Id)));
+            var todos = await _eventoRepo.GetAllAsync();
+            return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
+        }
+
         public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
         {
             var usuario = (await _usuarioRepo
@@ -156,7 +166,42 @@ namespace Votify.Modelos.BusinessLogic.Services
                 .FindAsync(v => v.Correo == correo && v.Id == idEvento);
             if (votante.Any()) return "VOTANTE";
 
-            throw new Exception("No tienes ningún rol asignado en este evento");
+            await AsignarVotanteAsync(correo, idEvento);
+            return "VOTANTE";
+        }
+
+        private async Task AsignarVotanteAsync(string correo, long idEvento)
+        {
+            var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correo)).First();
+            var evento = await _eventoRepo.GetByIdAsync(idEvento)
+                ?? throw new Exception("Evento no encontrado");
+
+            var rolExistente = await _rolRepo.FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento);
+
+            Rol rol;
+            if (!rolExistente.Any())
+            {
+                rol = new Rol
+                {
+                    CorreoUsuario = correo,
+                    IdEvento = idEvento,
+                    CorreoUsuarioNavigation = usuario,
+                    IdEventoNavigation = evento
+                };
+                await _rolRepo.AddAsync(rol);
+            }
+            else
+            {
+                rol = rolExistente.First();
+            }
+
+            var nuevoVotante = new Votante
+            {
+                Correo = correo,
+                Id = idEvento,
+                Rol = rol
+            };
+            await _votanteRepo.AddAsync(nuevoVotante);
         }
 
         public async Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto)

@@ -1,6 +1,6 @@
 ﻿using Votify.Modelos.BusinessLogic.Domain;
 
-namespace Votify.Auth
+namespace Votify.Modelos.BusinessLogic.Services
 {
 
     public class EventoContextService

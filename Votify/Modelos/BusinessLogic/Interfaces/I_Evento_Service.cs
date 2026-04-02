@@ -1,5 +1,4 @@
-﻿using Votify.Auth;
-using Votify.Modelos.BusinessLogic.Domain;
+﻿using Votify.Modelos.BusinessLogic.Domain;
 using Votify.Modelos.BusinessLogic.DTOs;
 
 namespace Votify.Modelos.BusinessLogic.Interfaces
@@ -13,5 +12,7 @@ namespace Votify.Modelos.BusinessLogic.Interfaces
         Task<List<Evento>> GetEventosCreados(string correo);
 
         Task<List<Evento>> GetEventosParticipacion(string correo);
+
+        Task<List<Evento>> GetEventosDisponibles(string correo);
     }
 }

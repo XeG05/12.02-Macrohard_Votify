@@ -119,6 +119,51 @@
                 </div>
             }
         </section>
+
+        <section class="seccion">
+            <div class="seccion-header">
+                <div class="seccion-indicador votante-color"></div>
+                <h2>Otros eventos</h2>
+                <span class="badge">@eventosDisponibles.Count</span>
+            </div>
+            @if (eventosDisponibles.Count == 0)
+            {
+                <div class="empty-state">
+                    <span class="empty-icon">🔍</span>
+                    <p>No existe ningún evento más actualmente.</p>
+                </div>
+            }
+            else
+            {
+                <div class="eventos-grid">
+                    @foreach (var ev in eventosDisponibles)
+                    {
+                        var eventoId = ev.Id;
+                        <div class="evento-card" @onclick="() => IrAEventoVotante(eventoId)">
+                            <div class="evento-card-top">
+                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                <span class="rol-badge participante-badge">Participante</span>
+                            </div>
+                            <h3 class="evento-nombre">@ev.Nombre</h3>
+                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                            <div class="evento-fechas">
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Inscripciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="evento-footer">
+                                <span class="ver-mas">Ver evento →</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
     }
 </div>
 
@@ -127,6 +172,7 @@
     private bool cargando = true;
     private List<Evento> eventosCreados = new();
     private List<Evento> eventosParticipacion = new();
+    private List<Evento> eventosDisponibles = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -145,6 +191,7 @@
         {
             eventosCreados = await EventoService.GetEventosCreados(correo);
             eventosParticipacion = await EventoService.GetEventosParticipacion(correo);
+            eventosDisponibles = await EventoService.GetEventosDisponibles(correo);
         }
         catch
         {
@@ -176,6 +223,8 @@
     private void IrAEventoAdmin(long id) => Nav.NavigateTo($"/eventoadmin/{id}");
 
     private void IrAEventoParticipante(long id) => Nav.NavigateTo($"/eventoparticipante/{id}");
+
+    private void IrAEventoVotante(long id) => Nav.NavigateTo($"/eventovotante/{id}");
 
     private string TruncarTexto(string texto, int max)
     {

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class Migracion6 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -186,7 +186,7 @@ namespace Votify.Migrations
                     nombre = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
                     Descripcion = table.Column<string>(type: "text", nullable: false),
                     DescripcionBreve = table.Column<string>(type: "text", nullable: false),
-                    URLDescarga = table.Column<string>(type: "text", nullable: true)
+                    archivo = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -330,22 +330,21 @@ namespace Votify.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ImagenProyecto",
+                name: "imagen_proyecto",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Url = table.Column<string>(type: "text", nullable: false),
-                    IdProyecto = table.Column<long>(type: "bigint", nullable: false),
-                    ProyectoIdGrupo = table.Column<long>(type: "bigint", nullable: false),
-                    ProyectoIdCategoria = table.Column<long>(type: "bigint", nullable: false)
+                    archivo = table.Column<byte[]>(type: "bytea", nullable: false),
+                    proyecto_id_grupo = table.Column<long>(type: "bigint", nullable: false),
+                    proyecto_id_categoria = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ImagenProyecto", x => x.Id);
+                    table.PrimaryKey("PK_imagen_proyecto", x => x.id);
                     table.ForeignKey(
-                        name: "FK_ImagenProyecto_proyecto_ProyectoIdGrupo_ProyectoIdCategoria",
-                        columns: x => new { x.ProyectoIdGrupo, x.ProyectoIdCategoria },
+                        name: "FK_imagen_proyecto_proyecto_proyecto_id_grupo_proyecto_id_cate~",
+                        columns: x => new { x.proyecto_id_grupo, x.proyecto_id_categoria },
                         principalTable: "proyecto",
                         principalColumns: new[] { "id_grupo", "id_categoria" },
                         onDelete: ReferentialAction.Cascade);
@@ -407,9 +406,9 @@ namespace Votify.Migrations
                 column: "id_categoria");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ImagenProyecto_ProyectoIdGrupo_ProyectoIdCategoria",
-                table: "ImagenProyecto",
-                columns: new[] { "ProyectoIdGrupo", "ProyectoIdCategoria" });
+                name: "IX_imagen_proyecto_proyecto_id_grupo_proyecto_id_categoria",
+                table: "imagen_proyecto",
+                columns: new[] { "proyecto_id_grupo", "proyecto_id_categoria" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_invitacion_pendiente_id_evento",
@@ -472,7 +471,7 @@ namespace Votify.Migrations
                 name: "comentario");
 
             migrationBuilder.DropTable(
-                name: "ImagenProyecto");
+                name: "imagen_proyecto");
 
             migrationBuilder.DropTable(
                 name: "invitacion_pendiente");
