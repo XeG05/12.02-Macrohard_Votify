@@ -14,8 +14,6 @@ public partial class Voto
 
     public string CorreoRol { get; set; } = null!;
 
-    public long IdProyectoCat { get; set; }
-
     public long IdProyectoGru { get; set; }
 
     public virtual Criterio IdCriterioNavigation { get; set; } = null!;

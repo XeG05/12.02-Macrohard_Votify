@@ -256,7 +256,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
             var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
 
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
+            //var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == idCategoria);
 
             return new DashboardParticipanteDTO
             {

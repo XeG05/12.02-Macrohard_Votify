@@ -13,8 +13,6 @@ public partial class Comentario
 
     public long IdProyectoGru { get; set; }
 
-    public long IdProyectoCat { get; set; }
-
     public virtual Proyecto Proyecto { get; set; } = null!;
 
     public virtual Rol Rol { get; set; } = null!;

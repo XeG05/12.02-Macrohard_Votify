@@ -94,7 +94,7 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Comentario>(entity =>
         {
-            entity.HasKey(e => new { e.IdRol, e.CorreoRol, e.IdProyectoGru, e.IdProyectoCat }).HasName("comentario_pkey");
+            entity.HasKey(e => new { e.IdRol, e.CorreoRol, e.IdProyectoGru }).HasName("comentario_pkey");
 
             entity.ToTable("comentario");
 
@@ -103,7 +103,6 @@ public partial class VotifyContext : DbContext
                 .HasMaxLength(25)
                 .HasColumnName("correo_rol");
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
-            entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
             entity.HasOne(d => d.Rol).WithMany(p => p.Comentarios)
@@ -112,7 +111,7 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Comentarios)
-                .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
+                .HasForeignKey(d => new { d.IdProyectoGru})
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_proyectoFK");
         });
@@ -347,7 +346,7 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Voto>(entity =>
         {
-            entity.HasKey(e => new {e.Id, e.IdRol, e.IdCriterio, e.IdProyectoCat, e.IdProyectoGru}).HasName("voto_pkey");
+            entity.HasKey(e => new {e.Id, e.IdRol, e.IdCriterio, e.IdProyectoGru}).HasName("voto_pkey");
 
             entity.ToTable("voto");
 
@@ -356,7 +355,6 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
-            entity.Property(e => e.IdProyectoCat).HasColumnName("id_proyecto_cat");
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
             entity.Property(e => e.CorreoRol)
                 .HasColumnType("character varying")
@@ -374,7 +372,7 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Votos)
-                .HasForeignKey(d => new { d.IdProyectoGru, d.IdProyectoCat })
+                .HasForeignKey(d => new { d.IdProyectoGru })
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
         });
