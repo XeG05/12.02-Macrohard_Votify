@@ -137,8 +137,8 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 throw new Exception("La categoría seleccionada no pertenece al evento.");
 
             var proyectoExistente = (await _proyectoRepo.FindAsync(p =>
-                p.IdGrupo == grupo.Id &&
-                p.IdCategoria == idCategoria))
+                p.IdGrupo == grupo.Id
+                ))
                 .FirstOrDefault();
 
             if (proyectoExistente != null)
@@ -160,8 +160,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
             var nuevoProyecto = new Proyecto(
                 nombreProyecto.Trim(),
                 grupo.Id,
-                categoria.Id,
-                categoria,
                 grupo,
                 descBreve,
                 descCompleta
@@ -176,7 +174,6 @@ namespace Votify.Modelos.BusinessLogic.Domain
                 {
                     Archivo = img,
                     Proyecto = nuevoProyecto,
-                    ProyectoIdCategoria = categoria.Id,
                     ProyectoIdGrupo = grupo.Id
                 }).ToList();
             }
@@ -244,8 +241,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             foreach (var p in proyectos)
             {
                 var votos = await _votoRepo.FindAsync(v =>
-                    v.IdProyectoGru == p.IdGrupo &&
-                    v.IdProyectoCat == idCategoria);
+                    v.IdProyectoGru == p.IdGrupo);
 
                 ranking.Add((p, votos.Count));
             }
@@ -257,7 +253,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
             var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
 
             //var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == idCategoria);
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo);
 
             return new DashboardParticipanteDTO
             {

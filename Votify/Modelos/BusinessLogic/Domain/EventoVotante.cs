@@ -41,7 +41,7 @@ namespace Votify.Modelos.BusinessLogic.Domain
 
         public async Task<List<Proyecto>> ListaProyectos(long idEvento)
         {
-            return await _proyectoRepo.FindAsync(p => p.IdCategoriaNavigation.IdEvento == idEvento);
+            return await _proyectoRepo.FindAsync(p => p.IdGrupoNavigation.IdCategoriaNavigation.IdEvento == idEvento);
         }
 
         public async Task<Grupo> GrupoProyecto(long idGrupo)
