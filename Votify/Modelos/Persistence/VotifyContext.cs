@@ -86,6 +86,10 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => d.IdEvento)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_eventoFK");
+            entity.HasMany(d => d.Grupos).WithOne(p => p.IdCategoriaNavigation)
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_categoriaFK");
         });
 
         modelBuilder.Entity<Comentario>(entity =>
@@ -175,6 +179,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(25)
                 .HasColumnName("nombre");
+            entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
         });
 
         modelBuilder.Entity<Jurado>(entity =>
@@ -237,16 +242,13 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Proyecto>(entity =>
         {
-            entity.HasKey(e => new { e.IdGrupo, e.IdCategoria })
+            entity.HasKey(e => e.Id)
                   .HasName("proyecto_pkey");
 
             entity.ToTable("proyecto");
 
             entity.Property(e => e.IdGrupo)
                   .HasColumnName("id_grupo");
-
-            entity.Property(e => e.IdCategoria)
-                  .HasColumnName("id_categoria");
 
             entity.Property(e => e.Nombre)
                   .HasMaxLength(25)
@@ -257,17 +259,10 @@ public partial class VotifyContext : DbContext
                   .HasColumnType("bytea")
                   .HasColumnName("archivo");
 
-            entity.HasOne(d => d.IdCategoriaNavigation)
-                  .WithMany(p => p.Proyectos)
-                  .HasForeignKey(d => d.IdCategoria)
-                  .OnDelete(DeleteBehavior.Cascade)
-                  .HasConstraintName("id_categoria");
-
-            entity.HasOne(d => d.IdGrupoNavigation)
-                  .WithMany(p => p.Proyectos)
-                  .HasForeignKey(d => d.IdGrupo)
-                  .OnDelete(DeleteBehavior.Cascade)
-                  .HasConstraintName("id_grupoFK");
+            entity.HasOne(d => d.IdGrupoNavigation).WithOne(p => p.Proyecto)
+                .HasForeignKey<Proyecto>(d => d.IdGrupo)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_grupoFK");
         });
 
         modelBuilder.Entity<Reclamacion>(entity =>
@@ -401,13 +396,10 @@ public partial class VotifyContext : DbContext
             entity.Property(i => i.ProyectoIdGrupo)
                   .HasColumnName("proyecto_id_grupo");
 
-            entity.Property(i => i.ProyectoIdCategoria)
-                  .HasColumnName("proyecto_id_categoria");
-
             entity.HasOne(i => i.Proyecto)
                   .WithMany(p => p.Imagenes)
-                  .HasForeignKey(i => new { i.ProyectoIdGrupo, i.ProyectoIdCategoria })
-                  .HasPrincipalKey(p => new { p.IdGrupo, p.IdCategoria })
+                  .HasForeignKey(i => i.ProyectoIdGrupo)
+                  .HasPrincipalKey(p => p.IdGrupo)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

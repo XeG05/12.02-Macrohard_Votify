@@ -8,14 +8,14 @@ public partial class Grupo
     public Grupo()
     {
         Participantes = new List<Participante>();
-        Proyectos = new List<Proyecto>();
     }
-    public Grupo(string nombre, string? hojaRutaTexto)
+    public Grupo(string nombre, string? hojaRutaTexto, long idCategoria, Categorium idCategoriaNavigation)
     {
         Nombre = nombre;
         HojaRutaTexto = hojaRutaTexto;
+        IdCategoria = idCategoria;
+        IdCategoriaNavigation = idCategoriaNavigation;
         Participantes = new List<Participante>();
-        Proyectos = new List<Proyecto>();
 
     }
 }

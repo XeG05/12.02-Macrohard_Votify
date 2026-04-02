@@ -10,12 +10,11 @@ public partial class Proyecto
         Comentarios = new List<Comentario>();
         Votos = new List<Voto>();
     }
-    public Proyecto(string nombre, long idGrupo, long idCategoria, Categorium idCategoriaNavigation, Grupo idGrupoNavigation, string descripcionBreve, string descripcionCompleta)
+    public Proyecto(string nombre, long idGrupo, Grupo idGrupoNavigation, string descripcionBreve, string descripcionCompleta)
     {
         Nombre = nombre;
         IdGrupo = idGrupo;
-        IdCategoria = idCategoria;
-        IdCategoriaNavigation = idCategoriaNavigation;
+        
         IdGrupoNavigation = idGrupoNavigation;
         Comentarios = new List<Comentario>();
         Votos = new List<Voto>();
@@ -29,7 +28,7 @@ public partial class Proyecto
     {
         if (obj is Proyecto otro)
         {
-            return (this.IdGrupo == otro.IdGrupo) && (this.IdCategoria == otro.IdCategoria);
+            return (this.IdGrupo == otro.IdGrupo);
         }
         return false;
     }

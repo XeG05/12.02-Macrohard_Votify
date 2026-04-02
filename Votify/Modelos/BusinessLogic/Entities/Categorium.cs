@@ -8,7 +8,7 @@ public partial class Categorium
    public Categorium()
     {
         Criterios = new List<Criterio>();
-        Proyectos = new List<Proyecto>();
+        Grupos = new List<Grupo>();
     }
     public Categorium(string nombre, string descripcion, long idEvento, long ponderacionPopular, long ponderacionExperto, Evento idEventoNavigation, Criterio criterio1)
     {
@@ -19,7 +19,7 @@ public partial class Categorium
         PonderacionExperto = ponderacionExperto;
         IdEventoNavigation = idEventoNavigation;
         Criterios = new List<Criterio>();
-        Proyectos = new List<Proyecto>();
+        Grupos = new List<Grupo>();
 
         Criterios.Add(criterio1); //añadimos elemento a la lista por la cardinalidad minima 1
 

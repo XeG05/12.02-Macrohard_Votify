@@ -6,11 +6,10 @@ namespace Votify.Modelos;
 
 public partial class Proyecto
 {
+    public long Id { get; set; }
     public string Nombre { get; set; } = null!;
 
     public long IdGrupo { get; set; }
-
-    public long IdCategoria { get; set; }
 
     public string Descripcion { get; set; } = "";
 
@@ -21,8 +20,6 @@ public partial class Proyecto
     public byte[] Archivo { get; set; } = null!;
 
     public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
-
-    public virtual Categorium IdCategoriaNavigation { get; set; } = null!;
 
     public virtual Grupo IdGrupoNavigation { get; set; } = null!;
 

@@ -21,5 +21,5 @@ public partial class Categorium
 
     public virtual Evento IdEventoNavigation { get; set; } = null!;
 
-    public virtual ICollection<Proyecto> Proyectos { get; set; } = new List<Proyecto>();
+    public virtual ICollection<Grupo> Grupos { get; set; } = new List<Grupo>();
 }

@@ -11,7 +11,11 @@ public partial class Grupo
 
     public string? HojaRutaTexto { get; set; }
 
+    public long IdCategoria { get; set; }
+
+    public virtual Categorium IdCategoriaNavigation { get; set; } = null!;
+
     public virtual ICollection<Participante> Participantes { get; set; } = new List<Participante>();
 
-    public virtual ICollection<Proyecto> Proyectos { get; set; } = new List<Proyecto>();
+    public virtual Proyecto? Proyecto { get; set; }
 }
