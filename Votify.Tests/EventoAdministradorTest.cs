@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Votify.LógicaNegocio.Domain;
+using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Interfaces;
+using Votify.LógicaNegocio.Services;
 using Votify.Modelos;
-using Votify.Modelos.BusinessLogic.Domain;
-using Votify.Modelos.BusinessLogic.DTOs;
-using Votify.Modelos.BusinessLogic.Interfaces;
-using Votify.Modelos.BusinessLogic.Services;
 using Votify.Modelos.Persistence.Repositories;
+using Votify.Persistencia;
+using Votify.Persistencia.Entities;
 
 namespace Votify.Tests
 {

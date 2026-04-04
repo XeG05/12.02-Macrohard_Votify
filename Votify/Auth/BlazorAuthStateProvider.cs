@@ -1,73 +1,77 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Security.Claims;
-using Votify.Auth;
 
-public class BlazorAuthStateProvider : AuthenticationStateProvider
+namespace Votify.Auth
 {
-    private ClaimsPrincipal _currentUser =
-        new ClaimsPrincipal(new ClaimsIdentity());
 
-    private readonly JwtService _jwtService;
-    private readonly IJSRuntime _js;
-    private bool _initialized = false;
 
-    public BlazorAuthStateProvider(JwtService jwtService, IJSRuntime js)
+    public class BlazorAuthStateProvider : AuthenticationStateProvider
     {
-        _jwtService = jwtService;
-        _js = js;
-    }
+        private ClaimsPrincipal _currentUser =
+            new ClaimsPrincipal(new ClaimsIdentity());
 
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        if (!_initialized)
+        private readonly JwtService _jwtService;
+        private readonly IJSRuntime _js;
+        private bool _initialized = false;
+
+        public BlazorAuthStateProvider(JwtService jwtService, IJSRuntime js)
         {
-            try
+            _jwtService = jwtService;
+            _js = js;
+        }
+
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            if (!_initialized)
             {
-                var token = await _js.InvokeAsync<string?>("authStorage.getToken");
-                if (!string.IsNullOrEmpty(token))
+                try
                 {
-                    var principal = _jwtService.ValidateToken(token);
-                    if (principal != null)
-                        _currentUser = principal;
+                    var token = await _js.InvokeAsync<string?>("authStorage.getToken");
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        var principal = _jwtService.ValidateToken(token);
+                        if (principal != null)
+                            _currentUser = principal;
+                    }
+                    _initialized = true;
                 }
-                _initialized = true;
+                catch
+                {
+
+                }
             }
-            catch
+
+            return new AuthenticationState(_currentUser);
+        }
+
+        public async Task MarcarAutenticado(string jwtToken)
+        {
+            var principal = _jwtService.ValidateToken(jwtToken);
+            if (principal != null)
             {
-                
+                _currentUser = principal;
+                _initialized = true; // ← evita que sobreescriba el estado tras login
+                await _js.InvokeVoidAsync("authStorage.saveToken", jwtToken);
+                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
             }
         }
 
-        return new AuthenticationState(_currentUser);
-    }
-
-    public async Task MarcarAutenticado(string jwtToken)
-    {
-        var principal = _jwtService.ValidateToken(jwtToken);
-        if (principal != null)
+        public async Task MarcarDesconectado()
         {
-            _currentUser = principal;
-            _initialized = true; // ← evita que sobreescriba el estado tras login
-            await _js.InvokeVoidAsync("authStorage.saveToken", jwtToken);
+            _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
+            _initialized = true;
+            await _js.InvokeVoidAsync("authStorage.removeToken");
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
+
+        public string? ObtenerCorreo()
+            => _currentUser.FindFirst(ClaimTypes.Name)?.Value;
+
+        public string? ObtenerNombre()
+            => _currentUser.FindFirst("nombre")?.Value;
+
+        public bool EstaAutenticado
+            => _currentUser.Identity?.IsAuthenticated ?? false;
     }
-
-    public async Task MarcarDesconectado()
-    {
-        _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
-        _initialized = true;
-        await _js.InvokeVoidAsync("authStorage.removeToken");
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-    }
-
-    public string? ObtenerCorreo()
-        => _currentUser.FindFirst(ClaimTypes.Name)?.Value;
-
-    public string? ObtenerNombre()
-        => _currentUser.FindFirst("nombre")?.Value;
-
-    public bool EstaAutenticado
-        => _currentUser.Identity?.IsAuthenticated ?? false;
 }

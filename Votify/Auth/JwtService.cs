@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Votify.Modelos;
+using Votify.Persistencia.Entities;
 
 namespace Votify.Auth
 {

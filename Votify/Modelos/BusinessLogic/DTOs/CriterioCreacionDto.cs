@@ -1,9 +1,0 @@
-﻿namespace Votify.Modelos.BusinessLogic.DTOs
-{
-    public class CriterioCreacionDto
-    {
-        public string Nombre { get; set; } = "";
-        public string Descripcion { get; set; } = "";
-        public long Ponderacion { get; set; }
-    }
-}

@@ -1,17 +1,16 @@
 ﻿@page "/aceptar-invitacion/{Token}"
 @rendermode InteractiveServer
 @layout NoLayout
-@inject IRepository<Votify.Modelos.Usuario> UsuarioRepo
+@inject IRepository<Usuario> UsuarioRepo
 @inject I_Usuario_Service UsuarioService
-@inject IRepository<Votify.Modelos.Rol> RolRepo
-@inject IRepository<Votify.Modelos.Participante> ParticipanteRepo
-@inject IRepository<Votify.Modelos.Evento> EventoRepo
+@inject IRepository<Rol> RolRepo
+@inject IRepository<Participante> ParticipanteRepo
+@inject IRepository<Evento> EventoRepo
 @inject IRepository<InvitacionPendiente> InvitacionRepo
 @inject JwtService JwtService
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
-@using Votify.Modelos
-@using Votify.Modelos.Persistence.Interfaces
+
 
 @if (cargando)
 {
@@ -124,7 +123,7 @@ else
         {
             if (invitacion == null) return;
 
-            Votify.Modelos.Usuario? usuario;
+            Usuario? usuario;
 
             if (usuarioExiste)
             {
@@ -152,7 +151,7 @@ else
 
             if (!rolExistente.Any())
             {
-                var rol = new Votify.Modelos.Rol
+                var rol = new Rol
                 {
                     CorreoUsuario = usuario.Correo,
                     IdEvento = invitacion.IdEvento,
@@ -168,7 +167,7 @@ else
 
             if (!participanteExistente.Any())
             {
-                var participante = new Votify.Modelos.Participante
+                var participante = new Participante
                 {
                     Correo = usuario.Correo,
                     Id = invitacion.IdEvento,

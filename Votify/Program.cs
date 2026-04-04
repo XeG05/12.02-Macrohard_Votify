@@ -5,11 +5,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Votify.Auth;
 using Votify.Components;
-using Votify.Modelos;
-using Votify.Modelos.BusinessLogic.Interfaces;
-using Votify.Modelos.BusinessLogic.Services;
-using Votify.Modelos.Persistence.Interfaces;
-using Votify.Modelos.Persistence.Repositories;
+using Votify.LógicaNegocio.Interfaces;
+using Votify.LógicaNegocio.Services;
+using Votify.Persistencia;
+using Votify.Persistencia.Entities;
+using Votify.Persistencia.Interfaces;
+using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 

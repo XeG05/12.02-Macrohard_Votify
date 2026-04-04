@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Votify.LógicaNegocio.Services;
 using Votify.Modelos;
-using Votify.Modelos.BusinessLogic.Services;
 using Votify.Modelos.Persistence.Repositories;
+using Votify.Persistencia;
 
 namespace Votify.Tests
 {

@@ -1,10 +1,6 @@
 ﻿@page "/eventoadmin/{EventoId:long}"
 @page "/evento-creado/{EventoId:long}"
 @rendermode InteractiveServer
-@using Votify.Modelos
-@using Votify.Modelos.BusinessLogic.Domain
-@using Votify.Modelos.BusinessLogic.Enums
-@using Votify.Modelos.BusinessLogic.Services
 @inject I_Evento_Service Evento_Service
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
