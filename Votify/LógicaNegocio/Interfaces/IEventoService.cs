@@ -3,9 +3,9 @@ using Votify.Persistencia.Entities;
 
 namespace Votify.LógicaNegocio.Interfaces
 {
-    public interface I_Evento_Service : IService<Evento>
+    public interface IEventoService : IService<Evento>
     {
-        Task<EntradaEvento> EntrarEvento(string correo, long eventoId);
+        Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId);
 
         Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto);
 

@@ -7,7 +7,7 @@ using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Services
 {
-    public class Evento_Service : Service<Evento>, I_Evento_Service
+    public class EventoService : Service<Evento>, IEventoService
     {
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
@@ -26,7 +26,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly EventoFactory _eventoFactory;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
-        public Evento_Service(IRepository<Evento> eventoRepo, 
+        public EventoService(IRepository<Evento> eventoRepo, 
             IRepository<Usuario> usuarioRepo, 
             IRepository<Proyecto> proyectoRepo,
             IRepository<Participante> participanteRepo,
@@ -97,7 +97,7 @@ namespace Votify.LógicaNegocio.Services
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
         }
 
-        public async Task<EntradaEvento> EntrarEvento(string correo, long eventoId)
+        public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId)
         {
             var usuario = (await _usuarioRepo
                 .FindAsync(u => u.Correo == correo))
@@ -110,7 +110,7 @@ namespace Votify.LógicaNegocio.Services
             var rol = await ObtenerRol(correo, eventoId);
 
             var eventoBase = _eventoFactory.CrearEvento(evento, usuario, rol);
-            return new EntradaEvento(eventoBase, rol);
+            return new EntradaEventoDto(eventoBase, rol);
         }
 
         private async Task<Rol> ObtenerRol(string correo, long idEvento)

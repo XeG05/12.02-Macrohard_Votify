@@ -2,10 +2,8 @@
 
 namespace Votify.LógicaNegocio.Interfaces
 
-
-
 {
-    public interface I_Usuario_Service : IService<Usuario>
+    public interface IUsuarioService : IService<Usuario>
     {
         Task<Usuario?> Login(string correo, string contraseña);
 

@@ -5,10 +5,10 @@ using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Services
 {
-    public class Usuario_service : Service<Usuario>, I_Usuario_Service
+    public class UsuarioService : Service<Usuario>, IUsuarioService
     {
         private readonly IRepository<Usuario> repository;
-        public Usuario_service(IRepository<Usuario> repository) : base(repository)
+        public UsuarioService(IRepository<Usuario> repository) : base(repository)
         {
             this.repository = repository;
         }

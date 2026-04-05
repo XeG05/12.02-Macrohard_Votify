@@ -10,7 +10,7 @@ namespace Votify.Tests
     public abstract class UsuarioServiceTestsBase
     {
         protected VotifyContext Context = null!;
-        protected Usuario_service UsuarioService = null!;
+        protected UsuarioService UsuarioService = null!;
 
         [TestInitialize]
         public void Setup()

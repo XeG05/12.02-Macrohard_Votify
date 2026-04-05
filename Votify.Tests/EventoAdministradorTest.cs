@@ -16,7 +16,7 @@ namespace Votify.Tests
     public class EventoAdministradorTests
     {
         private VotifyContext _context = null!;
-        private Evento_Service _eventoService = null!;
+        private EventoService _eventoService = null!;
 
         [TestInitialize]
         public void Setup()
