@@ -1,4 +1,5 @@
-﻿using Votify.LógicaNegocio.DTOs;
+﻿using Votify.LógicaNegocio.Domain;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
@@ -22,6 +23,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
+        private readonly EventoFactory _eventoFactory;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         public Evento_Service(IRepository<Evento> eventoRepo, 
@@ -38,6 +40,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
+            EventoFactory eventoFactory,
             IEmailService emailService,
             IConfiguration config) : base(eventoRepo)
         {
@@ -55,6 +58,7 @@ namespace Votify.LógicaNegocio.Services
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
+            _eventoFactory = eventoFactory;
             _emailService = emailService;
             _config = config;
         }
@@ -103,72 +107,27 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(eventoId)
                 ?? throw new Exception("Evento no encontrado");
 
-            var tipoRol = await DetectarRol(correo, eventoId);
+            var rol = await ObtenerRol(correo, eventoId);
 
-            EventoCreator creator = tipoRol switch
-            {
-                "ADMIN" => new EventoAdministradorCreator(
-                    _usuarioRepo,
-                    _eventoRepo,
-                    _proyectoRepo,
-                    _participanteRepo,
-                    _grupoRepo,
-                    _categoriumRepo,
-                    _votoRepo),
-
-                "PARTICIPANTE" => new EventoParticipanteCreator(
-                    _participanteRepo,
-                    _grupoRepo,
-                    _proyectoRepo,
-                    _categoriumRepo,
-                    _usuarioRepo,
-                    _votoRepo,
-                    _comentarioRepo),
-
-                "VOTANTE" => new EventoVotanteCreator(
-                    _eventoRepo,
-                    _proyectoRepo,
-                    _participanteRepo,
-                    _grupoRepo,
-                    _categoriumRepo,
-                    _rolRepo,
-                    _criterioRepo,
-                    _votoRepo,
-                    _comentarioRepo,
-                    _usuarioRepo),
-                /*
-                // Jurado puede reutilizar VotanteCreator o tener el suyo propio
-                "JURADO" => new EventoVotanteCreator(),*/
-
-                _ =>
-                throw new Exception(
-                    $"No tienes ningún rol asignado en el evento {eventoId}")
-            };
-
-            var eventoBase = creator.CrearEvento(evento, usuario);
-            return new EntradaEvento(eventoBase, tipoRol);
+            var eventoBase = _eventoFactory.CrearEvento(evento, usuario, rol);
+            return new EntradaEvento(eventoBase, rol);
         }
 
-        private async Task<string> DetectarRol(string correo, long idEvento)
+        private async Task<Rol> ObtenerRol(string correo, long idEvento)
         {
-            var admin = await _adminRepo
-                .FindAsync(a => a.Correo == correo && a.Id == idEvento);
-            if (admin.Any()) return "ADMIN";
+            var rol = (await _rolRepo
+                .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
+                .FirstOrDefault();
 
-            var jurado = await _juradoRepo
-                .FindAsync(j => j.Correo == correo && j.Id == idEvento);
-            if (jurado.Any()) return "JURADO";
-
-            var participante = await _participanteRepo
-                .FindAsync(p => p.Correo == correo && p.Id == idEvento);
-            if (participante.Any()) return "PARTICIPANTE";
-
-            var votante = await _votanteRepo
-                .FindAsync(v => v.Correo == correo && v.Id == idEvento);
-            if (votante.Any()) return "VOTANTE";
+            if (rol != null)
+                return rol;
 
             await AsignarVotanteAsync(correo, idEvento);
-            return "VOTANTE";
+
+            return (await _rolRepo
+                .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
+                .FirstOrDefault()
+                ?? throw new Exception("Error al asignar rol de votante");
         }
 
         private async Task AsignarVotanteAsync(string correo, long idEvento)
