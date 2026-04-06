@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Votify.Auth;
 using Votify.Components;
+using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
@@ -22,6 +23,8 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<EventoFactory>();
 
 builder.Services.AddScoped<JwtService>();
 
