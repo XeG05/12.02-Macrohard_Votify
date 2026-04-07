@@ -65,6 +65,18 @@ namespace Votify.Auth
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
+        public async Task<string?> ObtenerToken()
+        {
+            try
+            {
+                return await _js.InvokeAsync<string?>("authStorage.getToken");
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public string? ObtenerCorreo()
             => _currentUser.FindFirst(ClaimTypes.Name)?.Value;
 
