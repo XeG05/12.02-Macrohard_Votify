@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 
 @inject IEventoService Evento_Service
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 
 <h2>Dashboard del participante</h2>
 
@@ -62,12 +64,20 @@ else
     bool cargando = true;
     string error = "";
     
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
         try
         {
-            
-            var entradaEvento = await Evento_Service.EntrarEvento("pepe@gmail.com", EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -87,6 +97,7 @@ else
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
     }
 }
