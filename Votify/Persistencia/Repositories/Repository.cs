@@ -44,17 +44,9 @@ namespace Votify.Persistencia.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            IQueryable<T> query = _dbSet;
-            if (includes != null)
-            {
-                foreach (var include in includes)
-                {
-                    query = query.Include(include);
-                }
-            }
-            return await query.Where(predicate).ToListAsync();
+            return await _dbSet.Where(predicate).ToListAsync();
         }
     }
 }
