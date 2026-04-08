@@ -141,7 +141,7 @@
                         <div class="evento-card" @onclick="() => IrAEventoVotante(eventoId)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge participante-badge">Participante</span>
+                                <span class="rol-badge votante-badge">Votante</span>
                             </div>
                             <h3 class="evento-nombre">@ev.Nombre</h3>
                             <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
@@ -223,7 +223,7 @@
 
     private void IrAEventoParticipante(long id) => Nav.NavigateTo($"/eventoparticipante/{id}");
 
-    private void IrAEventoVotante(long id) => Nav.NavigateTo($"/eventovotante/{id}");
+    private void IrAEventoVotante(long id) => Nav.NavigateTo($"/eventovotantelista/{id}");
 
     private string TruncarTexto(string texto, int max)
     {

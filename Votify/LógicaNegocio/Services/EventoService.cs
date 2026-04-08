@@ -76,9 +76,11 @@ namespace Votify.LógicaNegocio.Services
             var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
             var adminEventIds = admins.Select(a => a.Id).ToHashSet();
 
-            var roles = await _rolRepo.FindAsync(r => r.CorreoUsuario == correo);
-            var participacionIds = roles
-                .Select(r => r.IdEvento)
+            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
+            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
+
+            var participacionIds = participantes.Select(p => p.Id)
+                .Concat(jurados.Select(j => j.Id))
                 .Where(id => !adminEventIds.Contains(id))
                 .ToHashSet();
 
@@ -119,15 +121,23 @@ namespace Votify.LógicaNegocio.Services
                 .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
                 .FirstOrDefault();
 
-            if (rol != null)
-                return rol;
+            if (rol == null)
+            {
+                await AsignarVotanteAsync(correo, idEvento);
 
-            await AsignarVotanteAsync(correo, idEvento);
+                rol = (await _rolRepo
+                    .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
+                    .FirstOrDefault()
+                    ?? throw new Exception("Error al asignar rol de votante");
+            }
 
-            return (await _rolRepo
-                .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
-                .FirstOrDefault()
-                ?? throw new Exception("Error al asignar rol de votante");
+            // Cargar explícitamente las propiedades de navegación si no están cargadas
+            rol.Administrador ??= (await _adminRepo.FindAsync(a => a.Correo == correo && a.Id == idEvento)).FirstOrDefault();
+            rol.Participante ??= (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).FirstOrDefault();
+            rol.Votante ??= (await _votanteRepo.FindAsync(v => v.Correo == correo && v.Id == idEvento)).FirstOrDefault();
+            rol.Jurado ??= (await _juradoRepo.FindAsync(j => j.Correo == correo && j.Id == idEvento)).FirstOrDefault();
+
+            return rol;
         }
 
         private async Task AsignarVotanteAsync(string correo, long idEvento)
