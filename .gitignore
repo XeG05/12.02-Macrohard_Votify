@@ -11,9 +11,9 @@
 *.sln.docstates
 
 #AppSettings
-appsettings.development.json
+Votify/appsettings.development.json
 
-Persistencia/Migrations
+Votify/Persistencia/Migrations
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

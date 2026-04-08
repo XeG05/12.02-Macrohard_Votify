@@ -54,9 +54,15 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
         try
         {
-            var entrada = await EventoService.EntrarEvento("sonia@gmail.com", idEvento);
+            var entrada = await EventoService.EntrarEvento(correo, idEvento);
 
             if (entrada.Evento is EventoVotante evVot)
             {

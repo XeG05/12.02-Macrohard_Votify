@@ -256,7 +256,7 @@ else
                 ? $"¡Evento '{evento.Nombre}' publicado con éxito!"
                 : $"Borrador '{evento.Nombre}' guardado";
 
-            Nav.NavigateTo($"/evento-creado/{evento.Id}");
+            Nav.NavigateTo($"/eventoadmin/{evento.Id}");
         }
         catch (Exception ex)
         {

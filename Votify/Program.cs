@@ -15,7 +15,6 @@ using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EventoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -81,11 +80,6 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
