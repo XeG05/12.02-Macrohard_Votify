@@ -155,8 +155,8 @@ else
                 </button>
 
                 <button class="epp-action-card"
-                        disabled
-                        title="Pendiente de implementar">
+                        @onclick="IrADashboard"
+                        title="Ver dashboard">
                     <div class="epp-action-icon">📊</div>
                     <div class="epp-action-text">
                         <strong>Ver dashboard</strong>
@@ -254,6 +254,28 @@ else
     private void IrAListaProyectos()
     {
         Nav.NavigateTo($"/eventovotantelista/{EventoId}");
+    }
+
+    private async Task IrADashboard()
+    {
+        try
+        {
+            if (eventoParticipante == null)
+                return;
+
+            var grupo = await eventoParticipante.ObtenerMiGrupo();
+            if (grupo == null)
+            {
+                error = "No estás en ningún grupo.";
+                return;
+            }
+
+            Nav.NavigateTo($"/dashboard/{EventoId}/{grupo.IdCategoria}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
     }
 
     private async Task EliminarProyecto()
