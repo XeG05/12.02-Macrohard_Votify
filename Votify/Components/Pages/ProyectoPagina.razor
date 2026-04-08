@@ -9,4 +9,30 @@
     [Parameter] public long idCategoria { get; set; }
     [Parameter] public long idGrupo { get; set; }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            // usuario no autenticado, volver al login
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            throw;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
 }

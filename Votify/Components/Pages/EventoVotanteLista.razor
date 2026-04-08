@@ -52,14 +52,18 @@ else
 
     Dictionary<long, List<Usuario>> participantesPorGrupo = new();
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender) return;
+
         var correo = AuthProvider.ObtenerCorreo();
         if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
         {
+            // usuario no autenticado, volver al login
             Nav.NavigateTo("/");
             return;
         }
+
         try
         {
             var entrada = await EventoService.EntrarEvento(correo, idEvento);
@@ -86,6 +90,10 @@ else
         {
             Console.WriteLine(ex.ToString());
             throw;
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 
