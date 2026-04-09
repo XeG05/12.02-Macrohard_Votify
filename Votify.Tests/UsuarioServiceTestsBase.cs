@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.LógicaNegocio.Services;
-using Votify.Modelos;
-using Votify.Modelos.Persistence.Repositories;
 using Votify.Persistencia;
+using Votify.Persistencia.Entities;
+using Votify.Persistencia.Repositories;
 
 namespace Votify.Tests
 {
@@ -22,7 +22,7 @@ namespace Votify.Tests
             Context = new VotifyContext(options);
 
             var usuarioRepository = new Repository<Usuario>(Context);
-            UsuarioService = new Usuario_service(usuarioRepository);
+            UsuarioService = new UsuarioService(usuarioRepository);
         }
 
         [TestCleanup]

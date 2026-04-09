@@ -3,12 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Votify.LógicaNegocio.Domain;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
-using Votify.Modelos;
-using Votify.Modelos.Persistence.Repositories;
 using Votify.Persistencia;
 using Votify.Persistencia.Entities;
+using Votify.Persistencia.Repositories;
 
 namespace Votify.Tests
 {
@@ -34,7 +34,7 @@ namespace Votify.Tests
                 })
                 .Build();
 
-            _eventoService = new Evento_Service(
+            _eventoService = new EventoService(
                 new Repository<Evento>(_context),
                 new Repository<Usuario>(_context),
                 new Repository<Proyecto>(_context),
@@ -49,6 +49,18 @@ namespace Votify.Tests
                 new Repository<Voto>(_context),
                 new Repository<Comentario>(_context),
                 new Repository<InvitacionPendiente>(_context),
+                new EventoFactory(
+                    new Repository<Usuario>(_context),
+                    new Repository<Evento>(_context),
+                    new Repository<Proyecto>(_context),
+                    new Repository<Participante>(_context),
+                    new Repository<Grupo>(_context),
+                    new Repository<Categorium>(_context),
+                    new Repository<Voto>(_context),
+                    new Repository<Comentario>(_context),
+                    new Repository<Rol>(_context),
+                    new Repository<Criterio>(_context)
+                ),
                 new FakeEmailService(),
                 config);
         }
@@ -212,8 +224,7 @@ namespace Votify.Tests
             Assert.IsNotNull(grupoCreado);
 
             var proyectoAsociado = await _context.Proyectos.FirstOrDefaultAsync(p =>
-                p.IdGrupo == grupoCreado.Id &&
-                p.IdCategoria == datos.CategoriaPrincipal.Id);
+                p.IdGrupo == grupoCreado.Id);
 
             Assert.IsNotNull(proyectoAsociado);
             Assert.AreEqual("Sin nombre", proyectoAsociado.Nombre);
@@ -361,13 +372,17 @@ namespace Votify.Tests
             var grupoA = new Grupo
             {
                 Nombre = "Grupo A",
-                HojaRutaTexto = ""
+                HojaRutaTexto = "",
+                IdCategoria = categoriaPrincipal.Id,
+                IdCategoriaNavigation = categoriaPrincipal
             };
 
             var grupoB = new Grupo
             {
                 Nombre = "Grupo B",
-                HojaRutaTexto = ""
+                HojaRutaTexto = "",
+                IdCategoria = categoriaPrincipal.Id,
+                IdCategoriaNavigation = categoriaPrincipal
             };
 
             await _context.Grupos.AddRangeAsync(grupoA, grupoB);
@@ -377,24 +392,20 @@ namespace Votify.Tests
             {
                 Nombre = "Proyecto A",
                 IdGrupo = grupoA.Id,
-                IdCategoria = categoriaPrincipal.Id,
                 Archivo = Array.Empty<byte>(),
                 Descripcion = "Descripcion A",
                 DescripcionBreve = "Breve A",
-                IdGrupoNavigation = grupoA,
-                IdCategoriaNavigation = categoriaPrincipal
+                IdGrupoNavigation = grupoA
             };
 
             var proyectoB = new Proyecto
             {
                 Nombre = "Proyecto B",
                 IdGrupo = grupoB.Id,
-                IdCategoria = categoriaPrincipal.Id,
                 Archivo = Array.Empty<byte>(),
                 Descripcion = "Descripcion B",
                 DescripcionBreve = "Breve B",
-                IdGrupoNavigation = grupoB,
-                IdCategoriaNavigation = categoriaPrincipal
+                IdGrupoNavigation = grupoB
             };
 
             await _context.Proyectos.AddRangeAsync(proyectoA, proyectoB);
@@ -421,7 +432,6 @@ namespace Votify.Tests
                     IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante1.Correo,
-                    IdProyectoCat = categoriaPrincipal.Id,
                     IdProyectoGru = grupoA.Id,
                     Nota = 5
                 },
@@ -430,7 +440,6 @@ namespace Votify.Tests
                     IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante2.Correo,
-                    IdProyectoCat = categoriaPrincipal.Id,
                     IdProyectoGru = grupoA.Id,
                     Nota = 4
                 },
@@ -439,7 +448,6 @@ namespace Votify.Tests
                     IdCriterio = criterio.Id,
                     IdRol = evento.Id,
                     CorreoRol = participante1.Correo,
-                    IdProyectoCat = categoriaPrincipal.Id,
                     IdProyectoGru = grupoB.Id,
                     Nota = 3
                 });
