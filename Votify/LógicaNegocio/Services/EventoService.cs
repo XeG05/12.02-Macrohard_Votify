@@ -302,6 +302,13 @@ namespace Votify.LógicaNegocio.Services
                 creador.Nombre,
                 urlAceptacion);
         }
+
+        //devuelve el proyecto que corresponde a la id de categoria y de grupo, y si no existe, devuelve null.
+        /*public async Task<Proyecto> recuperarProyecto(long idProyecto)
+        {
+            return await EventoVotante.recuperarProyecto(idProyecto); ;
+        }*/
     }
     
+
 }

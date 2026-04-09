@@ -91,5 +91,27 @@ namespace Votify.Controladores
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        /// Recupera un proyecto por su Id.
+        [HttpGet("proyecto/{proyectoId:long}")]
+        public async Task<IActionResult> RecuperarProyecto(long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var proyecto = await _eventoService.recuperarProyecto(proyectoId);
+                if (proyecto == null)
+                {
+                    return NotFound(new { error = "Proyecto no encontrado" });
+                }
+                return Ok(proyecto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
