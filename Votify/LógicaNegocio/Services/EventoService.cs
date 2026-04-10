@@ -304,10 +304,11 @@ namespace Votify.LógicaNegocio.Services
         }
 
         //devuelve el proyecto que corresponde a la id de categoria y de grupo, y si no existe, devuelve null.
-        /*public async Task<Proyecto> recuperarProyecto(long idProyecto)
+        public async Task<Proyecto> recuperarProyecto(long idProyecto)
         {
-            return await EventoVotante.recuperarProyecto(idProyecto); ;
-        }*/
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
+            return pr;
+        }
     }
     
 

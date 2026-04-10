@@ -28,6 +28,8 @@ builder.Services.AddScoped<EventoFactory>();
 
 builder.Services.AddScoped<JwtService>();
 
+builder.Services.AddHttpClient();
+
 // BlazorAuthStateProvider scoped al circuito SignalR
 builder.Services.AddScoped<BlazorAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(

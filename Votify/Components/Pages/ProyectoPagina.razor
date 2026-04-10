@@ -2,25 +2,37 @@
 @rendermode InteractiveServer
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject HttpClient Http
 
 @inject IEventoService EventoService
-
-<div class="page">
-    <div class="rectangulo-info">
-        <div class="nom-par">
-            <div class="nombrePr">
+@if(proyecto != null)
+{
+    <div class="page">
+        <div class="rectangulo-info">
+            <div class="nom-par">
+                <div class="nombrePr">
+                    @proyecto.Nombre
+                </div>
+                <div class="participantesPr">
+                </div>
             </div>
-            <div class="participantesPr">
+            <div class="imagenes">
             </div>
-        </div>
-        <div class="imagenes">
         </div>
     </div>
-</div>
+}
+else {
+    <div class="page">
+        <p>Cargando proyecto...</p>
+    </div>
+}
+
 
 @code {
     [Parameter] public long idProyecto { get; set; }
     [Parameter] public long idEvento { get; set; }
+
+    Proyecto? proyecto;
 
     EventoVotante? eventoVotante;
 
@@ -43,19 +55,11 @@
             if (entrada.Evento is EventoVotante evVot)
             {
                 eventoVotante = evVot;
-                proyectos = await EventoService.ListaProyectos(idEvento);
-
-                participantesPorGrupo = new();
-
-                foreach (var p in proyectos)
-                {
-                    var participantes = await eventoVotante.UsuariosParticipantesGrupo(p.IdGrupo);
-                    participantesPorGrupo[p.IdGrupo] = participantes;
-                }
+                proyecto = await Http.GetFromJsonAsync<Proyecto>("proyecto/5");
             }
             else
             {
-                proyectos = new List<Proyecto>();
+                throw new Exception("El usuario no es un votante en este evento.");
             }
         }
         catch (Exception ex)

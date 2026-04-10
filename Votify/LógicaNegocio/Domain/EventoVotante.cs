@@ -87,11 +87,5 @@ namespace Votify.LógicaNegocio.Domain
             await _comentarioRepo.AddAsync(comentario);
         }
 
-        public async Task<Proyecto> recuperarProyecto(long idProyecto)
-        {
-            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
-            return pr;
-        }
-
     }
 }
