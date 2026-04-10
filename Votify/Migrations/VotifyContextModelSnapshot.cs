@@ -564,12 +564,14 @@ namespace Votify.Migrations
                     b.HasOne("Votify.Persistencia.Entities.Proyecto", "Proyecto")
                         .WithMany("Comentarios")
                         .HasForeignKey("IdProyectoGru")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("id_proyectoFK");
 
                     b.HasOne("Votify.Persistencia.Entities.Rol", "Rol")
                         .WithMany("Comentarios")
                         .HasForeignKey("CorreoRol", "IdRol")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("id_rolFK");
 

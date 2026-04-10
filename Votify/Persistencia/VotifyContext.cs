@@ -55,7 +55,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("administrador");
 
             entity.Property(e => e.Correo)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
 
@@ -100,19 +100,19 @@ public partial class VotifyContext : DbContext
 
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.CorreoRol)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo_rol");
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
             entity.HasOne(d => d.Rol).WithMany(p => p.Comentarios)
                 .HasForeignKey(d => new { d.CorreoRol, d.IdRol })
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Comentarios)
                 .HasForeignKey(d => new { d.IdProyectoGru})
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
         });
 
@@ -128,7 +128,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
             entity.Property(e => e.Nombre)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("nombre");
             entity.Property(e => e.Ponderacion).HasColumnName("ponderacion");
 
@@ -149,7 +149,7 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.Nombre)
-                .HasMaxLength(30)
+                .HasMaxLength(50)
                 .HasColumnName("nombre");
             entity.Property(e => e.FechaFinInscripciones)
         .HasColumnName("fecha_fin_inscripciones");
@@ -176,7 +176,7 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.HojaRutaTexto).HasColumnName("hoja_ruta_texto");
             entity.Property(e => e.Nombre)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("nombre");
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
         });
@@ -188,7 +188,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("jurado");
 
             entity.Property(e => e.Correo)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
 
@@ -206,7 +206,7 @@ public partial class VotifyContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Correo)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
@@ -223,7 +223,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("participante");
 
             entity.Property(e => e.Correo)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
@@ -253,7 +253,7 @@ public partial class VotifyContext : DbContext
                   .HasColumnName("id_grupo");
 
             entity.Property(e => e.Nombre)
-                  .HasMaxLength(25)
+                  .HasMaxLength(50)
                   .HasColumnName("nombre");
 
             entity.Property(e => e.Archivo)
@@ -276,7 +276,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.CorreoRol)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo_rol");
             entity.Property(e => e.Comentario).HasColumnName("comentario");
 
@@ -298,7 +298,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("rol");
 
             entity.Property(e => e.CorreoUsuario)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("correo_usuario");
             entity.Property(e => e.IdEvento).HasColumnName("id_evento");
 
@@ -320,13 +320,13 @@ public partial class VotifyContext : DbContext
             entity.ToTable("usuario");
 
             entity.Property(e => e.Correo)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Contraseña)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("contraseña");
             entity.Property(e => e.Nombre)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("nombre");
         });
 
@@ -337,7 +337,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("votante");
 
             entity.Property(e => e.Correo)
-                .HasMaxLength(25)
+                .HasMaxLength(50)
                 .HasColumnName("correo");
             entity.Property(e => e.Id).HasColumnName("id");
 
@@ -409,7 +409,7 @@ public partial class VotifyContext : DbContext
             entity.HasKey(e => e.Id).HasName("invitacion_pendiente_pkey");
             entity.ToTable("invitacion_pendiente");
             entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
-            entity.Property(e => e.Token).HasMaxLength(36).HasColumnName("token");
+            entity.Property(e => e.Token).HasMaxLength(50).HasColumnName("token");
             entity.Property(e => e.CorreoDestino).HasMaxLength(50).HasColumnName("correo_destino");
             entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
             entity.Property(e => e.IdEvento).HasColumnName("id_evento");
