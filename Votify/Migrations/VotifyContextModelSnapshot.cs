@@ -25,8 +25,8 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Administrador", b =>
                 {
                     b.Property<string>("Correo")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<long>("Id")
@@ -85,8 +85,8 @@ namespace Votify.Migrations
                         .HasColumnName("id_rol");
 
                     b.Property<string>("CorreoRol")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo_rol");
 
                     b.Property<long>("IdProyectoGru")
@@ -128,8 +128,8 @@ namespace Votify.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
                     b.Property<long>("Ponderacion")
@@ -176,8 +176,8 @@ namespace Votify.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
                     b.Property<int>("ParticipantesPorGrupo")
@@ -213,8 +213,8 @@ namespace Votify.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
                     b.HasKey("Id")
@@ -289,8 +289,8 @@ namespace Votify.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("token");
 
                     b.HasKey("Id")
@@ -306,8 +306,8 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Jurado", b =>
                 {
                     b.Property<string>("Correo")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<long>("Id")
@@ -327,8 +327,8 @@ namespace Votify.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("Correo")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<string>("Contenido")
@@ -347,8 +347,8 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Participante", b =>
                 {
                     b.Property<string>("Correo")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<long>("Id")
@@ -395,8 +395,8 @@ namespace Votify.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
                     b.HasKey("Id")
@@ -416,8 +416,8 @@ namespace Votify.Migrations
                         .HasColumnName("id_rol");
 
                     b.Property<string>("CorreoRol")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo_rol");
 
                     b.Property<string>("Comentario")
@@ -436,8 +436,8 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Rol", b =>
                 {
                     b.Property<string>("CorreoUsuario")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo_usuario");
 
                     b.Property<long>("IdEvento")
@@ -455,20 +455,20 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Usuario", b =>
                 {
                     b.Property<string>("Correo")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<string>("Contraseña")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("contraseña");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
                     b.HasKey("Correo")
@@ -480,8 +480,8 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Votante", b =>
                 {
                     b.Property<string>("Correo")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
                     b.Property<long>("Id")
