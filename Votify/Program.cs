@@ -9,26 +9,23 @@ using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
-using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<UsuarioService>();
-builder.Services.AddScoped<EventoService>();
+builder.Services.AddScoped<EventoFactory>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IRepository<InvitacionPendiente>, Repository<InvitacionPendiente>>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
-builder.Services.AddScoped<EventoFactory>();
-
 builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddHttpClient();
+
+builder.Services.AddControllers();
 
 // BlazorAuthStateProvider scoped al circuito SignalR
 builder.Services.AddScoped<BlazorAuthStateProvider>();
@@ -79,9 +76,14 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
+app.MapControllers();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
