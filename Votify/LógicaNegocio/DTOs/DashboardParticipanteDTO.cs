@@ -8,6 +8,6 @@
         public int TotalVotos { get; set; }
         public int Posicion { get; set; }
 
-        public List<string> Comentarios { get; set; } = new();
+        public List<ComentarioDTO> Comentarios { get; set; } = new();
     }
 }

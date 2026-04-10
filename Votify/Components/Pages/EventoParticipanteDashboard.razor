@@ -5,8 +5,6 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
-<h2>Dashboard del participante</h2>
-
 @if (cargando)
 {
     <p>Cargando...</p>
@@ -17,42 +15,85 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else if (dashboard != null)
 {
-    <hr />
+    <!-- HEADER -->
+    <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
+        
+        <button @onclick="VolverHome" style="background:none;border:none;color:#9ca3af;cursor:pointer;">
+            ← Volver al home
+        </button>
 
-    <h3>📊 Información del proyecto</h3>
+        <h1 style="margin:10px 0;">Dashboard del evento</h1>
+        <p style="color:#cbd5f5;">Resultados finales de tu participación</p>
 
-    <p><b>Proyecto:</b> @dashboard.NombreProyecto</p>
-    <p><b>Grupo:</b> @dashboard.NombreGrupo</p>
+        <div style="margin-top:10px;">
+            <span style="background:#22c55e; padding:5px 10px; border-radius:10px; margin-right:10px;">
+                Participante
+            </span>
+            <span style="background:#64748b; padding:5px 10px; border-radius:10px;">
+                Finalizado
+            </span>
+        </div>
+    </div>
 
-    <hr />
+    <!-- INFO PROYECTO -->
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-    <h3>🏆 Resultados</h3>
+        <!-- PROYECTO -->
+        <div style="flex:1; min-width:300px; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+            <h3>🎮 Tu proyecto</h3>
 
-    <p><b>Total votos:</b> @dashboard.TotalVotos</p>
-    <p><b>Posición en ranking:</b> @dashboard.Posicion</p>
+            <p><b>@dashboard.NombreProyecto</b></p>
+            <p style="color:gray;">Grupo: @dashboard.NombreGrupo</p>
+        </div>
 
-    <hr />
+        <!-- RESULTADOS -->
+        <div style="flex:1; min-width:300px; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+            <h3>🏆 Resultados</h3>
 
-    <h3>💬 Comentarios recibidos</h3>
+            <div style="background:#ecfdf5; padding:15px; border-radius:10px; margin-bottom:10px;">
+                <b>@dashboard.TotalVotos votos</b>
+                <p style="margin:0; color:gray;">Total recibidos</p>
+            </div>
 
-    @if (dashboard.Comentarios == null || dashboard.Comentarios.Count == 0)
-    {
-        <p>No hay comentarios todavía.</p>
-    }
-    else
-    {
-        <ul>
+            <div style="background:#eff6ff; padding:15px; border-radius:10px;">
+                <b>Posición #@dashboard.Posicion</b>
+                <p style="margin:0; color:gray;">Ranking en la categoría</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMENTARIOS -->
+    <div style="margin-top:30px; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+        <h3>💬 Comentarios recibidos</h3>
+
+        @if (dashboard.Comentarios == null || dashboard.Comentarios.Count == 0)
+        {
+            <p style="color:gray;">No hay comentarios todavía.</p>
+        }
+        else
+        {
             @foreach (var comentario in dashboard.Comentarios)
             {
-                <li>@comentario</li>
+                <div style="border-bottom:1px solid #eee; padding:12px 0;">
+
+                    <p style="margin:0; font-weight:bold; color:#334155;">
+                        @comentario.Autor
+                    </p>
+
+                    <p style="margin:5px 0 0 0;">
+                        @comentario.Contenido
+                    </p>
+
+                </div>
             }
-        </ul>
-    }
+        }
+    </div>
 }
 else
 {
     <p>No se pudieron cargar los datos.</p>
 }
+
 @code {
 
     [Parameter] public long EventoId { get; set; }
@@ -63,7 +104,7 @@ else
 
     bool cargando = true;
     string error = "";
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -99,5 +140,9 @@ else
             cargando = false;
             StateHasChanged();
         }
+    }
+    private void VolverHome()
+    {
+        Nav.NavigateTo("/home");
     }
 }

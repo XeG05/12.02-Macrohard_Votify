@@ -255,8 +255,9 @@ namespace Votify.LógicaNegocio.Domain
 
             var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
 
-            //var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo && c.IdProyectoCat == proyecto.IdCategoria);
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.IdGrupo);
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id);
+
+         
 
             return new DashboardParticipanteDTO
             {
@@ -265,7 +266,11 @@ namespace Votify.LógicaNegocio.Domain
                 TotalVotos = totalVotos,
                 Posicion = posicion,
 
-                Comentarios = comentarios.Select(c => c.Contenido).ToList()
+                Comentarios = comentarios.Select(c => new ComentarioDTO
+                {
+                    Autor = c.CorreoRol ?? "Anónimo",
+                    Contenido = c.Contenido
+                }).ToList()
             };
         }
     }
