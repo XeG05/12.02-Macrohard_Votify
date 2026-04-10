@@ -111,7 +111,7 @@ namespace Votify.LógicaNegocio.Domain
                 if (proyecto == null)
                     continue;
 
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
+                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
 
                 resultado.Add(new ProyectoResumenDTO
                 {
@@ -127,16 +127,14 @@ namespace Votify.LógicaNegocio.Domain
         public async Task<int> TotalVotosCategoria(long idCategoria)
         {
             var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            var idsGrupos = grupos.Select(g => g.Id).ToList();
 
-            int total = 0;
+            var proyectos = await _proyectoRepo.FindAsync(p => idsGrupos.Contains(p.IdGrupo));
+            var idsProyectos = proyectos.Select(p => p.Id).ToList();
 
-            foreach (var g in grupos)
-            {
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == g.Id);
-                total += votos.Count;
-            }
+            var votos = await _votoRepo.FindAsync(v => idsProyectos.Contains(v.IdProyectoGru));
 
-            return total;
+            return votos.Count;
         }
         public async Task AñadirGrupo(string nombreGrupo, long idCategoria)
         {

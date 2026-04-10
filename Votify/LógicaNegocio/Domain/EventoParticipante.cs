@@ -234,7 +234,9 @@ namespace Votify.LógicaNegocio.Domain
             var grupo = (await _grupoRepo.FindAsync(g => g.Id == proyecto.IdGrupo)).FirstOrDefault();
 
             var gruposCategoria = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+
             var idsGruposCat = gruposCategoria.Select(g => g.Id).ToList();
+
             var proyectos = (await _proyectoRepo.FindAsync(p => idsGruposCat.Contains(p.IdGrupo))).ToList();
 
             var ranking = new List<(Proyecto proyecto, int votos)>();
@@ -242,7 +244,7 @@ namespace Votify.LógicaNegocio.Domain
             foreach (var p in proyectos)
             {
                 var votos = await _votoRepo.FindAsync(v =>
-                    v.IdProyectoGru == p.IdGrupo);
+                    v.IdProyectoGru == p.Id);
 
                 ranking.Add((p, votos.Count));
             }
