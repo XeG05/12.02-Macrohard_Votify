@@ -55,7 +55,7 @@ else {
             if (entrada.Evento is EventoVotante evVot)
             {
                 eventoVotante = evVot;
-                proyecto = await Http.GetFromJsonAsync<Proyecto>("proyecto/5");
+                proyecto = await Http.GetFromJsonAsync<Proyecto>($"proyecto/{idProyecto}");
             }
             else
             {
@@ -65,7 +65,7 @@ else {
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
-            throw;
+            proyecto = null;
         }
         finally
         {
