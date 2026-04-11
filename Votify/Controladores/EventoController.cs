@@ -7,6 +7,13 @@ using Votify.LógicaNegocio.Interfaces;
 namespace Votify.Controladores
 {
 
+    public class ComentarioRequest
+    {
+        public long IdEvento { get; set; }
+        public long IdGrupo { get; set; }
+        public string Comentario { get; set; } = string.Empty;
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -128,6 +135,25 @@ namespace Votify.Controladores
                     return NotFound(new { error = "Grupo o participantes no encontrado/s" });
                 }
                 return Ok(participantes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// Guarda un comentario en un proyecto
+        [HttpPost("proyecto/comentar")]
+        public async Task<IActionResult> ComentarProyecto([FromBody] ComentarioRequest request)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                // Usamos el 'correo' extraído del JWT por seguridad
+                await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdGrupo, request.Comentario);
+                return Ok(new { mensaje = "Comentario agregado exitosamente" });
             }
             catch (Exception ex)
             {

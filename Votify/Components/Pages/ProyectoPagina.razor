@@ -3,6 +3,7 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 @inject IEventoService EventoService
 @if(proyecto != null)
@@ -45,7 +46,7 @@
                     <!-- Asumiendo que ImagenProyecto tiene una propiedad con la URL o el contenido en Base64 -->
                     <div class="imagen-actual-container">
                         <span>Imagen @(imagenActual + 1) de @proyecto.Imagenes.Count</span>
-                        <!-- img src="..." alt="Imagen del proyecto" /-->
+                        img src="..." alt="Imagen del proyecto"
                     </div>
                     <button class="arrow-btn" @onclick="ImagenSiguiente">&gt;</button>
                 }
@@ -65,14 +66,14 @@
 
         <!-- Botón de descarga -->
         <div class="acciones-proyecto">
-             <button class="btn-secundario">Descargar proyecto</button>
+             <button class="btn-secundario" @onclick="DescargarProyecto">Descargar proyecto</button>
         </div>
 
         <!-- Área de comentarios -->
         <div class="seccion-comentarios">
-            <textarea placeholder="Escribe aquí comentarios sobre el proyecto"></textarea>
+            <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
             <div class="enviar-btn-container">
-                <button class="btn-secundario">Enviar comentario</button>
+                <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
             </div>
         </div>
 
@@ -99,7 +100,57 @@ else {
     EventoVotante? eventoVotante;
     List<Usuario>? participantes;
 
+    string nuevoComentario = "";
     int imagenActual = 0;
+    bool comentarioEnviado = false;
+
+    //Tengo que hacer que primero compruebe si ya hay un comentario mandado por parte de ese usuario
+
+    private async Task EnviarComentario()
+    {
+        if (string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
+
+        var baseUrl = Nav.BaseUri;
+
+        var peticion = new 
+        {
+            IdEvento = idEvento,
+            IdGrupo = proyecto.IdGrupo,
+            Comentario = nuevoComentario
+        };
+
+        var token = await AuthProvider.ObtenerToken(); 
+        Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await Http.PostAsJsonAsync($"{baseUrl}api/Evento/proyecto/comentar", peticion);
+
+        if (response.IsSuccessStatusCode)
+        {
+            comentarioEnviado = true;
+        }
+        else
+        {
+            Console.WriteLine("Error al enviar el comentario.");
+        }
+    }
+
+    private async Task DescargarProyecto()
+    {
+        if (proyecto?.Archivo != null && proyecto.Archivo.Length > 0)
+        {
+            var fileName = $"{proyecto.Nombre.Replace(" ", "_")}_Proyecto.zip";
+            var base64 = Convert.ToBase64String(proyecto.Archivo);
+            var script = $@"
+                var a = document.createElement('a');
+                a.href = 'data:application/octet-stream;base64,{base64}';
+                a.download = '{fileName}';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            ";
+            await JS.InvokeVoidAsync("eval", script);
+        }
+    }
 
     private void VolverAtras()
     {

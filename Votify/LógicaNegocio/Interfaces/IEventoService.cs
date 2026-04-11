@@ -18,5 +18,8 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<Proyecto> RecuperarProyecto(long idProyecto);
 
         Task<List<Usuario>> ParticipantesGrupo(long idGrupo);
+
+        Task ComentarProyecto(long idEvento, string correo, long idGrupo, string comentario);
+
     }
 }

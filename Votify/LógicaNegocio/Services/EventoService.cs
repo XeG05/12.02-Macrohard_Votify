@@ -325,5 +325,39 @@ namespace Votify.LógicaNegocio.Services
             return usuarios;
         }
 
+        public async Task ComentarProyecto(long idEvento, string correo, long idGrupo, string comentario)
+        {
+
+            Proyecto pr = (await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo)).FirstOrDefault();
+            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault();
+            Comentario comentario1 = new Comentario
+            (
+                idEvento,
+                correo,
+                comentario,
+                idGrupo,
+                pr,
+                rol
+            );
+            pr.Comentarios.Add(comentario1);
+            rol.Comentarios.Add(comentario1);
+            await _comentarioRepo.AddAsync(comentario1);
+            await _proyectoRepo.UpdateAsync(pr);
+            await _rolRepo.UpdateAsync(rol);
+        }
+
+        public async Task VotarProyecto(Voto voto)
+        {
+            Proyecto pr = voto.Proyecto;
+            Rol rol = voto.Rol;
+            Criterio crit = voto.IdCriterioNavigation;
+            pr.Votos.Add(voto);
+            rol.Votos.Add(voto);
+            crit.Votos.Add(voto);
+            await _proyectoRepo.UpdateAsync(pr);
+            await _rolRepo.UpdateAsync(rol);
+            await _criterioRepo.UpdateAsync(crit);
+            await _votoRepo.AddAsync(voto);
+        }
     }
 }
