@@ -18,8 +18,8 @@ else if (dashboard != null)
     <!-- HEADER -->
     <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
         
-        <button @onclick="VolverHome" style="background:none;border:none;color:#9ca3af;cursor:pointer;">
-            ← Volver al home
+        <button @onclick="VolverEvento" style="background:none;border:none;color:#9ca3af;cursor:pointer;">
+            ← Volver a evento
         </button>
 
         <h1 style="margin:10px 0;">Dashboard del evento</h1>
@@ -141,8 +141,8 @@ else
             StateHasChanged();
         }
     }
-    private void VolverHome()
+    private void VolverEvento()
     {
-        Nav.NavigateTo("/home");
+        Nav.NavigateTo($"/eventoparticipante/{EventoId}");
     }
 }
