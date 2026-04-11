@@ -16,7 +16,7 @@ namespace Votify.Controladores
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize] //Hay que implementar JW Token para que detecte si estan logueados o no los usuarios,lo dejamos para mas adelante
     public class EventoController : ControllerBase
     {
         private readonly IEventoService _eventoService;

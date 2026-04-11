@@ -7,7 +7,7 @@ namespace Votify.Controladores
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize] mas adelante
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _usuarioService;

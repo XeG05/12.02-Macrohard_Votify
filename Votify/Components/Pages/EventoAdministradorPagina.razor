@@ -1,8 +1,11 @@
 ﻿@page "/eventoadmin/{EventoId:long}"
 @rendermode InteractiveServer
+
+@inject HttpClient Http
 @inject IEventoService Evento_Service
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject IHttpClientFactory HttpFactory
 
 @if (cargando)
 {
@@ -158,7 +161,13 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId); //NO HTTP
+            
+            /*var token = await AuthProvider.ObtenerToken();
+            var Http = HttpFactory.CreateClient("API");
+            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var entradaEvento = await Http.GetFromJsonAsync<EntradaEventoDto>(
+                $"{Nav.BaseUri}api/evento/{EventoId}");*/
 
             if (entradaEvento.Evento is EventoAdministrador admin)
             {
