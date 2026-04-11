@@ -191,7 +191,7 @@ else
         }
     }
 
-    async Task CrearGrupo()
+    async Task CrearGrupo() //SPRINT 2
     {
         if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
         && categoriaSeleccionadaId is long idCat)
@@ -202,7 +202,7 @@ else
         }
     }
 
-    async Task EliminarGrupoUI(long idGrupo)
+    async Task EliminarGrupoUI(long idGrupo) //SPRINT 2
     {
         if (eventoAdmin != null)
         {
@@ -237,6 +237,6 @@ else
                 participantesPorGrupo[g.Id] = participantes;
             }
         }
-    }*/
+    }*/ //PARA EL SPRINT 2
 
 }
