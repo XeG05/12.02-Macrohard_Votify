@@ -8,16 +8,65 @@
 @if(proyecto != null)
 {
     <div class="page">
+        <!-- Contenedor superior con nombre, participantes e imágenes -->
         <div class="rectangulo-info">
             <div class="nom-par">
                 <div class="nombrePr">
-                    @proyecto.Nombre
+                    <h3>@proyecto.Nombre</h3>
                 </div>
                 <div class="participantesPr">
+                    <!-- Iterar sobre los participantes del proyecto aquí -->
+                    <p>Participante 1</p>
+                    <p>Participante 2</p>
+                    <p>Participante 3</p>
+                    <p>Participante 4</p>
                 </div>
             </div>
+
             <div class="imagenes">
+                @if (proyecto.Imagenes != null && proyecto.Imagenes.Any())
+                {
+                    <button class="arrow-btn" @onclick="ImagenAnterior">&lt;</button>
+                    <!-- Asumiendo que ImagenProyecto tiene una propiedad con la URL o el contenido en Base64 -->
+                    <div class="imagen-actual-container">
+                        <span>Imagen @(imagenActual + 1) de @proyecto.Imagenes.Count</span>
+                        <!-- img src="..." alt="Imagen del proyecto" /-->
+                    </div>
+                    <button class="arrow-btn" @onclick="ImagenSiguiente">&gt;</button>
+                }
+                else
+                {
+                    <div class="sin-imagenes">
+                        <span>Imágenes a añadir por los participantes</span>
+                    </div>
+                }
             </div>
+        </div>
+
+        <!-- Descripción larga debajo del recuadro principal -->
+        <div class="descripcion-larga">
+            <p>@proyecto.Descripcion</p>
+        </div>
+
+        <!-- Botón de descarga -->
+        <div class="acciones-proyecto">
+             <button class="btn-secundario">Descargar proyecto</button>
+        </div>
+
+        <!-- Área de comentarios -->
+        <div class="seccion-comentarios">
+            <textarea placeholder="Escribe aquí comentarios sobre el proyecto"></textarea>
+            <div class="enviar-btn-container">
+                <button class="btn-secundario">Enviar comentario</button>
+            </div>
+        </div>
+
+        <!-- Sección de votación -->
+        <div class="seccion-votar">
+            <label class="checkbox-votar">
+                <input type="checkbox" /> Votar por el proyecto
+            </label>
+            <span class="votos-restantes">X/3 votos restantes</span>
         </div>
     </div>
 }
@@ -27,14 +76,32 @@ else {
     </div>
 }
 
-
 @code {
     [Parameter] public long idProyecto { get; set; }
     [Parameter] public long idEvento { get; set; }
 
     Proyecto? proyecto;
-
     EventoVotante? eventoVotante;
+
+    int imagenActual = 0;
+
+    private void ImagenAnterior()
+    {
+        if (proyecto?.Imagenes != null && proyecto.Imagenes.Any())
+        {
+            imagenActual--;
+            if (imagenActual < 0) imagenActual = proyecto.Imagenes.Count - 1;
+        }
+    }
+
+    private void ImagenSiguiente()
+    {
+        if (proyecto?.Imagenes != null && proyecto.Imagenes.Any())
+        {
+            imagenActual++;
+            if (imagenActual >= proyecto.Imagenes.Count) imagenActual = 0;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -55,7 +122,7 @@ else {
             if (entrada.Evento is EventoVotante evVot)
             {
                 eventoVotante = evVot;
-                /*
+                
                 // 1. Obtenemos la URL base del servidor (ej: https://localhost:5001/)
                 var baseUrl = Nav.BaseUri;
 
@@ -63,12 +130,12 @@ else {
                 // Si tienes un método en tu AuthProvider para extraerlo (o lo sacas de localStorage/cookies),
                 // deberás adjuntarlo aquí. Te dejo el código comentado de ejemplo:
                 // 
-                var token = AuthProvider.ObtenerToken(); // (Ajusta este método al tuyo real)
+                var token = await AuthProvider.ObtenerToken(); // (Ajusta este método al tuyo real)
                 Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 // 3. Hacemos la llamada HTTP absoluta para evitar el problema de rutas relativas
                 proyecto = await Http.GetFromJsonAsync<Proyecto>($"{baseUrl}api/Evento/proyecto/{idProyecto}");
-                */
+                
             }
             else
             {

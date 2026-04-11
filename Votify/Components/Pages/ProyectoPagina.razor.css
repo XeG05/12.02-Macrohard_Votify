@@ -1,1 +1,155 @@
-﻿
+﻿.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    //border: 1px solid #ccc;
+    background-color: #fff;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Sección superior dividida en dos */
+.rectangulo-info {
+    display: flex;
+    border: 1px solid #ccc;
+    min-height: 300px;
+}
+
+.nom-par {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ccc;
+}
+
+.nombrePr {
+    padding: 1rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.nombrePr h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: normal;
+}
+
+.participantesPr {
+    padding: 1rem;
+    flex-grow: 1;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.participantesPr p {
+    margin: 0.3rem 0;
+}
+
+.imagenes {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.arrow-btn {
+    background: none;
+    border: none;
+    font-size: 3rem;
+    cursor: pointer;
+    font-weight: normal;
+    color: #000;
+}
+
+.arrow-btn:hover {
+    color: #555;
+}
+
+.imagen-actual-container {
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+}
+
+.sin-imagenes {
+    flex-grow: 1;
+    text-align: center;
+    color: #888;
+}
+
+/* Descripción */
+.descripcion-larga {
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+/* Botón Descargar */
+.acciones-proyecto {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-secundario {
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
+    border: 1px solid #888;
+    color: #333;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 1.1rem;
+}
+
+.btn-secundario:hover {
+    background-color: #e5e5e5;
+}
+
+/* Comentarios */
+.seccion-comentarios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.seccion-comentarios textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    border: 1px solid #888;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1.1rem;
+}
+
+.enviar-btn-container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Votación */
+.seccion-votar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #888;
+}
+
+.checkbox-votar {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.votos-restantes {
+    color: #888;
+    font-size: 1.2rem;
+}
