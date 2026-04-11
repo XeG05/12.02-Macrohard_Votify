@@ -99,7 +99,7 @@ else
                         <div class="participantes">
                             <h4>Grupos y participantes</h4>
                             <hr />
-                            @foreach (var grupo in cat.Grupos)   @* ← cat.Grupos, no dto.Grupos *@
+                            @foreach (var grupo in cat.Grupos)
                             {
                                 <div class="grup-container" @key="grupo">
                                     <div class="grup-sup">
@@ -120,12 +120,11 @@ else
                                                    value="@grupo.CorreosParticipantes[idx]"
                                                    @onchange="e => grupo.CorreosParticipantes[idx] =
                                                                                e.Value?.ToString() ?? string.Empty" />
-</div>
+                                        </div>
                                     }
                                 </div>
                             }
-                            <button type="button"
-                                    @onclick="() => AñadirGrupo(cat)">
+                            <button type="button" @onclick="() => AñadirGrupo(cat)">
                                 + Añadir Grupo
                             </button>
                         </div>
@@ -138,7 +137,7 @@ else
 
         @if (!string.IsNullOrEmpty(mensaje))
         {
-            <p class="@(error ? "msg-error" : "msg-ok")">@mensaje</p>
+            <p class="@(error ? "msg-error" : "msg-ok")" style="color:red">@mensaje</p>
         }
         
         <hr />
@@ -243,18 +242,44 @@ else
  
     private async Task EjecutarCreacion(bool publicar)
     {
-        cargando = true;
-        mensaje = "";
-        error = false;
-
         try
         {
+            cargando = true;
+            mensaje = "";
+            error = false;
+
+            if (dto.Categorias.Count == 0)
+            {
+                mensaje = "Debe añadirse al menos una categoría al evento.";
+                error = true;
+                return;
+            }
+
+            if (dto.Categorias.Any(cat => cat.Grupos.Count == 0))
+            {
+                mensaje = "Cada categoría debe tener al menos un grupo.";
+                error = true;
+                return;
+            }
+
+            if(dto.GruposCompletos)
+            {
+                foreach (var cat in dto.Categorias)
+                {
+                    foreach (var grupo in cat.Grupos)
+                    {
+                        if (grupo.CorreosParticipantes.Any(c => string.IsNullOrWhiteSpace(c)))
+                        {
+                            mensaje = "Se requiere que los grupos estén completos, no puede haber participantes sin correo asignado.";
+                            error = true;
+                            return;
+                        }
+                    }
+                }
+            }
+
             var correo = AuthProvider.ObtenerCorreo()!;
             var evento = await EventoService.CrearEvento(correo, dto);
-
-            mensaje = publicar
-                ? $"¡Evento '{evento.Nombre}' publicado con éxito!"
-                : $"Borrador '{evento.Nombre}' guardado";
 
             Nav.NavigateTo($"/eventoadmin/{evento.Id}");
         }
