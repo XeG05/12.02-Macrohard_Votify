@@ -9,6 +9,28 @@
     margin: 0 auto;
 }
 
+/* Cabecera para el botón de volver */
+.cabecera-proyecto {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: -1.5rem; /* Acercarlo al recuadro principal */
+}
+
+.btn-volver {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-volver:hover {
+    color: #888;
+}
+
 /* Sección superior dividida en dos */
 .rectangulo-info {
     display: flex;

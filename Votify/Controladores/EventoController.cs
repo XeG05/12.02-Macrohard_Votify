@@ -101,12 +101,33 @@ namespace Votify.Controladores
 
             try
             {
-                var proyecto = await _eventoService.recuperarProyecto(proyectoId);
+                var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
                 if (proyecto == null)
                 {
                     return NotFound(new { error = "Proyecto no encontrado" });
                 }
                 return Ok(proyecto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("proyecto/{proyectoId:long}/grupo/{grupoId:long}/participantes")]
+        public async Task<IActionResult> participantesGrupo(long grupoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var participantes = await _eventoService.ParticipantesGrupo(grupoId);
+                if (participantes == null)
+                {
+                    return NotFound(new { error = "Grupo o participantes no encontrado/s" });
+                }
+                return Ok(participantes);
             }
             catch (Exception ex)
             {

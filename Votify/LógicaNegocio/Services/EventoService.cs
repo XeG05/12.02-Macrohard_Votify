@@ -26,11 +26,11 @@ namespace Votify.LógicaNegocio.Services
         private readonly EventoFactory _eventoFactory;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
-        public EventoService(IRepository<Evento> eventoRepo, 
-            IRepository<Usuario> usuarioRepo, 
+        public EventoService(IRepository<Evento> eventoRepo,
+            IRepository<Usuario> usuarioRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Participante> participanteRepo,
-            IRepository<Grupo> grupoRepo, 
+            IRepository<Grupo> grupoRepo,
             IRepository<Categorium> categoriumRepo,
             IRepository<Administrador> adminRepo,
             IRepository<Jurado> juradoRepo,
@@ -304,12 +304,26 @@ namespace Votify.LógicaNegocio.Services
         }
 
         //devuelve el proyecto que corresponde a la id de categoria y de grupo, y si no existe, devuelve null.
-        public async Task<Proyecto> recuperarProyecto(long idProyecto)
+        public async Task<Proyecto> RecuperarProyecto(long idProyecto)
         {
-            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
+            Proyecto? pr = await _proyectoRepo.GetByIdAsync(idProyecto);
             return pr;
         }
-    }
-    
 
+        public async Task<List<Usuario>> ParticipantesGrupo(long idGrupo)
+        {
+            List<Participante> participantes = await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
+            List<Usuario> usuarios = new List<Usuario>();
+            foreach (var participante in participantes)
+            {
+                var usuario = await _usuarioRepo.FindAsync(u => u.Correo == participante.Correo);
+                if (usuario != null && usuario.Any())
+                {
+                    usuarios.Add(usuario.First());
+                }
+            }
+            return usuarios;
+        }
+
+    }
 }

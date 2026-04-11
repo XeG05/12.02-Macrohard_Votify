@@ -8,6 +8,15 @@
 @if(proyecto != null)
 {
     <div class="page">
+        <!-- Botón de volver -->
+        <div class="cabecera-proyecto">
+             <button class="btn-volver" @onclick="VolverAtras" title="Volver a la lista de proyectos">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                     <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                 </svg>
+             </button>
+        </div>
+
         <!-- Contenedor superior con nombre, participantes e imágenes -->
         <div class="rectangulo-info">
             <div class="nom-par">
@@ -15,11 +24,17 @@
                     <h3>@proyecto.Nombre</h3>
                 </div>
                 <div class="participantesPr">
-                    <!-- Iterar sobre los participantes del proyecto aquí -->
-                    <p>Participante 1</p>
-                    <p>Participante 2</p>
-                    <p>Participante 3</p>
-                    <p>Participante 4</p>
+                    @if(participantes != null && participantes.Any())
+                    {
+                        @foreach (var participante in participantes)
+                        {
+                            <p>@participante.Nombre</p>
+                        }
+                    } else
+                    {
+                        <p>No hay participantes para este grupo</p>
+                    }
+
                 </div>
             </div>
 
@@ -82,8 +97,14 @@ else {
 
     Proyecto? proyecto;
     EventoVotante? eventoVotante;
+    List<Usuario>? participantes;
 
     int imagenActual = 0;
+
+    private void VolverAtras()
+    {
+        Nav.NavigateTo($"/eventovotantelista/{idEvento}");
+    }
 
     private void ImagenAnterior()
     {
@@ -123,18 +144,17 @@ else {
             {
                 eventoVotante = evVot;
                 
-                // 1. Obtenemos la URL base del servidor (ej: https://localhost:5001/)
                 var baseUrl = Nav.BaseUri;
 
-                // 2. IMPORTANTE: Como el controlador tiene [Authorize], el HttpClient necesita el token.
-                // Si tienes un método en tu AuthProvider para extraerlo (o lo sacas de localStorage/cookies),
-                // deberás adjuntarlo aquí. Te dejo el código comentado de ejemplo:
-                // 
-                var token = await AuthProvider.ObtenerToken(); // (Ajusta este método al tuyo real)
+                var token = await AuthProvider.ObtenerToken(); 
                 Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                // 3. Hacemos la llamada HTTP absoluta para evitar el problema de rutas relativas
                 proyecto = await Http.GetFromJsonAsync<Proyecto>($"{baseUrl}api/Evento/proyecto/{idProyecto}");
+                if(proyecto == null)
+                {
+                    throw new Exception("No se pudo cargar el proyecto.");
+                }
+                participantes = await Http.GetFromJsonAsync<List<Usuario>>($"{baseUrl}api/Evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
                 
             }
             else
