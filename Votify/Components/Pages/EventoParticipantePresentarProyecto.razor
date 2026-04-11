@@ -232,8 +232,8 @@ else
 
                     <div class="epr-actions">
                         <button class="epr-secondary" @onclick="VolverEvento">Cancelar</button>
-                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@tieneProyecto">
-                            @(tieneProyecto ? "Proyecto ya entregado" : "Entregar proyecto")
+                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseInscripcion())">
+                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseInscripcion() ? "Inscripción finalizada" : "Entregar proyecto"))
                         </button>
                     </div>
                 </div>
@@ -432,5 +432,12 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
+    }
+
+    private bool EsFaseInscripcion()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy <= eventoParticipante.FechaFinInscripciones;
     }
 }

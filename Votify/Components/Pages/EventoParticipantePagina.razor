@@ -131,8 +131,8 @@ else
             <div class="epp-actions-grid">
                 <button class="epp-action-card epp-action-primary"
                         @onclick="IrAPresentarProyecto"
-                        disabled="@tieneProyecto"
-                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : "Subir proyecto")">
+                        disabled="@(tieneProyecto || !EsFaseInscripcion())"
+                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : (!EsFaseInscripcion() ? "La fase de inscripción ha terminado" : "Subir proyecto"))">
                     <div class="epp-action-icon">📤</div>
                     <div class="epp-action-text">
                         <strong>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</strong>
@@ -146,7 +146,8 @@ else
 
                 <button class="epp-action-card epp-action-danger"
                         @onclick="EliminarProyecto"
-                        disabled="@(!tieneProyecto)">
+                        disabled="@(!tieneProyecto || !EsFaseInscripcion())"
+                        title="@(!EsFaseInscripcion() ? "La fase de inscripción ha terminado" : "")">
                     <div class="epp-action-icon">🗑️</div>
                     <div class="epp-action-text">
                         <strong>Eliminar proyecto</strong>
@@ -156,7 +157,8 @@ else
 
                 <button class="epp-action-card"
                         @onclick="IrADashboard"
-                        title="Ver dashboard">
+                        disabled="@(!EsFaseFinalizada())"
+                        title="@(!EsFaseFinalizada() ? "El dashboard estará disponible al finalizar el evento" : "Ver dashboard")">
                     <div class="epp-action-icon">📊</div>
                     <div class="epp-action-text">
                         <strong>Ver dashboard</strong>
@@ -325,5 +327,19 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
+    }
+
+    private bool EsFaseInscripcion()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy <= eventoParticipante.FechaFinInscripciones;
+    }
+
+    private bool EsFaseFinalizada()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > eventoParticipante.FechaFinVotaciones;
     }
 }
