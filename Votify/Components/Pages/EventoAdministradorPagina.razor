@@ -65,13 +65,13 @@ else
     {
         <h3>Grupos</h3>
 
-        @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
+        /*@if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
         {
             <div style="margin-bottom:15px;">
                 <input @bind="nombreGrupoNuevo" placeholder="Nombre del grupo" />
                 <button @onclick="CrearGrupo">Añadir grupo</button>
             </div>
-        }
+        }*/ //BOTÓN DE AÑADIR GRUPOS, PARA EL SPRINT 2
 
         @foreach (var g in grupos)
         {
