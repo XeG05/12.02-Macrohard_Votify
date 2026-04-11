@@ -55,7 +55,19 @@ else {
             if (entrada.Evento is EventoVotante evVot)
             {
                 eventoVotante = evVot;
-                proyecto = await Http.GetFromJsonAsync<Proyecto>($"proyecto/{idProyecto}");
+
+                // 1. Obtenemos la URL base del servidor (ej: https://localhost:5001/)
+                var baseUrl = Nav.BaseUri;
+
+                // 2. IMPORTANTE: Como el controlador tiene [Authorize], el HttpClient necesita el token.
+                // Si tienes un método en tu AuthProvider para extraerlo (o lo sacas de localStorage/cookies),
+                // deberás adjuntarlo aquí. Te dejo el código comentado de ejemplo:
+                // 
+                var token = AuthProvider.ObtenerToken(); // (Ajusta este método al tuyo real)
+                Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                // 3. Hacemos la llamada HTTP absoluta para evitar el problema de rutas relativas
+                proyecto = await Http.GetFromJsonAsync<Proyecto>($"{baseUrl}api/Evento/proyecto/{idProyecto}");
             }
             else
             {
