@@ -1,29 +1,76 @@
-﻿@page "/eventoadmin/votaciones/{idCategoria:long}"
+﻿@page "/eventoadmin/{EventoId:long}/votaciones/{idCategoria:long}"
 @rendermode InteractiveServer
 
 @inject IEventoService EventoService
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 
-<h2>@eventoAdmin?.Nombre</h2>
-<h3>@nombreCategoria</h3>
 
-<p>Proyectos: @numeroProyectos</p>
-<p>Votos totales: @totalVotos</p>
-
-<h4>Proyectos</h4>
-
-@if (resumen != null)
+@if (cargando)
 {
-    <ul>
-        @foreach (var r in resumen)
+    <p>Cargando...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div style="color:red">@error</div>
+}
+else
+{
+    <!-- HEADER -->
+    <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
+
+        <button @onclick="VolverEventoadmin"
+                style="background:none;border:none;color:#9ca3af;cursor:pointer;">
+            ← Volver al evento
+        </button>
+
+        <h1>@eventoAdmin?.Nombre</h1>
+        <p>@nombreCategoria</p>
+
+        <span style="background:#f59e0b; padding:5px 10px; border-radius:10px;">
+            Panel de votaciones
+        </span>
+    </div>
+
+    <!-- RESUMEN -->
+    <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+
+        <div style="flex:1; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+            <h3>📁 Proyectos</h3>
+            <p style="font-size:20px;"><b>@numeroProyectos</b></p>
+        </div>
+
+        <div style="flex:1; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+            <h3>🗳️ Votos totales</h3>
+            <p style="font-size:20px;"><b>@totalVotos</b></p>
+        </div>
+
+    </div>
+
+    <!-- LISTA -->
+    <div style="border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
+        <h3>🏆 Ranking</h3>
+
+        @foreach (var r in resumen!)
         {
-            <li>
-                @r.NombreProyecto | @r.NombreGrupo | @r.CantidadVotos votos
-            </li>
+            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+
+                <div>
+                    <b>@r.NombreProyecto</b>
+                    <p style="margin:0; color:gray;">@r.NombreGrupo</p>
+                </div>
+
+                <div style="text-align:right;">
+                    <b>@r.CantidadVotos votos</b>
+                </div>
+
+            </div>
         }
-    </ul>
+    </div>
 }
 
 @code {
+    [Parameter] public long EventoId { get; set; }
     [Parameter] public long idCategoria { get; set; }
 
     EventoAdministrador? eventoAdmin;
@@ -32,9 +79,64 @@
     int numeroProyectos;
     int totalVotos;
 
+    bool cargando = true;
+    string error = "";
+
     List<ProyectoResumenDTO>? resumen;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var entradaEvento = await EventoService.EntrarEvento(correo, EventoId);
+
+            if (entradaEvento.Evento is EventoAdministrador admin)
+            {
+                eventoAdmin = admin;
+
+                var categorias = await admin.VerCategoria();
+                var categoria = categorias.FirstOrDefault(c => c.Id == idCategoria);
+
+                nombreCategoria = categoria?.Nombre ?? "Categoría";
+
+                var proyectos = await admin.VerProyectosCategoria(idCategoria);
+                numeroProyectos = proyectos.Count;
+
+                totalVotos = await admin.TotalVotosCategoria(idCategoria);
+
+                resumen = await admin.ObtenerResultadosCategoria(idCategoria);
+            }
+            else
+            {
+                error = "No tienes permisos de administrador en este evento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+        
+    }
+
+    private void VolverEventoadmin()
+    {
+        Nav.NavigateTo($"/eventoadmin/{EventoId}");
+    }
+    /*protected override async Task OnInitializedAsync()
     {
         var entrada = await EventoService.EntrarEvento("ana@gmail.com", 1000);
 
@@ -54,5 +156,5 @@
 
             resumen = await admin.ObtenerResultadosCategoria(idCategoria);
         }
-    }
+    }*/
 }

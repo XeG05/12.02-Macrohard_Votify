@@ -14,14 +14,21 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <h2>@eventoAdmin?.Nombre</h2>
-    <p>@eventoAdmin?.Descripcion</p>
+    <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
 
-    <p><b>Fase actual:</b> @eventoAdmin?.ObtenerFaseActual()</p>
+        <button @onclick="VolverHome"
+                style="background:none;border:none;color:#9ca3af;cursor:pointer;">
+            ← Volver
+        </button>
 
-    <hr />
+        <h1 style="margin:10px 0;">@eventoAdmin?.Nombre</h1>
+        <p style="color:#cbd5f5;">@eventoAdmin?.Descripcion</p>
 
-    <h3>Categorías</h3>
+        <span style="background:#f59e0b; padding:5px 10px; border-radius:10px;">
+            Admin
+        </span>
+
+    </div>
 
     @if (categorias == null)
     {
@@ -32,10 +39,24 @@ else
         <ul>
             @foreach (var c in categorias)
             {
-                <li>
-                    <b>@c.Nombre</b>
-                    <button @onclick="() => CargarGrupos(c.Id)">Ver grupos</button>
-                </li>
+                <div style="border:1px solid #e5e7eb; border-radius:15px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+
+                    <div>
+                        <b>@c.Nombre</b>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button @onclick="() => CargarGrupos(c.Id)">
+                            Ver grupos
+                        </button>
+
+                        <button @onclick="() => IrAVotacionesCategoria(c.Id)"
+                                style="background:#2563eb;color:white;border:none;padding:6px 12px;border-radius:8px;">
+                            Ver votaciones
+                        </button>
+                    </div>
+
+                </div>
             }
         </ul>
     }
@@ -159,12 +180,6 @@ else
             StateHasChanged();
         }
 
-    } 
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        
     }
 
     async Task CargarGrupos(long idCategoria)
@@ -189,6 +204,16 @@ else
             var participantes = await eventoAdmin.VerParticipantes(idGrupo);
             participantesPorGrupo[idGrupo] = participantes;
         }
+    }
+
+    async Task IrAVotacionesCategoria(long idCategoria)
+    {
+        Nav.NavigateTo($"/eventoadmin/{EventoId}/votaciones/{idCategoria}");
+    }
+
+    private void VolverHome()
+    {
+        Nav.NavigateTo("/home");
     }
 
     async Task CrearGrupo() //SPRINT 2
