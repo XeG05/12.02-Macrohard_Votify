@@ -108,34 +108,10 @@ else
 
                 <div class="epr-section-header">
                     <div class="epr-section-indicator"></div>
-                    <h2>Archivos y categoría</h2>
+                    <h2>Archivos</h2>
                 </div>
 
                 <div class="epr-upload-layout">
-                    <div class="epr-card epr-card-full">
-                        <div class="epr-card-header">
-                            <h3>Categoría</h3>
-                            <span class="epr-card-badge">@categorias.Count</span>
-                        </div>
-
-                        @if (categorias.Any())
-                        {
-                            <select class="epr-select" @bind="categoriaSeleccionadaId">
-                                @foreach (var categoria in categorias)
-                                {
-                                    <option value="@categoria.Id">@categoria.Nombre</option>
-                                }
-                            </select>
-                        }
-                        else
-                        {
-                            <div class="epr-empty-box">
-                                <span>📂</span>
-                                <p>No hay categorías disponibles para este evento.</p>
-                            </div>
-                        }
-                    </div>
-
                     <div class="epr-upload-grid">
                         <div class="epr-card epr-compact-card">
                             <div class="epr-card-header">
@@ -196,6 +172,7 @@ else
 
                     <div class="epr-group-box">
                         <div class="epr-group-title">@nombreGrupo</div>
+                        <div style="font-size: 0.85em; color: var(--text-2); margin-bottom: 12px; margin-top: -4px;">📂 Categoría: <strong>@nombreCategoria</strong></div>
 
                         @if (miembrosGrupo.Count == 0)
                         {
@@ -225,7 +202,6 @@ else
                         <strong>Antes de entregar</strong>
                         <ul>
                             <li>Revisa el nombre del proyecto.</li>
-                            <li>Selecciona una categoría válida.</li>
                             <li>Adjunta el archivo principal.</li>
                         </ul>
                     </div>
@@ -254,13 +230,12 @@ else
     private string descripcionCompleta = string.Empty;
 
     private string nombreGrupo = "Grupo";
+    private string nombreCategoria = "Sin categoría";
     private List<(string Nombre, string Correo)> miembrosGrupo = new();
-    private List<Categorium> categorias = new();
 
     private IBrowserFile? archivoProyecto;
     private List<IBrowserFile> imagenesProyecto = new();
 
-    private long categoriaSeleccionadaId;
     private List<string> nombresImagenes = new();
     private string? nombreArchivoProyecto;
 
@@ -298,13 +273,10 @@ else
             var grupo = await eventoParticipante.ObtenerMiGrupo();
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
-            categorias = await eventoParticipante.ObtenerCategoriasEvento();
+            var categoria = await eventoParticipante.ObtenerCategoriaGrupo();
+            nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            if (categorias.Any())
-            {
-                categoriaSeleccionadaId = categorias.First().Id;
-            }
+            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
 
             try
             {
@@ -391,9 +363,6 @@ else
             if (string.IsNullOrWhiteSpace(nombreArchivoProyecto) || archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
 
-            if (!categorias.Any())
-                throw new Exception("El evento no tiene categorías disponibles.");
-
             byte[] archivoBytes;
             var maxFileSize = 10 * 1024 * 1024; // 10 MB limit
             using (var ms = new MemoryStream())
@@ -416,7 +385,6 @@ else
                 nombreProyecto,
                 descripcionBreve,
                 descripcionCompleta,
-                categoriaSeleccionadaId,
                 archivoBytes,
                 imagenesBytes
             );

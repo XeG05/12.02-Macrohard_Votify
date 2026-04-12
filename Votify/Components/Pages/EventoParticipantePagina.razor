@@ -61,6 +61,7 @@ else
                     <div>
                         <span class="epp-panel-kicker">Tu equipo</span>
                         <h2>@nombreGrupo</h2>
+                        <span style="font-size: 0.9em; color: var(--text-2); display: block; margin-top: 4px;">📂 Categoría: <strong>@nombreCategoria</strong></span>
                     </div>
                     <span class="epp-count-badge">@miembrosGrupo.Count</span>
                 </div>
@@ -168,7 +169,8 @@ else
 
                 <button class="epp-action-card"
                         @onclick="IrAListaProyectos"
-                        title="Ver proyectos">
+                        disabled="@EsFaseInscripcion()"
+                        title="@(EsFaseInscripcion() ? "Los proyectos no están visibles durante la fase de inscripción" : "Ver proyectos")">
                     <div class="epp-action-icon">📋</div>
                     <div class="epp-action-text">
                         <strong>Lista de proyectos</strong>
@@ -190,6 +192,7 @@ else
     private bool tieneProyecto;
 
     private string nombreGrupo = "Grupo";
+    private string nombreCategoria = "Sin categoría";
     private List<(string Nombre, string Correo)> miembrosGrupo = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -222,6 +225,9 @@ else
 
             var grupo = await eventoParticipante.ObtenerMiGrupo();
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
+
+            var categoria = await eventoParticipante.ObtenerCategoriaGrupo();
+            nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
             miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
             tieneProyecto = await eventoParticipante.TieneProyecto();
