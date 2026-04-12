@@ -247,6 +247,7 @@ public partial class VotifyContext : DbContext
             entity.ToTable("proyecto");
 
             entity.Property(e => e.Id)
+                  .ValueGeneratedOnAdd()
                   .HasColumnName("id");
 
             entity.Property(e => e.IdGrupo)

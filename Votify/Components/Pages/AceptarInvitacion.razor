@@ -164,7 +164,7 @@ else
 
             var participanteExistente = await ParticipanteRepo.FindAsync(
                 p => p.Correo == usuario.Correo &&
-                     p.IdGrupo == invitacion.IdGrupo);
+                     p.Id == invitacion.IdEvento);
 
             if (!participanteExistente.Any())
             {
@@ -175,6 +175,15 @@ else
                     IdGrupo = invitacion.IdGrupo
                 };
                 await ParticipanteRepo.AddAsync(participante);
+            }
+            else
+            {
+                var existente = participanteExistente.First();
+                if (existente.IdGrupo != invitacion.IdGrupo)
+                {
+                    existente.IdGrupo = invitacion.IdGrupo;
+                    await ParticipanteRepo.UpdateAsync(existente);
+                }
             }
 
             invitacion.Aceptada = true;
