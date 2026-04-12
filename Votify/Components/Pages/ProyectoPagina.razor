@@ -64,6 +64,13 @@
              <button class="btn-secundario" @onclick="DescargarProyecto">Descargar proyecto</button>
         </div>
 
+        @if(!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="evp-alert" style="background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                @errorMessage
+            </div>
+        }
+
         <div class="seccion-comentarios">
             <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
             <div class="enviar-btn-container">
@@ -71,12 +78,21 @@
             </div>
         </div>
 
-        <div class="seccion-votar">
-            <label class="checkbox-votar">
-                <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
-            </label>
-            <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes</span>
-        </div>
+        @if (eventoVotante?.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
+        {
+            <div class="seccion-votar">
+                <label class="checkbox-votar">
+                    <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
+                </label>
+                <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes (por categoría)</span>
+            </div>
+        }
+        else
+        {
+            <div class="seccion-votar">
+                <div class="evp-alert evp-alert-info">Las votaciones solo están habilitadas durante la fase de votaciones.</div>
+            </div>
+        }
     </div>
 }
 else {
@@ -99,6 +115,7 @@ else {
     bool votoEnviado = false;
     bool haVotado = false;
     int votosTotalesEvento = 0;
+    string errorMessage = "";
     private long _ultimoIdCargado = 0;
 
     // Clase DTO para no fallar al intentar instanciar la entidad 'Comentario' de la base de datos
@@ -113,8 +130,20 @@ else {
 
     private async Task EmitirVoto(ChangeEventArgs e)
     {
+        if (eventoVotante?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
+
         bool isChecked = (bool)(e.Value ?? false);
-        if (!isChecked) return; // No se puede "desvotar" desde aquí, solo evitar hacer nada.
+        if (!isChecked)
+        {
+            // Evitar que el usuario pueda "desvotar" quitando el check visualmente
+            if (haVotado)
+            {
+                haVotado = true;
+                StateHasChanged();
+            }
+            return;
+        }
+
         if (haVotado || votosTotalesEvento >= 3) return;
 
         var baseUrl = Nav.BaseUri;
@@ -124,18 +153,25 @@ else {
             IdProyecto = idProyecto
         };
 
+        var token = await AuthProvider.ObtenerToken(); 
+        Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         var response = await Http.PostAsJsonAsync($"{baseUrl}api/Evento/proyecto/votar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
             haVotado = true;
             votosTotalesEvento++;
+            errorMessage = "";
         }
         else
         {
-            Console.WriteLine("Error al emitir el voto.");
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error al emitir el voto: {errorContent}");
+            errorMessage = "Error al emitir el voto: " + errorContent;
             // Si hay error desmarcamos visualmente
             haVotado = false;
+            StateHasChanged();
         }
     }
 
@@ -222,6 +258,7 @@ else {
         haVotado = false;
         votosTotalesEvento = 0;
         imagenActual = 0;
+        errorMessage = "";
         StateHasChanged();
 
         var correo = AuthProvider.ObtenerCorreo();

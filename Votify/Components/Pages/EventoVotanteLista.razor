@@ -41,6 +41,10 @@ else if (eventoVotante != null)
                 <p>Cargando proyectos...</p>
             </div>
         }
+        else if (eventoVotante.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones)
+        {
+            <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante la fase de inscripciones.</div>
+        }
         else if (proyectos.Count == 0)
         {
             <div class="evp-alert evp-alert-info">No hay proyectos para mostrar en este evento.</div>
@@ -48,27 +52,39 @@ else if (eventoVotante != null)
         else
         {
             <div class="proyectos-lista">
-                @foreach (var p in proyectos)
+                @foreach (var cat in categorias.Values)
                 {
-                    <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
-                        <div class="nombreProyecto">
-                            <p>@p.Nombre</p>
-                        </div>
-                        <div class="informacionProyecto">
-                            <div class="participantesProyecto">
-                                @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
+                    var proyectosDeCat = proyectos.Where(p => proyectoCategoria.ContainsKey(p.Id) && proyectoCategoria[p.Id] == cat.Id).ToList();
+                    if (proyectosDeCat.Any())
+                    {
+                        <div class="categoria-seccion">
+                            <h2 class="categoria-titulo">Categoría: @cat.Nombre</h2>
+                            <div class="categoria-proyectos">
+                                @foreach (var p in proyectosDeCat)
                                 {
-                                    foreach (var pa in participantesPorGrupo[p.IdGrupo])
-                                    {
-                                        <p>@pa.Nombre</p>
-                                    }
+                                    <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
+                                        <div class="nombreProyecto">
+                                            <p>@p.Nombre</p>
+                                        </div>
+                                        <div class="informacionProyecto">
+                                            <div class="participantesProyecto">
+                                                @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
+                                                {
+                                                    foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                                                    {
+                                                        <p>@pa.Nombre</p>
+                                                    }
+                                                }
+                                            </div>
+                                            <div class="descripcionProyecto">
+                                                <p>@p.DescripcionBreve</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 }
                             </div>
-                            <div class="descripcionProyecto">
-                                <p>@p.DescripcionBreve</p>
-                            </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         }
@@ -83,6 +99,8 @@ else if (eventoVotante != null)
     EventoVotante? eventoVotante;
 
     Dictionary<long, List<Usuario>> participantesPorGrupo = new();
+    Dictionary<long, Categorium> categorias = new();
+    Dictionary<long, long> proyectoCategoria = new();
 
     private void VolverHome()
     {
@@ -123,10 +141,19 @@ else if (eventoVotante != null)
 
                 participantesPorGrupo = new();
 
+                var cats = await eventoVotante.CategoriasDelEvento(idEvento);
+                foreach(var c in cats) {
+                    categorias[c.Id] = c;
+                }
+
                 foreach (var p in proyectos)
                 {
                     var participantes = await eventoVotante.UsuariosParticipantesGrupo(p.IdGrupo);
                     participantesPorGrupo[p.IdGrupo] = participantes;
+                    var grupo = await eventoVotante.GrupoProyecto(p.IdGrupo);
+                    if (grupo != null) {
+                        proyectoCategoria[p.Id] = grupo.IdCategoria;
+                    }
                 }
             }
             else

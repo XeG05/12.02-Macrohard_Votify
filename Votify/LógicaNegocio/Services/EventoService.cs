@@ -367,9 +367,29 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<(int VotosTotales, bool HaVotado)> ObtenerInfoVotoSimple(long idEvento, long idProyecto, string correo)
         {
+            var proyectoActual = await _proyectoRepo.GetByIdAsync(idProyecto);
+            if (proyectoActual == null) throw new Exception("Proyecto no encontrado");
+            var grupoActual = await _grupoRepo.GetByIdAsync(proyectoActual.IdGrupo);
+            if (grupoActual == null) throw new Exception("Grupo no encontrado");
+            long idCategoriaActual = grupoActual.IdCategoria;
+
             var todosLosVotos = await _votoRepo.FindAsync(v => v.IdRol == idEvento && v.CorreoRol == correo);
 
-            int proyectosVotadosCount = todosLosVotos.Select(v => v.IdProyectoGru).Distinct().Count();
+            var proyectosVotados = todosLosVotos.Select(v => v.IdProyectoGru).Distinct().ToList();
+            int proyectosVotadosCount = 0;
+            foreach (var pid in proyectosVotados)
+            {
+                var p = await _proyectoRepo.GetByIdAsync(pid);
+                if (p != null)
+                {
+                    var g = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                    if (g != null && g.IdCategoria == idCategoriaActual)
+                    {
+                        proyectosVotadosCount++;
+                    }
+                }
+            }
+
             bool haVotado = todosLosVotos.Any(v => v.IdProyectoGru == idProyecto);
 
             return (proyectosVotadosCount, haVotado);
@@ -379,7 +399,7 @@ namespace Votify.LógicaNegocio.Services
         {
             var info = await ObtenerInfoVotoSimple(idEvento, idProyecto, correo);
             if (info.HaVotado) throw new Exception("Ya has votado por este proyecto.");
-            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para este evento.");
+            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para esta categoría.");
 
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
             if (pr == null) throw new Exception("Proyecto no encontrado.");
