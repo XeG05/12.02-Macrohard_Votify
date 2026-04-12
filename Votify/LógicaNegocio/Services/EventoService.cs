@@ -326,6 +326,21 @@ namespace Votify.LógicaNegocio.Services
             return usuarios;
         }
 
+        public async Task<List<Proyecto>> ListaProyectos(long idEvento)
+        {
+            return await _proyectoRepo.FindAsync(p => p.IdGrupoNavigation.IdCategoriaNavigation.IdEvento == idEvento);
+        }
+
+        public async Task<Grupo?> GrupoProyecto(long idGrupo)
+        {
+            return await _grupoRepo.GetByIdAsync(idGrupo);
+        }
+
+        public async Task<List<Categorium>> CategoriasDelEvento(long idEvento)
+        {
+            return await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
+        }
+
         public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
         {
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);

@@ -71,27 +71,30 @@
             </div>
         }
 
-        <div class="seccion-comentarios">
-            <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
-            <div class="enviar-btn-container">
-                <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
+        @if (esVotante)
+        {
+            <div class="seccion-comentarios">
+                <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
+                <div class="enviar-btn-container">
+                    <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
+                </div>
             </div>
-        </div>
 
-        @if (eventoVotante?.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
-        {
-            <div class="seccion-votar">
-                <label class="checkbox-votar">
-                    <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
-                </label>
-                <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes (por categoría)</span>
-            </div>
-        }
-        else
-        {
-            <div class="seccion-votar">
-                <div class="evp-alert evp-alert-info">Las votaciones solo están habilitadas durante la fase de votaciones.</div>
-            </div>
+            @if (eventoBase?.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
+            {
+                <div class="seccion-votar">
+                    <label class="checkbox-votar">
+                        <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
+                    </label>
+                    <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes (por categoría)</span>
+                </div>
+            }
+            else
+            {
+                <div class="seccion-votar">
+                    <div class="evp-alert evp-alert-info">Las votaciones solo están habilitadas durante la fase de votaciones.</div>
+                </div>
+            }
         }
     </div>
 }
@@ -106,7 +109,7 @@ else {
     [Parameter] public long idEvento { get; set; }
 
     Proyecto? proyecto;
-    EventoVotante? eventoVotante;
+    Votify.LógicaNegocio.Domain.EventoBase? eventoBase;
     List<Usuario>? participantes;
 
     string nuevoComentario = "";
@@ -117,8 +120,8 @@ else {
     int votosTotalesEvento = 0;
     string errorMessage = "";
     private long _ultimoIdCargado = 0;
+    bool esVotante = false;
 
-    // Clase DTO para no fallar al intentar instanciar la entidad 'Comentario' de la base de datos
     private class ComentarioDto {
         public string Contenido { get; set; } = "";
     }
@@ -130,12 +133,11 @@ else {
 
     private async Task EmitirVoto(ChangeEventArgs e)
     {
-        if (eventoVotante?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
+        if (eventoBase?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
 
         bool isChecked = (bool)(e.Value ?? false);
         if (!isChecked)
         {
-            // Evitar que el usuario pueda "desvotar" quitando el check visualmente
             if (haVotado)
             {
                 haVotado = true;
@@ -223,7 +225,7 @@ else {
 
     private void VolverAtras()
     {
-        Nav.NavigateTo($"/eventovotantelista/{idEvento}");
+        Nav.NavigateTo($"/listaproyectos/{idEvento}");
     }
 
     private void ImagenAnterior()
@@ -273,42 +275,42 @@ else {
         {
             var entrada = await EventoService.EntrarEvento(correo, idEvento);
 
-            if (entrada.Evento is EventoVotante evVot)
+            eventoBase = entrada.Evento;
+            esVotante = entrada.TipoRol.Votante != null && entrada.TipoRol.Administrador == null && entrada.TipoRol.Jurado == null && entrada.TipoRol.Participante == null;
+
+            var baseUrl = Nav.BaseUri;
+
+            var token = await AuthProvider.ObtenerToken(); 
+            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            proyecto = await Http.GetFromJsonAsync<Proyecto>($"{baseUrl}api/Evento/proyecto/{idProyecto}");
+            if(proyecto == null)
             {
-                eventoVotante = evVot;
-                
-                var baseUrl = Nav.BaseUri;
+                throw new Exception("No se pudo cargar el proyecto.");
+            }
+            participantes = await Http.GetFromJsonAsync<List<Usuario>>($"{baseUrl}api/Evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
 
-                var token = await AuthProvider.ObtenerToken(); 
-                Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                proyecto = await Http.GetFromJsonAsync<Proyecto>($"{baseUrl}api/Evento/proyecto/{idProyecto}");
-                if(proyecto == null)
+            // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
+            try
+            {
+                var responseComentario = await Http.GetAsync($"{baseUrl}api/Evento/proyecto/{idProyecto}/comentario/usuario");
+                if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
-                    throw new Exception("No se pudo cargar el proyecto.");
-                }
-                participantes = await Http.GetFromJsonAsync<List<Usuario>>($"{baseUrl}api/Evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
-
-                // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
-                try
-                {
-                    var responseComentario = await Http.GetAsync($"{baseUrl}api/Evento/proyecto/{idProyecto}/comentario/usuario");
-                    if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
+                    // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
+                    var comentarioExistente = await responseComentario.Content.ReadFromJsonAsync<ComentarioDto>();
+                    if (comentarioExistente != null && !string.IsNullOrWhiteSpace(comentarioExistente.Contenido))
                     {
-                        // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
-                        var comentarioExistente = await responseComentario.Content.ReadFromJsonAsync<ComentarioDto>();
-                        if (comentarioExistente != null && !string.IsNullOrWhiteSpace(comentarioExistente.Contenido))
-                        {
-                            nuevoComentario = comentarioExistente.Contenido;
-                            comentarioEnviado = true;
-                        }
+                        nuevoComentario = comentarioExistente.Contenido;
+                        comentarioEnviado = true;
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
+            }
 
+            if (esVotante) {
                 try
                 {
                     var responseVoto = await Http.GetAsync($"{baseUrl}api/Evento/proyecto/{idProyecto}/evento/{idEvento}/voto-info");
@@ -326,12 +328,8 @@ else {
                 {
                     Console.WriteLine("Error al obtener la info del voto: " + ex.Message);
                 }
+            }
 
-            }
-            else
-            {
-                throw new Exception("El usuario no es un votante en este evento.");
-            }
         }
         catch (Exception ex)
         {
