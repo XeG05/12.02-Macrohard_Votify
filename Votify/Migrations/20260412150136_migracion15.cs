@@ -7,7 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:Votify/Migrations/20260412150136_migracion15.cs
     public partial class migracion15 : Migration
+========
+    public partial class cambiosIdProyecto2 : Migration
+>>>>>>>> Cambiode BD id:Votify/Migrations/20260412152600_cambiosIdProyecto2.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
