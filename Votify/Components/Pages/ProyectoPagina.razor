@@ -9,7 +9,6 @@
 @if(proyecto != null)
 {
     <div class="page">
-        <!-- Botón de volver -->
         <div class="cabecera-proyecto">
              <button class="btn-volver" @onclick="VolverAtras" title="Volver a la lista de proyectos">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
@@ -18,7 +17,6 @@
              </button>
         </div>
 
-        <!-- Contenedor superior con nombre, participantes e imágenes -->
         <div class="rectangulo-info">
             <div class="nom-par">
                 <div class="nombrePr">
@@ -43,7 +41,6 @@
                 @if (proyecto.Imagenes != null && proyecto.Imagenes.Any())
                 {
                     <button class="arrow-btn" @onclick="ImagenAnterior">&lt;</button>
-                    <!-- Asumiendo que ImagenProyecto tiene una propiedad con la URL o el contenido en Base64 -->
                     <div class="imagen-actual-container">
                         <span>Imagen @(imagenActual + 1) de @proyecto.Imagenes.Count</span>
                         img src="..." alt="Imagen del proyecto"
@@ -59,17 +56,14 @@
             </div>
         </div>
 
-        <!-- Descripción larga debajo del recuadro principal -->
         <div class="descripcion-larga">
             <p>@proyecto.Descripcion</p>
         </div>
 
-        <!-- Botón de descarga -->
         <div class="acciones-proyecto">
              <button class="btn-secundario" @onclick="DescargarProyecto">Descargar proyecto</button>
         </div>
 
-        <!-- Área de comentarios -->
         <div class="seccion-comentarios">
             <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
             <div class="enviar-btn-container">
@@ -77,12 +71,11 @@
             </div>
         </div>
 
-        <!-- Sección de votación -->
         <div class="seccion-votar">
             <label class="checkbox-votar">
-                <input type="checkbox" /> Votar por el proyecto
+                <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
             </label>
-            <span class="votos-restantes">X/3 votos restantes</span>
+            <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes</span>
         </div>
     </div>
 }
@@ -103,14 +96,48 @@ else {
     string nuevoComentario = "";
     int imagenActual = 0;
     bool comentarioEnviado = false;
-    private long _ultimoIdCargado = 0; // Guardará el proyecto actualmente en pantalla
+    bool votoEnviado = false;
+    bool haVotado = false;
+    int votosTotalesEvento = 0;
+    private long _ultimoIdCargado = 0;
 
     // Clase DTO para no fallar al intentar instanciar la entidad 'Comentario' de la base de datos
     private class ComentarioDto {
         public string Contenido { get; set; } = "";
     }
 
-    //Tengo que hacer que primero compruebe si ya hay un comentario mandado por parte de ese usuario
+    private class VotoInfoDto {
+        public int VotosRestantes { get; set; }
+        public bool HaVotado { get; set; }
+    }
+
+    private async Task EmitirVoto(ChangeEventArgs e)
+    {
+        bool isChecked = (bool)(e.Value ?? false);
+        if (!isChecked) return; // No se puede "desvotar" desde aquí, solo evitar hacer nada.
+        if (haVotado || votosTotalesEvento >= 3) return;
+
+        var baseUrl = Nav.BaseUri;
+        var peticion = new 
+        {
+            IdEvento = idEvento,
+            IdProyecto = idProyecto
+        };
+
+        var response = await Http.PostAsJsonAsync($"{baseUrl}api/Evento/proyecto/votar", peticion);
+
+        if (response.IsSuccessStatusCode)
+        {
+            haVotado = true;
+            votosTotalesEvento++;
+        }
+        else
+        {
+            Console.WriteLine("Error al emitir el voto.");
+            // Si hay error desmarcamos visualmente
+            haVotado = false;
+        }
+    }
 
     private async Task EnviarComentario()
     {
@@ -121,7 +148,7 @@ else {
         var peticion = new 
         {
             IdEvento = idEvento,
-            IdProyecto = idProyecto, // Pasamos el IdProyecto correctamente
+            IdProyecto = idProyecto,
             Comentario = nuevoComentario
         };
 
@@ -191,6 +218,9 @@ else {
         participantes = null;
         nuevoComentario = "";
         comentarioEnviado = false;
+        votoEnviado = false;
+        haVotado = false;
+        votosTotalesEvento = 0;
         imagenActual = 0;
         StateHasChanged();
 
@@ -240,6 +270,24 @@ else {
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
+                }
+
+                try
+                {
+                    var responseVoto = await Http.GetAsync($"{baseUrl}api/Evento/proyecto/{idProyecto}/evento/{idEvento}/voto-info");
+                    if (responseVoto.IsSuccessStatusCode)
+                    {
+                        var votoInfo = await responseVoto.Content.ReadFromJsonAsync<VotoInfoDto>();
+                        if (votoInfo != null)
+                        {
+                            haVotado = votoInfo.HaVotado;
+                            votosTotalesEvento = 3 - votoInfo.VotosRestantes;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al obtener la info del voto: " + ex.Message);
                 }
 
             }

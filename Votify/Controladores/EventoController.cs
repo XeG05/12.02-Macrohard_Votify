@@ -14,6 +14,14 @@ namespace Votify.Controladores
         public string Comentario { get; set; } = string.Empty;
     }
 
+    public class VotoRequest
+    {
+        public long IdEvento { get; set; }
+        public long IdProyecto { get; set; }
+        public long IdCriterio { get; set; }
+        public int? Nota { get; set; }
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] //Hay que implementar JW Token para que detecte si estan logueados o no los usuarios,lo dejamos para mas adelante
@@ -122,7 +130,7 @@ namespace Votify.Controladores
         }
 
         [HttpGet("proyecto/{proyectoId:long}/grupo/{grupoId:long}/participantes")]
-        public async Task<IActionResult> participantesGrupo(long grupoId)
+        public async Task<IActionResult> ParticipantesGrupo(long grupoId)
         {
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
@@ -179,6 +187,44 @@ namespace Votify.Controladores
                 // IMPORTANTE: Devolvemos sólo las propiedades necesarias como objeto anónimo para evitar un problema de
                 // referencia circular (el Comentario llama al Proyecto que llama a los Comentarios por la base de datos).
                 return Ok(new { Contenido = comentario.Contenido });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// Obtiene el informacion basica del voto en un proyecto concreto
+        [HttpGet("proyecto/{proyectoId:long}/evento/{eventoId:long}/voto-info")]
+        public async Task<IActionResult> ObtenerInfoVotoSimple(long proyectoId, long eventoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var info = await _eventoService.ObtenerInfoVotoSimple(eventoId, proyectoId, correo);
+                int votosRestantes = Math.Max(0, 3 - info.VotosTotales);
+
+                return Ok(new { HaVotado = info.HaVotado, VotosRestantes = votosRestantes });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// Emite un voto estandar al proyecto
+        [HttpPost("proyecto/votar")]
+        public async Task<IActionResult> VotarProyectoSimple([FromBody] VotoRequest request)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                await _eventoService.VotarProyectoSimple(request.IdEvento, request.IdProyecto, correo);
+                return Ok(new { mensaje = "Voto emitido exitosamente" });
             }
             catch (Exception ex)
             {

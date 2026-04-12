@@ -359,22 +359,59 @@ namespace Votify.LógicaNegocio.Services
             var proyecto = await _proyectoRepo.GetByIdAsync(idProyecto);
             if (proyecto == null) return null;
 
+            // Buscamos el comentario basándonos en el Id del proyecto y el correo del usuario (el IdProyectoGru en la BD significa Id del Proyecto)
             var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id && c.CorreoRol == correo);
             return comentarios.FirstOrDefault();
         }
 
-        public async Task VotarProyecto(Voto voto)
+        public async Task<(int VotosTotales, bool HaVotado)> ObtenerInfoVotoSimple(long idEvento, long idProyecto, string correo)
         {
-            Proyecto pr = voto.Proyecto;
-            Rol rol = voto.Rol;
-            Criterio crit = voto.IdCriterioNavigation;
-            pr.Votos.Add(voto);
-            rol.Votos.Add(voto);
-            crit.Votos.Add(voto);
+            var todosLosVotos = await _votoRepo.FindAsync(v => v.IdRol == idEvento && v.CorreoRol == correo);
+
+            int proyectosVotadosCount = todosLosVotos.Select(v => v.IdProyectoGru).Distinct().Count();
+            bool haVotado = todosLosVotos.Any(v => v.IdProyectoGru == idProyecto);
+
+            return (proyectosVotadosCount, haVotado);
+        }
+
+        public async Task VotarProyectoSimple(long idEvento, long idProyecto, string correo)
+        {
+            var info = await ObtenerInfoVotoSimple(idEvento, idProyecto, correo);
+            if (info.HaVotado) throw new Exception("Ya has votado por este proyecto.");
+            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para este evento.");
+
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
+            if (pr == null) throw new Exception("Proyecto no encontrado.");
+
+            Grupo grupo = await _grupoRepo.GetByIdAsync(pr.IdGrupo);
+            var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == grupo.IdCategoria);
+            Criterio criterioSeleccionado = criterios.FirstOrDefault();
+            if (criterioSeleccionado == null) throw new Exception("No existe criterio para emitir un voto en esta categoría.");
+
+            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault();
+            if (rol == null) throw new Exception("Rol no encontrado para el usuario en este evento.");
+
+            Voto nuevoVoto = new Voto(
+                criterioSeleccionado.Id,
+                1, // Nota por defecto
+                correo,
+                idProyecto, // Importante: id del proyecto
+                criterioSeleccionado,
+                pr,
+                rol
+            );
+
+            // Forzamos asignar la propiedad ID para que no falle en BD
+            nuevoVoto.IdRol = idEvento;
+
+            pr.Votos ??= new List<Voto>();
+            rol.Votos ??= new List<Voto>();
+
+            pr.Votos.Add(nuevoVoto);
+            rol.Votos.Add(nuevoVoto);
+            await _votoRepo.AddAsync(nuevoVoto);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
-            await _criterioRepo.UpdateAsync(crit);
-            await _votoRepo.AddAsync(voto);
         }
     }
 }
