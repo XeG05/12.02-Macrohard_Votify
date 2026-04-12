@@ -91,12 +91,23 @@ else
                 @*  PARTICIPANTES *@
                 @if (participantesPorGrupo.ContainsKey(g.Id))
                 {
-                    <ul>
-                        @foreach (var p in participantesPorGrupo[g.Id])
-                        {
-                            <li>@p.Correo</li>
-                        }
-                    </ul>
+                    var lista = participantesPorGrupo[g.Id];
+
+                    if (lista == null || lista.Count == 0)
+                    {
+                        <p style="color:#9ca3af; font-style:italic;">
+                             En espera de que los participantes acepten la invitación
+                        </p>
+                    }
+                    else
+                    {
+                        <ul>
+                            @foreach (var p in lista)
+                            {
+                                <li>@p.Correo</li>
+                            }
+                        </ul>
+                    }
                 }
             </div>
         }
