@@ -325,25 +325,42 @@ namespace Votify.LógicaNegocio.Services
             return usuarios;
         }
 
-        public async Task ComentarProyecto(long idEvento, string correo, long idGrupo, string comentario)
+        public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
         {
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
+            if (pr == null) throw new Exception("Proyecto no encontrado.");
 
-            Proyecto pr = (await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo)).FirstOrDefault();
             Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault();
+            if (rol == null) throw new Exception("Rol no encontrado para el usuario en este evento.");
+
             Comentario comentario1 = new Comentario
             (
-                idEvento,
+                idEvento, 
                 correo,
                 comentario,
-                idGrupo,
+                pr.Id, 
                 pr,
                 rol
             );
+
+            
+            pr.Comentarios ??= new List<Comentario>();
+            rol.Comentarios ??= new List<Comentario>();
+
             pr.Comentarios.Add(comentario1);
             rol.Comentarios.Add(comentario1);
             await _comentarioRepo.AddAsync(comentario1);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
+        }
+
+        public async Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo)
+        {
+            var proyecto = await _proyectoRepo.GetByIdAsync(idProyecto);
+            if (proyecto == null) return null;
+
+            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id && c.CorreoRol == correo);
+            return comentarios.FirstOrDefault();
         }
 
         public async Task VotarProyecto(Voto voto)

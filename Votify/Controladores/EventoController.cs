@@ -10,7 +10,7 @@ namespace Votify.Controladores
     public class ComentarioRequest
     {
         public long IdEvento { get; set; }
-        public long IdGrupo { get; set; }
+        public long IdProyecto { get; set; }
         public string Comentario { get; set; } = string.Empty;
     }
 
@@ -152,8 +152,33 @@ namespace Votify.Controladores
             try
             {
                 // Usamos el 'correo' extraído del JWT por seguridad
-                await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdGrupo, request.Comentario);
+                await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdProyecto, request.Comentario);
                 return Ok(new { mensaje = "Comentario agregado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// Obtiene el comentario de un usuario en un proyecto (si existe)
+        [HttpGet("proyecto/{proyectoId:long}/comentario/usuario")]
+        public async Task<IActionResult> ObtenerComentarioUsuario(long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var comentario = await _eventoService.ObtenerComentarioUsuario(proyectoId, correo);
+                if (comentario == null)
+                {
+                    return NoContent();
+                }
+
+                // IMPORTANTE: Devolvemos sólo las propiedades necesarias como objeto anónimo para evitar un problema de
+                // referencia circular (el Comentario llama al Proyecto que llama a los Comentarios por la base de datos).
+                return Ok(new { Contenido = comentario.Contenido });
             }
             catch (Exception ex)
             {

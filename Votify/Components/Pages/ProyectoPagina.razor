@@ -103,6 +103,12 @@ else {
     string nuevoComentario = "";
     int imagenActual = 0;
     bool comentarioEnviado = false;
+    private long _ultimoIdCargado = 0; // Guardará el proyecto actualmente en pantalla
+
+    // Clase DTO para no fallar al intentar instanciar la entidad 'Comentario' de la base de datos
+    private class ComentarioDto {
+        public string Contenido { get; set; } = "";
+    }
 
     //Tengo que hacer que primero compruebe si ya hay un comentario mandado por parte de ese usuario
 
@@ -115,7 +121,7 @@ else {
         var peticion = new 
         {
             IdEvento = idEvento,
-            IdGrupo = proyecto.IdGrupo,
+            IdProyecto = idProyecto, // Pasamos el IdProyecto correctamente
             Comentario = nuevoComentario
         };
 
@@ -177,7 +183,16 @@ else {
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (_ultimoIdCargado == idProyecto) return;
+
+        _ultimoIdCargado = idProyecto;
+
+        proyecto = null;
+        participantes = null;
+        nuevoComentario = "";
+        comentarioEnviado = false;
+        imagenActual = 0;
+        StateHasChanged();
 
         var correo = AuthProvider.ObtenerCorreo();
         if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
@@ -206,7 +221,27 @@ else {
                     throw new Exception("No se pudo cargar el proyecto.");
                 }
                 participantes = await Http.GetFromJsonAsync<List<Usuario>>($"{baseUrl}api/Evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
-                
+
+                // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
+                try
+                {
+                    var responseComentario = await Http.GetAsync($"{baseUrl}api/Evento/proyecto/{idProyecto}/comentario/usuario");
+                    if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
+                    {
+                        // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
+                        var comentarioExistente = await responseComentario.Content.ReadFromJsonAsync<ComentarioDto>();
+                        if (comentarioExistente != null && !string.IsNullOrWhiteSpace(comentarioExistente.Contenido))
+                        {
+                            nuevoComentario = comentarioExistente.Contenido;
+                            comentarioEnviado = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
+                }
+
             }
             else
             {

@@ -19,7 +19,8 @@ namespace Votify.LógicaNegocio.Interfaces
 
         Task<List<Usuario>> ParticipantesGrupo(long idGrupo);
 
-        Task ComentarProyecto(long idEvento, string correo, long idGrupo, string comentario);
+        Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario);
 
+        Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo);
     }
 }
