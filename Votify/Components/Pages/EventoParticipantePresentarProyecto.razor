@@ -149,7 +149,7 @@ else
                                         <strong>Haz clic para subir archivo</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarArchivoProyecto" class="epr-native-file" />
+                                <InputFile OnChange="CargarArchivoProyecto" accept=".zip" class="epr-native-file" />
                             </label>
 
                             @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
@@ -170,7 +170,7 @@ else
                                         <strong>Haz clic para subir imágenes</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarImagenes" multiple class="epr-native-file" />
+                                <InputFile OnChange="CargarImagenes" accept=".png,.jpg,.jpeg" multiple class="epr-native-file" />
                             </label>
 
                             @if (nombresImagenes.Count > 0)
@@ -336,7 +336,19 @@ else
 
     private void CargarImagenes(InputFileChangeEventArgs e)
     {
-        imagenesProyecto = e.GetMultipleFiles().ToList();
+        error = null;
+        var allowedExtensions = new[] { ".png", ".jpg", ".jpeg" };
+        var files = e.GetMultipleFiles().ToList();
+
+        if (files.Any(f => !allowedExtensions.Contains(Path.GetExtension(f.Name).ToLowerInvariant())))
+        {
+            error = "Las imágenes deben estar en formato .png, .jpg o .jpeg";
+            imagenesProyecto = new();
+            nombresImagenes = new();
+            return;
+        }
+
+        imagenesProyecto = files;
         nombresImagenes = imagenesProyecto
             .Select(f => f.Name)
             .ToList();
@@ -344,8 +356,20 @@ else
 
     private void CargarArchivoProyecto(InputFileChangeEventArgs e)
     {
-        archivoProyecto = e.File;
-        nombreArchivoProyecto = archivoProyecto?.Name;
+        error = null;
+        var file = e.File;
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+
+        if (extension != ".zip")
+        {
+            error = "El archivo principal debe ser un archivo .zip";
+            archivoProyecto = null;
+            nombreArchivoProyecto = null;
+            return;
+        }
+
+        archivoProyecto = file;
+        nombreArchivoProyecto = file.Name;
     }
 
     private async Task EntregarProyecto()
