@@ -31,7 +31,11 @@ builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // BlazorAuthStateProvider scoped al circuito SignalR
 builder.Services.AddScoped<BlazorAuthStateProvider>();

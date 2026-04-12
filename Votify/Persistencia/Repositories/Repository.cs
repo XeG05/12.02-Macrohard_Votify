@@ -48,5 +48,10 @@ namespace Votify.Persistencia.Repositories
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
+
+        public IQueryable<T> AsQueryable()
+        {
+            return _dbSet.AsQueryable();
+        }
     }
 }

@@ -4,6 +4,7 @@ using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Votify.LógicaNegocio.Services
 {
@@ -306,7 +307,7 @@ namespace Votify.LógicaNegocio.Services
         //devuelve el proyecto que corresponde a la id de categoria y de grupo, y si no existe, devuelve null.
         public async Task<Proyecto> RecuperarProyecto(long idProyecto)
         {
-            Proyecto? pr = await _proyectoRepo.GetByIdAsync(idProyecto);
+            Proyecto? pr = await _proyectoRepo.AsQueryable().Include(p => p.Imagenes).FirstOrDefaultAsync(p => p.Id == idProyecto);
             return pr;
         }
 

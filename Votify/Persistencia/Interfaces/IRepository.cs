@@ -10,5 +10,5 @@ public interface IRepository<T> where T : class
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate);
-
+        IQueryable<T> AsQueryable();
 }

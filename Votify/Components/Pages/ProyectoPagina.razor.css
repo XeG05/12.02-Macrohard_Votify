@@ -98,6 +98,13 @@
     color: #888;
 }
 
+.imagen-actual-container img {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    margin-top: 10px;
+}
+
 .sin-imagenes {
     flex-grow: 1;
     text-align: center;

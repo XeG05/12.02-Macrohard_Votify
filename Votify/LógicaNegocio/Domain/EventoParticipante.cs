@@ -166,20 +166,23 @@ namespace Votify.LógicaNegocio.Domain
                 descCompleta
             )
             {
-                Archivo = archivo
+                Archivo = archivo,
+                Imagenes = new List<ImagenProyecto>()
             };
+
+            await _proyectoRepo.AddAsync(nuevoProyecto);
 
             if (imagenes != null && imagenes.Any())
             {
-                nuevoProyecto.Imagenes = imagenes.Select(img => new ImagenProyecto
+                var imagenesProyecto = imagenes.Select(img => new ImagenProyecto
                 {
                     Archivo = img,
-                    Proyecto = nuevoProyecto,
                     ProyectoIdGrupo = grupo.Id
                 }).ToList();
-            }
 
-            await _proyectoRepo.AddAsync(nuevoProyecto);
+                nuevoProyecto.Imagenes.AddRange(imagenesProyecto);
+                await _proyectoRepo.UpdateAsync(nuevoProyecto);
+            }
         }
 
         public async Task EliminarProyecto()
