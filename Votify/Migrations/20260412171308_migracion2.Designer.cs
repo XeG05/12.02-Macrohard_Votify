@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260412150136_migracion15")]
-    partial class migracion15
+    [Migration("20260412171308_migracion2")]
+    partial class migracion2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

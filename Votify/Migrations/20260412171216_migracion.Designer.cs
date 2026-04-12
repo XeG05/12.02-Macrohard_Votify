@@ -12,13 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-<<<<<<<< HEAD:Votify/Migrations/20260412145315_MigracionFF.Designer.cs
-    [Migration("20260412145315_MigracionFF")]
-    partial class MigracionFF
-========
-    [Migration("20260412152600_cambiosIdProyecto2")]
-    partial class cambiosIdProyecto2
->>>>>>>> Cambiode BD id:Votify/Migrations/20260412152600_cambiosIdProyecto2.Designer.cs
+    [Migration("20260412171216_migracion")]
+    partial class migracion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
