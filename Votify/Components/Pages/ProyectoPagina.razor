@@ -73,15 +73,15 @@
 
         @if (esVotante)
         {
-            <div class="seccion-comentarios">
-                <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
-                <div class="enviar-btn-container">
-                    <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
-                </div>
-            </div>
-
             @if (eventoBase?.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
             {
+                <div class="seccion-comentarios">
+                    <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
+                    <div class="enviar-btn-container">
+                        <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
+                    </div>
+                </div>
+
                 <div class="seccion-votar">
                     <label class="checkbox-votar">
                         <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
@@ -92,7 +92,7 @@
             else
             {
                 <div class="seccion-votar">
-                    <div class="evp-alert evp-alert-info">Las votaciones solo están habilitadas durante la fase de votaciones.</div>
+                    <div class="evp-alert evp-alert-info">Las votaciones y los comentarios solo están habilitados durante la fase de votaciones.</div>
                 </div>
             }
         }
@@ -179,6 +179,7 @@ else {
 
     private async Task EnviarComentario()
     {
+        if (eventoBase?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
         if (string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
 
         var baseUrl = Nav.BaseUri;

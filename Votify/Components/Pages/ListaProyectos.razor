@@ -41,9 +41,9 @@ else if (eventoBase != null)
                 <p>Cargando proyectos...</p>
             </div>
         }
-        else if (eventoBase.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones)
+        else if (eventoBase.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones || eventoBase.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Entregas)
         {
-            <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante la fase de inscripciones.</div>
+            <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante las fases de inscripciones y entregas.</div>
         }
         else if (proyectos.Count == 0)
         {
