@@ -114,6 +114,7 @@ else if (eventoBase != null)
         return fase switch
         {
             Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones => "fase-inscripcion",
+            Votify.LógicaNegocio.Enums.FasesEvento.Entregas => "fase-entregas",
             Votify.LógicaNegocio.Enums.FasesEvento.Votaciones => "fase-votacion",
             Votify.LógicaNegocio.Enums.FasesEvento.Resultados => "fase-resultados",
             _ => ""
@@ -140,7 +141,7 @@ else if (eventoBase != null)
 
             if (entrada.TipoRol.Administrador != null) tipoRol = "Administrador";
             else if (entrada.TipoRol.Jurado != null) tipoRol = "Jurado";
-            else if (entrada.TipoRol.Participante != null) tipoRol = "Participante";
+            else if (entrada.TipoRol.Participantes != null && entrada.TipoRol.Participantes.Any()) tipoRol = "Participante";
             else tipoRol = "Votante";
 
             proyectos = await EventoService.ListaProyectos(idEvento);

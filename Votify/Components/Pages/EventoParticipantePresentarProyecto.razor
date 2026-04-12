@@ -1,4 +1,4 @@
-﻿@page "/eventoparticipantepresentar/{EventoId:long}"
+﻿@page "/eventoparticipantepresentar/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
 @inject IEventoService Evento_Service
 @inject NavigationManager Nav
@@ -36,7 +36,7 @@ else
                         <span class="epr-role-badge">Participante</span>
 
                         <div class="epr-mini-status @(tieneProyecto ? "is-ok" : "is-pending")">
-                            @(tieneProyecto ? "Entrega ya registrada" : "Entrega disponible")
+                            @(tieneProyecto ? "Proyecto entregado" : "Entrega disponible")
                         </div>
 
                         <span class="epr-fase-badge @GetFaseClass(eventoParticipante)">
@@ -208,8 +208,8 @@ else
 
                     <div class="epr-actions">
                         <button class="epr-secondary" @onclick="VolverEvento">Cancelar</button>
-                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseInscripcion())">
-                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseInscripcion() ? "Inscripción finalizada" : "Entregar proyecto"))
+                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseEntrega())">
+                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseEntrega() ? "Plazo de entrega cerrado" : "Entregar proyecto"))
                         </button>
                     </div>
                 </div>
@@ -220,6 +220,7 @@ else
 
 @code {
     [Parameter] public long EventoId { get; set; }
+    [Parameter] public long? GrupoId { get; set; }
 
     private EventoParticipante? eventoParticipante;
     private bool cargando = true;
@@ -255,7 +256,7 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -303,7 +304,10 @@ else
 
     private void VolverEvento()
     {
-        Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+        if (GrupoId.HasValue)
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}/{GrupoId.Value}");
+        else
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
     }
 
     private void CargarImagenes(InputFileChangeEventArgs e)
@@ -390,7 +394,7 @@ else
             );
 
             mensaje = "Proyecto entregado correctamente.";
-            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+            VolverEvento();
         }
         catch (Exception ex)
         {
@@ -414,6 +418,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
         if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
         return "Finalizado";
     }
@@ -422,6 +427,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
     }
@@ -431,5 +437,12 @@ else
         if (eventoParticipante == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         return hoy <= eventoParticipante.FechaFinInscripciones;
+    }
+
+    private bool EsFaseEntrega()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > eventoParticipante.FechaFinInscripciones && hoy <= eventoParticipante.FechaFinEntrega;
     }
 }

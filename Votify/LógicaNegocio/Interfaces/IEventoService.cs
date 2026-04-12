@@ -5,7 +5,7 @@ namespace Votify.LógicaNegocio.Interfaces
 {
     public interface IEventoService : IService<Evento>
     {
-        Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId);
+        Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null);
 
         Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto);
 
@@ -14,6 +14,8 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<List<Evento>> GetEventosParticipacion(string correo);
 
         Task<List<Evento>> GetEventosDisponibles(string correo);
+
+        Task<List<(Evento Evento, string RolTexto, Grupo? Grupo)>> GetParticipacionesDetalladas(string correo);
 
         Task<Proyecto> RecuperarProyecto(long idProyecto);
 

@@ -14,6 +14,7 @@ namespace Votify.LógicaNegocio.Domain
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly long? _grupoIdActivo;
 
         public EventoParticipante(
             Evento evento,
@@ -24,7 +25,8 @@ namespace Votify.LógicaNegocio.Domain
             IRepository<Categorium> categoriumRepo,
             IRepository<Usuario> usuarioRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo
+            IRepository<Comentario> comentarioRepo,
+            long? grupoIdActivo = null
         ) : base(evento, usuario)
         {
             _participanteRepo = participanteRepo;
@@ -34,14 +36,21 @@ namespace Votify.LógicaNegocio.Domain
             _usuarioRepo = usuarioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _grupoIdActivo = grupoIdActivo;
         }
 
         private async Task<Participante> ObtenerRegistroParticipante()
         {
-            var participante = (await _participanteRepo.FindAsync(p =>
+            var p = await _participanteRepo.FindAsync(p =>
                 p.Correo == usuario.Correo &&
-                p.Id == evento.Id))
-                .FirstOrDefault();
+                p.Id == evento.Id);
+
+            Participante? participante = null;
+
+            if (_grupoIdActivo.HasValue)
+                participante = p.FirstOrDefault(x => x.IdGrupo == _grupoIdActivo.Value);
+
+            participante ??= p.FirstOrDefault();
 
             if (participante == null)
                 throw new Exception("El usuario no está registrado como participante en este evento.");

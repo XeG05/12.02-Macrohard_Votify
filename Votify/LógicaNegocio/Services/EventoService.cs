@@ -100,7 +100,38 @@ namespace Votify.LógicaNegocio.Services
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
         }
 
-        public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId)
+        public async Task<List<(Evento Evento, string RolTexto, Grupo? Grupo)>> GetParticipacionesDetalladas(string correo)
+        {
+            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
+            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
+
+            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
+            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
+
+            var res = new List<(Evento, string, Grupo?)>();
+            var todos = await _eventoRepo.GetAllAsync();
+
+            foreach (var j in jurados)
+            {
+                if (adminEventIds.Contains(j.Id)) continue;
+                var ev = todos.FirstOrDefault(e => e.Id == j.Id);
+                if (ev != null)
+                    res.Add((ev, "Jurado", null));
+            }
+
+            foreach (var p in participantes)
+            {
+                if (adminEventIds.Contains(p.Id)) continue;
+                var ev = todos.FirstOrDefault(e => e.Id == p.Id);
+                var gr = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                if (ev != null)
+                    res.Add((ev, "Participante", gr));
+            }
+
+            return res;
+        }
+
+        public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null)
         {
             var usuario = (await _usuarioRepo
                 .FindAsync(u => u.Correo == correo))
@@ -112,7 +143,7 @@ namespace Votify.LógicaNegocio.Services
 
             var rol = await ObtenerRol(correo, eventoId);
 
-            var eventoBase = _eventoFactory.CrearEvento(evento, usuario, rol);
+            var eventoBase = _eventoFactory.CrearEvento(evento, usuario, rol, grupoId);
             return new EntradaEventoDto(eventoBase, rol);
         }
 
@@ -134,7 +165,7 @@ namespace Votify.LógicaNegocio.Services
 
             // Cargar explícitamente las propiedades de navegación si no están cargadas
             rol.Administrador ??= (await _adminRepo.FindAsync(a => a.Correo == correo && a.Id == idEvento)).FirstOrDefault();
-            rol.Participante ??= (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).FirstOrDefault();
+            rol.Participantes = (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).ToList();
             rol.Votante ??= (await _votanteRepo.FindAsync(v => v.Correo == correo && v.Id == idEvento)).FirstOrDefault();
             rol.Jurado ??= (await _juradoRepo.FindAsync(j => j.Correo == correo && j.Id == idEvento)).FirstOrDefault();
 

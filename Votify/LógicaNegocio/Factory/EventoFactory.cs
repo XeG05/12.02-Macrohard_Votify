@@ -41,7 +41,7 @@ namespace Votify.LógicaNegocio.Factory
             _criterioRepo = criterioRepo;
         }
 
-        public EventoBase CrearEvento(Evento evento, Usuario usuario, Rol rol)
+        public EventoBase CrearEvento(Evento evento, Usuario usuario, Rol rol, long? grupoId = null)
         {
             if (rol.Administrador != null)
                 return new EventoAdministrador(
@@ -49,11 +49,11 @@ namespace Votify.LógicaNegocio.Factory
                     _usuarioRepo, _eventoRepo, _proyectoRepo,
                     _participanteRepo, _categoriumRepo, _grupoRepo, _votoRepo);
 
-            if (rol.Participante != null)
+            if (rol.Participantes != null && rol.Participantes.Any())
                 return new EventoParticipante(
                     evento, usuario,
                     _participanteRepo, _grupoRepo, _proyectoRepo,
-                    _categoriumRepo, _usuarioRepo, _votoRepo, _comentarioRepo);
+                    _categoriumRepo, _usuarioRepo, _votoRepo, _comentarioRepo, grupoId);
 
             if (rol.Votante != null || rol.Jurado != null)
                 return new EventoVotante(

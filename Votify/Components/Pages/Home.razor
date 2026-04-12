@@ -77,10 +77,10 @@
             <div class="seccion-header">
                 <div class="seccion-indicador participante-color"></div>
                 <h2>Participando en</h2>
-                <span class="badge">@eventosParticipacion.Count</span>
+                <span class="badge">@participacionesDetalladas.Count</span>
             </div>
 
-            @if (eventosParticipacion.Count == 0)
+            @if (participacionesDetalladas.Count == 0)
             {
                 <div class="empty-state">
                     <span class="empty-icon">🔍</span>
@@ -90,16 +90,23 @@
             else
             {
                 <div class="eventos-grid">
-                    @foreach (var ev in eventosParticipacion)
+                    @foreach (var part in participacionesDetalladas)
                     {
-                        var eventoId = ev.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoParticipante(eventoId)">
+                        var eventoId = part.Evento.Id;
+                        var ev = part.Evento;
+                        var rolTxt = part.RolTexto;
+                        var grupoId = part.Grupo?.Id;
+                        <div class="evento-card" @onclick="() => IrAEventoParticipante(eventoId, grupoId)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge participante-badge">Participante</span>
+                                <span class="rol-badge participante-badge">@rolTxt</span>
                             </div>
                             <h3 class="evento-nombre">@ev.Nombre</h3>
-                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                            @if (part.Grupo != null)
+                            {
+                                <p class="evento-desc" style="font-weight: 500; font-size: 0.9em; color: var(--text-2); margin-bottom: 2px;">Grupo: @part.Grupo.Nombre</p>
+                            }
+                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 70)</p>
                             <div class="evento-fechas">
                                 <div class="fecha-item">
                                     <span class="fecha-label">Inscripciones</span>
@@ -170,7 +177,7 @@
     private string nombre = "";
     private bool cargando = true;
     private List<Evento> eventosCreados = new();
-    private List<Evento> eventosParticipacion = new();
+    private List<(Evento Evento, string RolTexto, Grupo? Grupo)> participacionesDetalladas = new();
     private List<Evento> eventosDisponibles = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -189,7 +196,7 @@
         try
         {
             eventosCreados = await EventoService.GetEventosCreados(correo);
-            eventosParticipacion = await EventoService.GetEventosParticipacion(correo);
+            participacionesDetalladas = await EventoService.GetParticipacionesDetalladas(correo);
             eventosDisponibles = await EventoService.GetEventosDisponibles(correo);
         }
         catch
@@ -207,6 +214,7 @@
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "Entregas";
         if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
         return "Finalizado";
     }
@@ -215,13 +223,20 @@
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
     }
 
     private void IrAEventoAdmin(long id) => Nav.NavigateTo($"/eventoadmin/{id}");
 
-    private void IrAEventoParticipante(long id) => Nav.NavigateTo($"/eventoparticipante/{id}");
+    private void IrAEventoParticipante(long id, long? grupoId)
+    {
+        if (grupoId.HasValue)
+            Nav.NavigateTo($"/eventoparticipante/{id}/{grupoId.Value}");
+        else
+            Nav.NavigateTo($"/eventoparticipante/{id}");
+    }
 
     private void IrAEventoVotante(long id) => Nav.NavigateTo($"/listaproyectos/{id}");
 

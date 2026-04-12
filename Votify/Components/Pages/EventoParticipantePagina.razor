@@ -1,4 +1,4 @@
-﻿@page "/eventoparticipante/{EventoId:long}"
+﻿@page "/eventoparticipante/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
 @inject IEventoService Evento_Service
 @inject EventoContextService EventoCtx
@@ -40,11 +40,12 @@ else
 
                     <div class="epp-hero-side">
                         <span class="epp-role-badge">Participante</span>
-                        <span class="epp-phase-pill @GetFaseClass(eventoParticipante)">@GetFaseLabel(eventoParticipante)</span>
 
                         <span class="epp-status-badge @(tieneProyecto ? "is-ok" : "is-pending")">
-                            @(tieneProyecto ? "Proyecto entregado" : "Pendiente de entrega")
+                            @(tieneProyecto ? "Proyecto entregado" : "Entrega disponible")
                         </span>
+
+                        <span class="epp-phase-pill @GetFaseClass(eventoParticipante)">@GetFaseLabel(eventoParticipante)</span>
                     </div>
                 </div>
             </div>
@@ -132,8 +133,8 @@ else
             <div class="epp-actions-grid">
                 <button class="epp-action-card epp-action-primary"
                         @onclick="IrAPresentarProyecto"
-                        disabled="@(tieneProyecto || !EsFaseInscripcion())"
-                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : (!EsFaseInscripcion() ? "La fase de inscripción ha terminado" : "Subir proyecto"))">
+                        disabled="@(tieneProyecto || !EsFaseEntrega())"
+                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : (!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "Subir proyecto"))">
                     <div class="epp-action-icon">📤</div>
                     <div class="epp-action-text">
                         <strong>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</strong>
@@ -147,8 +148,8 @@ else
 
                 <button class="epp-action-card epp-action-danger"
                         @onclick="EliminarProyecto"
-                        disabled="@(!tieneProyecto || !EsFaseInscripcion())"
-                        title="@(!EsFaseInscripcion() ? "La fase de inscripción ha terminado" : "")">
+                        disabled="@(!tieneProyecto || !EsFaseEntrega())"
+                        title="@(!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "")">
                     <div class="epp-action-icon">🗑️</div>
                     <div class="epp-action-text">
                         <strong>Eliminar proyecto</strong>
@@ -169,8 +170,8 @@ else
 
                 <button class="epp-action-card"
                         @onclick="IrAListaProyectos"
-                        disabled="@EsFaseInscripcion()"
-                        title="@(EsFaseInscripcion() ? "Los proyectos no están visibles durante la fase de inscripción" : "Ver proyectos")">
+                        disabled="@(EsFaseInscripcion() || EsFaseEntrega())"
+                        title="@((EsFaseInscripcion() || EsFaseEntrega()) ? "Los proyectos no están visibles hasta la fase de votación" : "Ver proyectos")">
                     <div class="epp-action-icon">📋</div>
                     <div class="epp-action-text">
                         <strong>Lista de proyectos</strong>
@@ -184,6 +185,7 @@ else
 
 @code {
     [Parameter] public long EventoId { get; set; }
+    [Parameter] public long? GrupoId { get; set; }
 
     private EventoParticipante? eventoParticipante;
     private bool cargando = true;
@@ -208,7 +210,7 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -256,7 +258,10 @@ else
             return;
         }
 
-        Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
+        if (GrupoId.HasValue)
+            Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}/{GrupoId.Value}");
+        else
+            Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
     }
 
     private void IrAListaProyectos()
@@ -323,6 +328,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
         if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
         return "Finalizado";
     }
@@ -331,6 +337,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
     }
@@ -340,6 +347,20 @@ else
         if (eventoParticipante == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         return hoy <= eventoParticipante.FechaFinInscripciones;
+    }
+
+    private bool EsFaseEntrega()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > eventoParticipante.FechaFinInscripciones && hoy <= eventoParticipante.FechaFinEntrega;
+    }
+
+    private bool EsFaseVotacion()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > eventoParticipante.FechaFinEntrega && hoy <= eventoParticipante.FechaFinVotaciones;
     }
 
     private bool EsFaseFinalizada()

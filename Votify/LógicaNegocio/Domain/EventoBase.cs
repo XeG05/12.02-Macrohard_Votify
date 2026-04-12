@@ -32,6 +32,9 @@ namespace Votify.LógicaNegocio.Domain
             if (hoy <= evento.FechaFinInscripciones)
                 return FasesEvento.Inscripciones;
 
+            if (hoy <= evento.FechaFinEntrega)
+                return FasesEvento.Entregas;
+
             if (hoy <= evento.FechaFinVotaciones)
                 return FasesEvento.Votaciones;
 

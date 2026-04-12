@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class migracion4 : Migration
+    public partial class MigracionFFF : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -269,7 +269,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("participante_pkey", x => new { x.correo, x.id });
+                    table.PrimaryKey("participante_pkey", x => new { x.id, x.correo, x.id_grupo });
                     table.ForeignKey(
                         name: "id_grupo",
                         column: x => x.id_grupo,
@@ -431,6 +431,11 @@ namespace Votify.Migrations
                 name: "IX_notificacion_correo",
                 table: "notificacion",
                 column: "correo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_participante_correo_id",
+                table: "participante",
+                columns: new[] { "correo", "id" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_participante_id_grupo",

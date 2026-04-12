@@ -218,7 +218,7 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Participante>(entity =>
         {
-            entity.HasKey(e => new { e.Correo, e.Id }).HasName("participante_pkey");
+            entity.HasKey(e => new { e.Correo, e.Id, e.IdGrupo }).HasName("participante_pkey");
 
             entity.ToTable("participante");
 
@@ -233,8 +233,8 @@ public partial class VotifyContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_grupo");
 
-            entity.HasOne(d => d.Rol).WithOne(p => p.Participante)
-                .HasForeignKey<Participante>(d => new { d.Correo, d.Id })
+            entity.HasOne(d => d.Rol).WithMany(p => p.Participantes)
+                .HasForeignKey(d => new { d.Correo, d.Id })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("id_rolFK");
         });

@@ -276,7 +276,7 @@ else {
             var entrada = await EventoService.EntrarEvento(correo, idEvento);
 
             eventoBase = entrada.Evento;
-            esVotante = entrada.TipoRol.Votante != null && entrada.TipoRol.Administrador == null && entrada.TipoRol.Jurado == null && entrada.TipoRol.Participante == null;
+            esVotante = entrada.TipoRol.Votante != null && entrada.TipoRol.Administrador == null && entrada.TipoRol.Jurado == null && (entrada.TipoRol.Participantes == null || !entrada.TipoRol.Participantes.Any());
 
             var baseUrl = Nav.BaseUri;
 
