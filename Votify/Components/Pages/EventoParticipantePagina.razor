@@ -116,9 +116,26 @@ else
                 <div class="epp-tip-box">
                     <strong>Siguiente paso</strong>
                     <p>
-                        @(tieneProyecto
-                                            ? "Puedes eliminar la entrega si necesitas volver a subir una nueva versión."
-                                            : "Sube el proyecto para dejar registrada la propuesta de tu grupo.")
+                        @if (EsFaseInscripcion())
+                        {
+                            <text>La fase de inscripciones está abierta. Espera a la fase de entregas para poder subir tu proyecto.</text>
+                        }
+                        else if (EsFaseEntrega())
+                        {
+                            @(tieneProyecto
+                                ? "Puedes eliminar la entrega si necesitas volver a subir una nueva versión."
+                                : "Sube el proyecto para dejar registrada la propuesta de tu grupo.")
+                        }
+                        else if (EsFaseVotacion())
+                        {
+                            @(tieneProyecto
+                                ? "Tu proyecto ha sido entregado y está siendo evaluado por los votantes."
+                                : "El plazo de entrega se cerró y tu grupo no ha entregado ningún proyecto.")
+                        }
+                        else
+                        {
+                            <text>El evento ha finalizado. Consulta los resultados finales desde tu dashboard.</text>
+                        }
                     </p>
                 </div>
             </section>
