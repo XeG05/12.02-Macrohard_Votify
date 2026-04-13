@@ -10,16 +10,19 @@ namespace Votify.LógicaNegocio.Domain
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
+        private readonly IRepository<Categorium> _categoriumRepo;
         public EventoVotante(Evento evento, Usuario usuario, 
             IRepository<Proyecto> proyectoRepo, 
             IRepository<Participante> participanteRepo, 
             IRepository<Grupo> grupoRepo,
-            IRepository<Usuario> usuarioRepo) : base(evento, usuario)
+            IRepository<Usuario> usuarioRepo,
+            IRepository<Categorium> categoriumRepo) : base(evento, usuario)
         {
             _proyectoRepo = proyectoRepo;
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
             _usuarioRepo = usuarioRepo;
+            _categoriumRepo = categoriumRepo;
         }
 
         public async Task<List<Proyecto>> ListaProyectos(long idEvento)

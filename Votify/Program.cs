@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +14,9 @@ using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<EventoCreator>();
+builder.Services.AddScoped<EventoCreator, EventoVotanteCreator>();
+builder.Services.AddScoped<EventoCreator, EventoAdministradorCreator>();
+builder.Services.AddScoped<EventoCreator, EventoParticipanteCreator>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EventoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -23,9 +24,6 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-
-
-
 
 builder.Services.AddScoped<JwtService>();
 

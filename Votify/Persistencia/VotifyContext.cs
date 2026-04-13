@@ -5,10 +5,6 @@ namespace Votify.Persistencia;
 
 public partial class VotifyContext : DbContext
 {
-    public VotifyContext()
-    {
-    }
-
     public VotifyContext(DbContextOptions<VotifyContext> options)
         : base(options)
     {
