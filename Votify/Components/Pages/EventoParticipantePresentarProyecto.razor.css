@@ -141,36 +141,46 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    color: #fff;
+}
+
+    .epr-fase-badge.fase-inscripciones {
+        background: linear-gradient(180deg, #2563eb, #1d4ed8);
+        border: none;
+    }
+
+    .epr-fase-badge.fase-entregas {
+        background: linear-gradient(180deg, #f59e0b, #d97706);
+        border: none;
+    }
+
+    .epr-fase-badge.fase-votaciones {
+        background: linear-gradient(180deg, #10b981, #059669);
+        border: none;
+    }
+
+    .epr-fase-badge.fase-finalizado {
+        background: linear-gradient(180deg, #6b7280, #374151);
+        border: none;
+    }
+
+.epr-mini-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 40px;
     padding: 0.55rem 0.9rem;
     border-radius: 999px;
     font-weight: 700;
     font-size: 0.9rem;
     white-space: nowrap;
-    border: 1px solid transparent;
-    color: white;
-}
-
-    .epr-fase-badge.fase-inscripciones {
-        background: rgba(59, 130, 246, 0.16);
-        border-color: rgba(59, 130, 246, 0.28);
-    }
-
-    .epr-fase-badge.fase-votaciones {
-        background: rgba(168, 85, 247, 0.16);
-        border-color: rgba(168, 85, 247, 0.28);
-    }
-
-    .epr-fase-badge.fase-finalizado {
-        background: rgba(107, 114, 128, 0.20);
-        border-color: rgba(107, 114, 128, 0.35);
-    }
-
-.epr-mini-status {
-    padding: 0.45rem 0.8rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 700;
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.08);
     color: white;
@@ -445,9 +455,8 @@
     border-radius: 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    color: #111827;
-    font-size: 0.9rem;
-    font-weight: 600;
+    color: #374151;
+    font-size: 0.84rem;
     word-break: break-word;
 }
 

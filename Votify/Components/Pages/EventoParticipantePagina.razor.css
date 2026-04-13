@@ -186,6 +186,10 @@
     background: linear-gradient(180deg, #2563eb, #1d4ed8); /* azul */
 }
 
+.fase-entregas {
+    background: linear-gradient(180deg, #f59e0b, #d97706); /* naranja */
+}
+
 .fase-votaciones {
     background: linear-gradient(180deg, #10b981, #059669); /* verde */
 }

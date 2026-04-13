@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260411131716_migracion12")]
-    partial class migracion12
+    [Migration("20260412180516_MigracionFFF")]
+    partial class MigracionFFF
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -349,23 +349,25 @@ namespace Votify.Migrations
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Participante", b =>
                 {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
                     b.Property<string>("Correo")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("correo");
 
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
                     b.Property<long>("IdGrupo")
                         .HasColumnType("bigint")
                         .HasColumnName("id_grupo");
 
-                    b.HasKey("Correo", "Id")
+                    b.HasKey("Id", "Correo", "IdGrupo")
                         .HasName("participante_pkey");
 
                     b.HasIndex("IdGrupo");
+
+                    b.HasIndex("Correo", "Id");
 
                     b.ToTable("participante", (string)null);
                 });
@@ -670,8 +672,8 @@ namespace Votify.Migrations
                         .HasConstraintName("id_grupo");
 
                     b.HasOne("Votify.Persistencia.Entities.Rol", "Rol")
-                        .WithOne("Participante")
-                        .HasForeignKey("Votify.Persistencia.Entities.Participante", "Correo", "Id")
+                        .WithMany("Participantes")
+                        .HasForeignKey("Correo", "Id")
                         .IsRequired()
                         .HasConstraintName("id_rolFK");
 
@@ -817,7 +819,7 @@ namespace Votify.Migrations
 
                     b.Navigation("Jurado");
 
-                    b.Navigation("Participante");
+                    b.Navigation("Participantes");
 
                     b.Navigation("Reclamaciones");
 

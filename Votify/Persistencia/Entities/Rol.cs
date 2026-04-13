@@ -16,7 +16,7 @@ public class Rol
 
     public virtual Jurado? Jurado { get; set; }
 
-    public virtual Participante? Participante { get; set; }
+    public virtual ICollection<Participante> Participantes { get; set; } = new List<Participante>();
 
     public virtual ICollection<Reclamacion> Reclamaciones { get; set; } = new List<Reclamacion>();
 
@@ -30,17 +30,18 @@ public class Rol
         Reclamaciones = new List<Reclamacion>();
         Votos = new List<Voto>();
     }
-    public Rol(string correoUsuario, Administrador? administrador, Usuario correoUsuarioNavigation, Evento idEventoNavigation, Jurado? jurado, Participante? participante, Votante? votante)
+    public Rol(string correoUsuario, Administrador? administrador, Usuario correoUsuarioNavigation, Evento idEventoNavigation, Jurado? jurado, ICollection<Participante>? participantes, Votante? votante)
     {
         CorreoUsuario = correoUsuario;
         Administrador = administrador;
         CorreoUsuarioNavigation = correoUsuarioNavigation;
         IdEventoNavigation = idEventoNavigation;
         Jurado = jurado;
-        Participante = participante;
+        if (participantes != null) Participantes = participantes;
         Votante = votante;
         Comentarios = new List<Comentario>();
         Reclamaciones = new List<Reclamacion>();
         Votos = new List<Voto>();
+        Participantes = new List<Participante>();
     }
 }

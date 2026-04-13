@@ -1,4 +1,4 @@
-﻿@page "/eventoparticipantepresentar/{EventoId:long}"
+﻿@page "/eventoparticipantepresentar/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
 @inject IEventoService Evento_Service
 @inject NavigationManager Nav
@@ -36,7 +36,7 @@ else
                         <span class="epr-role-badge">Participante</span>
 
                         <div class="epr-mini-status @(tieneProyecto ? "is-ok" : "is-pending")">
-                            @(tieneProyecto ? "Entrega ya registrada" : "Entrega disponible")
+                            @(tieneProyecto ? "Proyecto entregado" : "Entrega disponible")
                         </div>
 
                         <span class="epr-fase-badge @GetFaseClass(eventoParticipante)">
@@ -108,34 +108,10 @@ else
 
                 <div class="epr-section-header">
                     <div class="epr-section-indicator"></div>
-                    <h2>Archivos y categoría</h2>
+                    <h2>Archivos</h2>
                 </div>
 
                 <div class="epr-upload-layout">
-                    <div class="epr-card epr-card-full">
-                        <div class="epr-card-header">
-                            <h3>Categoría</h3>
-                            <span class="epr-card-badge">@categorias.Count</span>
-                        </div>
-
-                        @if (categorias.Any())
-                        {
-                            <select class="epr-select" @bind="categoriaSeleccionadaId">
-                                @foreach (var categoria in categorias)
-                                {
-                                    <option value="@categoria.Id">@categoria.Nombre</option>
-                                }
-                            </select>
-                        }
-                        else
-                        {
-                            <div class="epr-empty-box">
-                                <span>📂</span>
-                                <p>No hay categorías disponibles para este evento.</p>
-                            </div>
-                        }
-                    </div>
-
                     <div class="epr-upload-grid">
                         <div class="epr-card epr-compact-card">
                             <div class="epr-card-header">
@@ -149,7 +125,7 @@ else
                                         <strong>Haz clic para subir archivo</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarArchivoProyecto" class="epr-native-file" />
+                                <InputFile OnChange="CargarArchivoProyecto" accept=".zip" class="epr-native-file" />
                             </label>
 
                             @if (!string.IsNullOrWhiteSpace(nombreArchivoProyecto))
@@ -170,7 +146,7 @@ else
                                         <strong>Haz clic para subir imágenes</strong>
                                     </div>
                                 </div>
-                                <InputFile OnChange="CargarImagenes" multiple class="epr-native-file" />
+                                <InputFile OnChange="CargarImagenes" accept=".png,.jpg,.jpeg" multiple class="epr-native-file" />
                             </label>
 
                             @if (nombresImagenes.Count > 0)
@@ -196,6 +172,7 @@ else
 
                     <div class="epr-group-box">
                         <div class="epr-group-title">@nombreGrupo</div>
+                        <div style="font-size: 0.85em; color: var(--text-2); margin-bottom: 12px; margin-top: -4px;">📂 Categoría: <strong>@nombreCategoria</strong></div>
 
                         @if (miembrosGrupo.Count == 0)
                         {
@@ -225,15 +202,14 @@ else
                         <strong>Antes de entregar</strong>
                         <ul>
                             <li>Revisa el nombre del proyecto.</li>
-                            <li>Selecciona una categoría válida.</li>
                             <li>Adjunta el archivo principal.</li>
                         </ul>
                     </div>
 
                     <div class="epr-actions">
                         <button class="epr-secondary" @onclick="VolverEvento">Cancelar</button>
-                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseInscripcion())">
-                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseInscripcion() ? "Inscripción finalizada" : "Entregar proyecto"))
+                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseEntrega())">
+                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseEntrega() ? "Plazo de entrega cerrado" : "Entregar proyecto"))
                         </button>
                     </div>
                 </div>
@@ -244,6 +220,7 @@ else
 
 @code {
     [Parameter] public long EventoId { get; set; }
+    [Parameter] public long? GrupoId { get; set; }
 
     private EventoParticipante? eventoParticipante;
     private bool cargando = true;
@@ -254,13 +231,12 @@ else
     private string descripcionCompleta = string.Empty;
 
     private string nombreGrupo = "Grupo";
+    private string nombreCategoria = "Sin categoría";
     private List<(string Nombre, string Correo)> miembrosGrupo = new();
-    private List<Categorium> categorias = new();
 
     private IBrowserFile? archivoProyecto;
     private List<IBrowserFile> imagenesProyecto = new();
 
-    private long categoriaSeleccionadaId;
     private List<string> nombresImagenes = new();
     private string? nombreArchivoProyecto;
 
@@ -280,7 +256,7 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
+            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
 
             if (entradaEvento.Evento is EventoParticipante participante)
             {
@@ -298,13 +274,10 @@ else
             var grupo = await eventoParticipante.ObtenerMiGrupo();
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
-            categorias = await eventoParticipante.ObtenerCategoriasEvento();
+            var categoria = await eventoParticipante.ObtenerCategoriaGrupo();
+            nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            if (categorias.Any())
-            {
-                categoriaSeleccionadaId = categorias.First().Id;
-            }
+            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
 
             try
             {
@@ -331,12 +304,27 @@ else
 
     private void VolverEvento()
     {
-        Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+        if (GrupoId.HasValue)
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}/{GrupoId.Value}");
+        else
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
     }
 
     private void CargarImagenes(InputFileChangeEventArgs e)
     {
-        imagenesProyecto = e.GetMultipleFiles().ToList();
+        error = null;
+        var allowedExtensions = new[] { ".png", ".jpg", ".jpeg" };
+        var files = e.GetMultipleFiles().ToList();
+
+        if (files.Any(f => !allowedExtensions.Contains(Path.GetExtension(f.Name).ToLowerInvariant())))
+        {
+            error = "Las imágenes deben estar en formato .png, .jpg o .jpeg";
+            imagenesProyecto = new();
+            nombresImagenes = new();
+            return;
+        }
+
+        imagenesProyecto = files;
         nombresImagenes = imagenesProyecto
             .Select(f => f.Name)
             .ToList();
@@ -344,8 +332,20 @@ else
 
     private void CargarArchivoProyecto(InputFileChangeEventArgs e)
     {
-        archivoProyecto = e.File;
-        nombreArchivoProyecto = archivoProyecto?.Name;
+        error = null;
+        var file = e.File;
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+
+        if (extension != ".zip")
+        {
+            error = "El archivo principal debe ser un archivo .zip";
+            archivoProyecto = null;
+            nombreArchivoProyecto = null;
+            return;
+        }
+
+        archivoProyecto = file;
+        nombreArchivoProyecto = file.Name;
     }
 
     private async Task EntregarProyecto()
@@ -366,9 +366,6 @@ else
 
             if (string.IsNullOrWhiteSpace(nombreArchivoProyecto) || archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
-
-            if (!categorias.Any())
-                throw new Exception("El evento no tiene categorías disponibles.");
 
             byte[] archivoBytes;
             var maxFileSize = 10 * 1024 * 1024; // 10 MB limit
@@ -392,13 +389,12 @@ else
                 nombreProyecto,
                 descripcionBreve,
                 descripcionCompleta,
-                categoriaSeleccionadaId,
                 archivoBytes,
                 imagenesBytes
             );
 
             mensaje = "Proyecto entregado correctamente.";
-            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+            VolverEvento();
         }
         catch (Exception ex)
         {
@@ -422,6 +418,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
         if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
         return "Finalizado";
     }
@@ -430,6 +427,7 @@ else
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         return "fase-finalizado";
     }
@@ -439,5 +437,12 @@ else
         if (eventoParticipante == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         return hoy <= eventoParticipante.FechaFinInscripciones;
+    }
+
+    private bool EsFaseEntrega()
+    {
+        if (eventoParticipante == null) return false;
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > eventoParticipante.FechaFinInscripciones && hoy <= eventoParticipante.FechaFinEntrega;
     }
 }

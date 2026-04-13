@@ -43,5 +43,10 @@ namespace Votify.LógicaNegocio.Domain
             }
             return usuarios;
         }
+
+        public async Task<List<Categorium>> CategoriasDelEvento(long idEvento)
+        {
+            return await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
+        }
     }
 }

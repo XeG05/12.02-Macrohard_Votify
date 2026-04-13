@@ -100,7 +100,38 @@ namespace Votify.LógicaNegocio.Services
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
         }
 
-        public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId)
+        public async Task<List<(Evento Evento, string RolTexto, Grupo? Grupo)>> GetParticipacionesDetalladas(string correo)
+        {
+            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
+            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
+
+            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
+            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
+
+            var res = new List<(Evento, string, Grupo?)>();
+            var todos = await _eventoRepo.GetAllAsync();
+
+            foreach (var j in jurados)
+            {
+                if (adminEventIds.Contains(j.Id)) continue;
+                var ev = todos.FirstOrDefault(e => e.Id == j.Id);
+                if (ev != null)
+                    res.Add((ev, "Jurado", null));
+            }
+
+            foreach (var p in participantes)
+            {
+                if (adminEventIds.Contains(p.Id)) continue;
+                var ev = todos.FirstOrDefault(e => e.Id == p.Id);
+                var gr = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                if (ev != null)
+                    res.Add((ev, "Participante", gr));
+            }
+
+            return res;
+        }
+
+        public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null)
         {
             var usuario = (await _usuarioRepo
                 .FindAsync(u => u.Correo == correo))
@@ -143,7 +174,7 @@ namespace Votify.LógicaNegocio.Services
 
             // Cargar explícitamente las propiedades de navegación si no están cargadas
             rol.Administrador ??= (await _adminRepo.FindAsync(a => a.Correo == correo && a.Id == idEvento)).FirstOrDefault();
-            rol.Participante ??= (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).FirstOrDefault();
+            rol.Participantes = (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).ToList();
             rol.Votante ??= (await _votanteRepo.FindAsync(v => v.Correo == correo && v.Id == idEvento)).FirstOrDefault();
             rol.Jurado ??= (await _juradoRepo.FindAsync(j => j.Correo == correo && j.Id == idEvento)).FirstOrDefault();
 
@@ -335,6 +366,21 @@ namespace Votify.LógicaNegocio.Services
             return usuarios;
         }
 
+        public async Task<List<Proyecto>> ListaProyectos(long idEvento)
+        {
+            return await _proyectoRepo.FindAsync(p => p.IdGrupoNavigation.IdCategoriaNavigation.IdEvento == idEvento);
+        }
+
+        public async Task<Grupo?> GrupoProyecto(long idGrupo)
+        {
+            return await _grupoRepo.GetByIdAsync(idGrupo);
+        }
+
+        public async Task<List<Categorium>> CategoriasDelEvento(long idEvento)
+        {
+            return await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
+        }
+
         public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
         {
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
@@ -376,9 +422,29 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<(int VotosTotales, bool HaVotado)> ObtenerInfoVotoSimple(long idEvento, long idProyecto, string correo)
         {
+            var proyectoActual = await _proyectoRepo.GetByIdAsync(idProyecto);
+            if (proyectoActual == null) throw new Exception("Proyecto no encontrado");
+            var grupoActual = await _grupoRepo.GetByIdAsync(proyectoActual.IdGrupo);
+            if (grupoActual == null) throw new Exception("Grupo no encontrado");
+            long idCategoriaActual = grupoActual.IdCategoria;
+
             var todosLosVotos = await _votoRepo.FindAsync(v => v.IdRol == idEvento && v.CorreoRol == correo);
 
-            int proyectosVotadosCount = todosLosVotos.Select(v => v.IdProyectoGru).Distinct().Count();
+            var proyectosVotados = todosLosVotos.Select(v => v.IdProyectoGru).Distinct().ToList();
+            int proyectosVotadosCount = 0;
+            foreach (var pid in proyectosVotados)
+            {
+                var p = await _proyectoRepo.GetByIdAsync(pid);
+                if (p != null)
+                {
+                    var g = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                    if (g != null && g.IdCategoria == idCategoriaActual)
+                    {
+                        proyectosVotadosCount++;
+                    }
+                }
+            }
+
             bool haVotado = todosLosVotos.Any(v => v.IdProyectoGru == idProyecto);
 
             return (proyectosVotadosCount, haVotado);
@@ -388,7 +454,7 @@ namespace Votify.LógicaNegocio.Services
         {
             var info = await ObtenerInfoVotoSimple(idEvento, idProyecto, correo);
             if (info.HaVotado) throw new Exception("Ya has votado por este proyecto.");
-            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para este evento.");
+            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para esta categoría.");
 
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
             if (pr == null) throw new Exception("Proyecto no encontrado.");

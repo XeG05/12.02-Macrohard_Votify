@@ -5,7 +5,7 @@
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class migracion12 : Migration
+    public partial class Migracionjhorh : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

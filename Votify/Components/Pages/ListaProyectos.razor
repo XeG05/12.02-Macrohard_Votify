@@ -1,0 +1,181 @@
+﻿@page "/listaproyectos/{idEvento:long}"
+@rendermode InteractiveServer
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+@inject IEventoService EventoService
+
+@if (eventoBase == null && proyectos == null)
+{
+    <div class="evp-loading-state">
+        <div class="evp-spinner"></div>
+        <p>Cargando evento...</p>
+    </div>
+}
+else if (eventoBase != null)
+{
+    <div class="evp-wrapper">
+        <div class="evp-hero">
+            <div class="evp-hero-content">
+                <div class="evp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
+
+                <div class="evp-hero-top">
+                    <div>
+                        <div class="evp-eyebrow">Panel de proyectos</div>
+                        <h1>@eventoBase.Nombre</h1>
+                        <p>@eventoBase.Descripcion</p>
+                    </div>
+
+                    <div class="evp-hero-side">
+                        <span class="evp-role-badge">@tipoRol</span>
+                        <span class="evp-phase-pill @GetFaseClass(eventoBase.ObtenerFaseActual())">@eventoBase.ObtenerFaseActual().ToString()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (proyectos == null)
+        {
+            <div class="evp-loading-state">
+                <div class="evp-spinner"></div>
+                <p>Cargando proyectos...</p>
+            </div>
+        }
+        else if (eventoBase.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones || eventoBase.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Entregas)
+        {
+            <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante las fases de inscripciones y entregas.</div>
+        }
+        else if (proyectos.Count == 0)
+        {
+            <div class="evp-alert evp-alert-info">No hay proyectos para mostrar en este evento.</div>
+        }
+        else
+        {
+            <div class="proyectos-lista">
+                @foreach (var cat in categorias.Values)
+                {
+                    var proyectosDeCat = proyectos.Where(p => proyectoCategoria.ContainsKey(p.Id) && proyectoCategoria[p.Id] == cat.Id).ToList();
+                    if (proyectosDeCat.Any())
+                    {
+                        <div class="categoria-seccion">
+                            <h2 class="categoria-titulo">Categoría: @cat.Nombre</h2>
+                            <div class="categoria-proyectos">
+                                @foreach (var p in proyectosDeCat)
+                                {
+                                    <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
+                                        <div class="nombreProyecto">
+                                            <p>@p.Nombre</p>
+                                        </div>
+                                        <div class="informacionProyecto">
+                                            <div class="participantesProyecto">
+                                                @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
+                                                {
+                                                    foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                                                    {
+                                                        <p>@pa.Nombre</p>
+                                                    }
+                                                }
+                                            </div>
+                                            <div class="descripcionProyecto">
+                                                <p>@p.DescripcionBreve</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public long idEvento { get; set; }
+
+    List<Proyecto>? proyectos;
+
+    Votify.LógicaNegocio.Domain.EventoBase? eventoBase;
+
+    string tipoRol = "";
+
+    Dictionary<long, List<Usuario>> participantesPorGrupo = new();
+    Dictionary<long, Categorium> categorias = new();
+    Dictionary<long, long> proyectoCategoria = new();
+
+    private void VolverHome()
+    {
+        Nav.NavigateTo($"/home");
+    }
+
+    private string GetFaseClass(Votify.LógicaNegocio.Enums.FasesEvento fase)
+    {
+        return fase switch
+        {
+            Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones => "fase-inscripcion",
+            Votify.LógicaNegocio.Enums.FasesEvento.Entregas => "fase-entregas",
+            Votify.LógicaNegocio.Enums.FasesEvento.Votaciones => "fase-votacion",
+            Votify.LógicaNegocio.Enums.FasesEvento.Resultados => "fase-resultados",
+            _ => ""
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            // usuario no autenticado, volver al login
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            var entrada = await EventoService.EntrarEvento(correo, idEvento);
+
+            eventoBase = entrada.Evento;
+
+            if (entrada.TipoRol.Administrador != null) tipoRol = "Administrador";
+            else if (entrada.TipoRol.Jurado != null) tipoRol = "Jurado";
+            else if (entrada.TipoRol.Participantes != null && entrada.TipoRol.Participantes.Any()) tipoRol = "Participante";
+            else tipoRol = "Votante";
+
+            proyectos = await EventoService.ListaProyectos(idEvento);
+
+            participantesPorGrupo = new();
+
+            var cats = await EventoService.CategoriasDelEvento(idEvento);
+            foreach(var c in cats) {
+                categorias[c.Id] = c;
+            }
+
+            foreach (var p in proyectos)
+            {
+                var participantes = await EventoService.ParticipantesGrupo(p.IdGrupo);
+                participantesPorGrupo[p.IdGrupo] = participantes;
+                var grupo = await EventoService.GrupoProyecto(p.IdGrupo);
+                if (grupo != null) {
+                    proyectoCategoria[p.Id] = grupo.IdCategoria;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            throw;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    protected async Task IrAProyecto( long id)
+    {
+        Nav.NavigateTo($"/{idEvento}/proyecto/{id}");
+    }
+}

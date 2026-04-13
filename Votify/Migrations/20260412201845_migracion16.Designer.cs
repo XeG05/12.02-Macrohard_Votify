@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260411001801_MigracionF")]
-    partial class MigracionF
+    [Migration("20260412201845_migracion16")]
+    partial class migracion16
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -362,7 +362,7 @@ namespace Votify.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("id_grupo");
 
-                    b.HasKey("Correo", "Id")
+                    b.HasKey("Correo", "Id", "IdGrupo")
                         .HasName("participante_pkey");
 
                     b.HasIndex("IdGrupo");
@@ -670,8 +670,8 @@ namespace Votify.Migrations
                         .HasConstraintName("id_grupo");
 
                     b.HasOne("Votify.Persistencia.Entities.Rol", "Rol")
-                        .WithOne("Participante")
-                        .HasForeignKey("Votify.Persistencia.Entities.Participante", "Correo", "Id")
+                        .WithMany("Participantes")
+                        .HasForeignKey("Correo", "Id")
                         .IsRequired()
                         .HasConstraintName("id_rolFK");
 
@@ -817,7 +817,7 @@ namespace Votify.Migrations
 
                     b.Navigation("Jurado");
 
-                    b.Navigation("Participante");
+                    b.Navigation("Participantes");
 
                     b.Navigation("Reclamaciones");
 

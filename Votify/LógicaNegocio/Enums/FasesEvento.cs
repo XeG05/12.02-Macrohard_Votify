@@ -3,6 +3,7 @@
     public enum FasesEvento
     {
         Inscripciones,
+        Entregas,
         Votaciones,
         Resultados
     }
