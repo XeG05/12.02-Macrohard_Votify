@@ -7,36 +7,18 @@ namespace Votify.LógicaNegocio.Domain
     public class EventoVotante : EventoBase
     {
         private readonly IRepository<Proyecto> _proyectoRepo;
-        private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
-        private readonly IRepository<Categorium> _categoriumRepo;
-        private readonly IRepository<Rol> _rolRepo;
-        private readonly IRepository<Criterio> _criterioRepo;
-        private readonly IRepository<Voto> _votoRepo;
-        private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         public EventoVotante(Evento evento, Usuario usuario, 
-            IRepository<Evento> eventoRepo, 
             IRepository<Proyecto> proyectoRepo, 
             IRepository<Participante> participanteRepo, 
-            IRepository<Categorium> categoriumRepo, 
-            IRepository<Grupo> grupoRepo, 
-            IRepository<Rol> rolRepo, 
-            IRepository<Criterio> criterioRepo,
-            IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo,
+            IRepository<Grupo> grupoRepo,
             IRepository<Usuario> usuarioRepo) : base(evento, usuario)
         {
             _proyectoRepo = proyectoRepo;
-            _eventoRepo = eventoRepo;
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
-            _categoriumRepo = categoriumRepo;
-            _rolRepo = rolRepo;
-            _criterioRepo = criterioRepo;
-            _votoRepo = votoRepo;
-            _comentarioRepo = comentarioRepo;
             _usuarioRepo = usuarioRepo;
         }
 

@@ -7,7 +7,6 @@ namespace Votify.LógicaNegocio.Domain
 {
     public class EventoAdministrador : EventoBase
     {
-        private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Participante> _participanteRepo;
@@ -16,7 +15,6 @@ namespace Votify.LógicaNegocio.Domain
         private readonly IRepository<Voto> _votoRepo;
         public EventoAdministrador(Evento evento, 
             Usuario usuario,
-            IRepository<Usuario> usuarioRepo,
             IRepository<Evento> eventoRepo, 
             IRepository<Proyecto> proyectoRepo, 
             IRepository<Participante> participanteRepo,
@@ -24,7 +22,6 @@ namespace Votify.LógicaNegocio.Domain
             IRepository<Grupo> grupoRepo,
             IRepository<Voto> votoRepo) : base(evento, usuario)
         {
-            _usuarioRepo = usuarioRepo;
             _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
             _participanteRepo = participanteRepo;

@@ -15,7 +15,7 @@ using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<EventoFactory>();
+builder.Services.AddScoped<EventoCreator>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EventoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

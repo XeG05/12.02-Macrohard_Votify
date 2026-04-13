@@ -3,7 +3,7 @@ using Votify.Persistencia.Entities;
 
 namespace Votify.LógicaNegocio.Domain
 {
-    public abstract class EventoBase
+    public abstract class EventoBase : IEvento
     {
         protected Evento evento;
         protected Usuario usuario;

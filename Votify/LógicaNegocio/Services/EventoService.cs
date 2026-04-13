@@ -24,7 +24,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
-        private readonly EventoFactory _eventoFactory;
+        private readonly EventoCreator _eventoCreator;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         public EventoService(IRepository<Evento> eventoRepo,
@@ -41,7 +41,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
-            EventoFactory eventoFactory,
+            EventoCreator eventoCreator,
             IEmailService emailService,
             IConfiguration config) : base(eventoRepo)
         {
@@ -59,7 +59,7 @@ namespace Votify.LógicaNegocio.Services
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
-            _eventoFactory = eventoFactory;
+            _eventoCreator = eventoCreator;
             _emailService = emailService;
             _config = config;
         }
@@ -112,7 +112,16 @@ namespace Votify.LógicaNegocio.Services
 
             var rol = await ObtenerRol(correo, eventoId);
 
-            var eventoBase = _eventoFactory.CrearEvento(evento, usuario, rol);
+            EventoCreator creator = rol switch
+            {
+                var r when r.Administrador != null => new EventoAdministradorCreator(_eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo, _votoRepo),
+                var r when r.Participante != null => new EventoParticipanteCreator(_participanteRepo, _grupoRepo, _proyectoRepo, _categoriumRepo,  _usuarioRepo, _votoRepo, _comentarioRepo),
+                var r when r.Votante != null => new EventoVotanteCreator(_proyectoRepo, _participanteRepo, _grupoRepo, _usuarioRepo),
+                _ => throw new Exception("Rol no reconocido")
+            };
+
+            EventoBase eventoBase = creator.CrearEvento(evento, usuario);
+
             return new EntradaEventoDto(eventoBase, rol);
         }
 
