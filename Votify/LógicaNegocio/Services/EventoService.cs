@@ -153,7 +153,7 @@ namespace Votify.LógicaNegocio.Services
             EventoCreator creator = rol switch
             {
                 var r when r.Administrador != null => new EventoAdministradorCreator(_eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo, _votoRepo),
-                var r when r.Participantes != null => new EventoParticipanteCreator(_participanteRepo, _grupoRepo, _proyectoRepo, _categoriumRepo,  _usuarioRepo, _votoRepo, _comentarioRepo),
+                var r when r.Participantes != null && r.Participantes.Any() => new EventoParticipanteCreator(_participanteRepo, _grupoRepo, _proyectoRepo, _categoriumRepo,  _usuarioRepo, _votoRepo, _comentarioRepo, grupoId),
                 var r when r.Votante != null => new EventoVotanteCreator(_proyectoRepo, _participanteRepo, _grupoRepo, _usuarioRepo, _categoriumRepo),
                 _ => throw new Exception("Rol no reconocido")
             };

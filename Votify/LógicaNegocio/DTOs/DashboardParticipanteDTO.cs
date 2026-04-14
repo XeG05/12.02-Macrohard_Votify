@@ -4,6 +4,7 @@
     {
         public string NombreProyecto { get; set; } = "";
         public string NombreGrupo { get; set; } = "";
+        public long GrupoId { get; set; }
 
         public int TotalVotos { get; set; }
         public int Posicion { get; set; }

@@ -13,6 +13,7 @@ namespace Votify.LógicaNegocio.Factory
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly long? _grupoIdActivo;
 
         public EventoParticipanteCreator(
             IRepository<Participante> participanteRepo,
@@ -21,7 +22,8 @@ namespace Votify.LógicaNegocio.Factory
             IRepository<Categorium> categoriumRepo,
             IRepository<Usuario> usuarioRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Comentario> comentarioRepo)
+            IRepository<Comentario> comentarioRepo,
+            long? grupoIdActivo = null)
         {
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
@@ -30,6 +32,7 @@ namespace Votify.LógicaNegocio.Factory
             _usuarioRepo = usuarioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _grupoIdActivo = grupoIdActivo;
         }
 
         public override EventoBase CrearEvento(Evento evento, Usuario usuario)
@@ -37,7 +40,7 @@ namespace Votify.LógicaNegocio.Factory
             return new EventoParticipante(
                 evento, usuario,
                 _participanteRepo, _grupoRepo, _proyectoRepo,
-                _categoriumRepo, _usuarioRepo, _votoRepo, _comentarioRepo);
+                _categoriumRepo, _usuarioRepo, _votoRepo, _comentarioRepo, _grupoIdActivo);
         }
     }
 }
