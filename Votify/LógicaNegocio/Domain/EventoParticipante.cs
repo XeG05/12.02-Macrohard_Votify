@@ -242,12 +242,34 @@ namespace Votify.LógicaNegocio.Domain
             {
                 throw new Exception("Los resultados aún no están disponibles");
             }
-            var participante = (await _participanteRepo.FindAsync(p => p.Correo == usuario.Correo)).FirstOrDefault();
+
+            var participaciones = await _participanteRepo.FindAsync(p => p.Correo == usuario.Correo && p.Id == evento.Id);
+            Participante? participante = null;
+
+            foreach (var p in participaciones)
+            {
+                var g = await _grupoRepo.GetByIdAsync(p.IdGrupo);
+                if (g != null && g.IdCategoria == idCategoria)
+                {
+                    participante = p;
+                    break;
+                }
+            }
 
             if (participante == null)
-                throw new Exception("Participante no encontrado");
+            {
+                if (_grupoIdActivo.HasValue)
+                    participante = participaciones.FirstOrDefault(x => x.IdGrupo == _grupoIdActivo.Value);
+                participante ??= participaciones.FirstOrDefault();
+            }
+
+            if (participante == null)
+                throw new Exception("Participante no encontrado en este evento.");
 
             var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo)).FirstOrDefault();
+
+            if (proyecto == null)
+                throw new Exception("El grupo no tiene proyecto");
 
             var grupo = (await _grupoRepo.FindAsync(g => g.Id == proyecto.IdGrupo)).FirstOrDefault();
 
@@ -269,11 +291,17 @@ namespace Votify.LógicaNegocio.Domain
 
             var rankingOrdenado = ranking.OrderByDescending(r => r.votos).ToList();
 
-            var posicion = rankingOrdenado.FindIndex(r => r.proyecto.Equals(proyecto)) + 1;
+            var proyectoElegido = rankingOrdenado.FirstOrDefault(r => r.proyecto.IdGrupo == proyecto.IdGrupo);
 
-            var totalVotos = rankingOrdenado.First(r => r.proyecto.Equals(proyecto)).votos;
+            if (proyectoElegido.proyecto == null)
+                throw new Exception("El proyecto no se encontró en el ranking");
+
+            var posicion = rankingOrdenado.FindIndex(r => r.proyecto.IdGrupo == proyecto.IdGrupo) + 1;
+
+            var totalVotos = proyectoElegido.votos;
 
             var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id);
+
 
          
 
@@ -281,6 +309,7 @@ namespace Votify.LógicaNegocio.Domain
             {
                 NombreProyecto = proyecto.Nombre,
                 NombreGrupo = grupo?.Nombre ?? "Sin grupo",
+                GrupoId = grupo?.Id ?? 0,
                 TotalVotos = totalVotos,
                 Posicion = posicion,
 

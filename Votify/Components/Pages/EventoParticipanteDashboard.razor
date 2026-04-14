@@ -143,6 +143,13 @@ else
     }
     private void VolverEvento()
     {
-        Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+        if (dashboard != null && dashboard.GrupoId != 0)
+        {
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}/{dashboard.GrupoId}");
+        }
+        else
+        {
+            Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+        }
     }
 }
