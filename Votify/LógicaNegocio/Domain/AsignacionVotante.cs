@@ -1,6 +1,6 @@
 ﻿using Votify.Persistencia.Entities;
 
-namespace Votify.LógicaNegocio.Factory.Roles
+namespace Votify.LógicaNegocio.Domain
 {
     public class AsignacionVotante : AsignacionRol
     {

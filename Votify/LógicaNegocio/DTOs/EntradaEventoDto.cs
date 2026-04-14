@@ -5,10 +5,10 @@ namespace Votify.LógicaNegocio.DTOs
 {
     public class EntradaEventoDto
     {
-        public EventoBase Evento { get; }
+        public Evento Evento { get; }
         public Rol TipoRol { get; }
 
-        public EntradaEventoDto(EventoBase evento, Rol tipoRol)
+        public EntradaEventoDto(Evento evento, Rol tipoRol)
         {
             Evento = evento;
             TipoRol = tipoRol;

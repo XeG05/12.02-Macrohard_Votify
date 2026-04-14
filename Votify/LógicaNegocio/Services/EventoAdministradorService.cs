@@ -1,51 +1,53 @@
-﻿using Votify.LógicaNegocio.DTOs;
+﻿using Votify.LógicaNegocio.Domain;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
-namespace Votify.LógicaNegocio.Domain
+namespace Votify.LógicaNegocio.Services
 {
-    public class EventoAdministrador : EventoBase
+    public class EventoAdministradorService
     {
-        private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Evento> _eventoRepo;
-        private readonly IRepository<Participante> _participanteRepo;
-        private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
+        private readonly IRepository<Grupo> _grupoRepo;
+        private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Voto> _votoRepo;
-        public EventoAdministrador(Evento evento, 
-            Usuario usuario,
-            IRepository<Evento> eventoRepo, 
-            IRepository<Proyecto> proyectoRepo, 
-            IRepository<Participante> participanteRepo,
+        private readonly IRepository<Participante> _participanteRepo;
+        public EventoAdministradorService(
+            IRepository<Evento> eventoRepo,
             IRepository<Categorium> categoriumRepo,
             IRepository<Grupo> grupoRepo,
-            IRepository<Voto> votoRepo) : base(evento, usuario)
+            IRepository<Proyecto> proyectoRepo,
+            IRepository<Voto> votoRepo,
+            IRepository<Participante> participanteRepo)
         {
-            _proyectoRepo = proyectoRepo;
             _eventoRepo = eventoRepo;
-            _participanteRepo = participanteRepo;
-            _grupoRepo = grupoRepo;
             _categoriumRepo = categoriumRepo;
+            _grupoRepo = grupoRepo;
+            _proyectoRepo = proyectoRepo;
             _votoRepo = votoRepo;
+            _participanteRepo = participanteRepo;
         }
 
-        public async Task CambiarNombre(string nuevoNombre)
+        public async Task CambiarNombre(long idEvento, string nuevoNombre)
         {
+            var evento = await _eventoRepo.GetByIdAsync(idEvento)
+                ?? throw new Exception("Evento no encontrado.");
             evento.Nombre = nuevoNombre;
             await _eventoRepo.UpdateAsync(evento);
         }
 
-        public async Task CambiarDescripcion(string nuevaDescripcion)
+        public async Task CambiarDescripcion(long idEvento, string nuevaDescripcion)
         {
+            var evento = await _eventoRepo.GetByIdAsync(idEvento)
+                ?? throw new Exception("Evento no encontrado.");
             evento.Descripcion = nuevaDescripcion;
             await _eventoRepo.UpdateAsync(evento);
         }
 
-        public async Task<List<Categorium>> VerCategoria()
-        {
-            return await _categoriumRepo.FindAsync(c => c.IdEvento == evento.Id);
-        }
+        public async Task<List<Categorium>> VerCategorias(long idEvento)
+        => await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
 
         public async Task<List<Grupo>> VerGrupo(long idCategoria)
         {
@@ -133,9 +135,10 @@ namespace Votify.LógicaNegocio.Domain
 
             return votos.Count;
         }
-        public async Task AñadirGrupo(string nombreGrupo, long idCategoria)
+        public async Task AñadirGrupo(string nombreGrupo, long idCategoria, long idEvento)
         {
-            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+
+            if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
                 throw new Exception("No se pueden añadir grupos fuera de la fase de inscripción");
 
             var grupo = new Grupo
@@ -155,24 +158,22 @@ namespace Votify.LógicaNegocio.Domain
 
             await _proyectoRepo.AddAsync(proyecto);
         }
-        public async Task EliminarGrupo(long idGrupo)
+        public async Task EliminarGrupo(long idEvento,long idGrupo)
         {
-            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
+
+            if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
                 throw new Exception("No se pueden eliminar grupos fuera de la fase de inscripción");
 
-            var grupo = await _grupoRepo.GetByIdAsync(idGrupo);
-
-            if (grupo == null)
+            var grupo = await _grupoRepo.GetByIdAsync(idGrupo) ??
                 throw new Exception("Grupo no encontrado");
 
-            //eliminar proyectos asociados a ese grupo
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
 
             foreach (var pr in proyectos)
             {
                 await _proyectoRepo.DeleteAsync(pr);
             }
-            // eliminar participantes asociados a ese grupo
+
             var participantes = await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
 
             foreach (var p in participantes)
@@ -182,6 +183,7 @@ namespace Votify.LógicaNegocio.Domain
 
             await _grupoRepo.DeleteAsync(grupo);
         }
+
         /*
         public async Task AñadirParticipante(string correo, long idGrupo)
         {
@@ -214,5 +216,16 @@ namespace Votify.LógicaNegocio.Domain
 
             await _participanteRepo.DeleteAsync(participante);
         }*/ //PARA EL SPRINT 2
+        public FasesEvento ObtenerFaseActual(long idEvento)
+        {
+            var evento = _eventoRepo.GetByIdAsync(idEvento).Result
+                ?? throw new Exception("Evento no encontrado");
+
+            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            if (hoy <= evento.FechaFinInscripciones) return FasesEvento.Inscripciones;
+            if (hoy <= evento.FechaFinEntrega) return FasesEvento.Entregas;
+            if (hoy <= evento.FechaFinVotaciones) return FasesEvento.Votaciones;
+            return FasesEvento.Resultados;
+        }
     }
 }

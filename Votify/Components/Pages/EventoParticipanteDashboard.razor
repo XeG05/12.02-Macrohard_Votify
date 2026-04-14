@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @inject IEventoService Evento_Service
+@inject EventoParticipanteService EventoParticipante_Service
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -99,7 +100,7 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long CategoriaId { get; set; }
 
-    EventoParticipante? eventoParticipante;
+    Evento? evento;
     DashboardParticipanteDTO? dashboard;
 
     bool cargando = true;
@@ -120,11 +121,11 @@ else
         {
             var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
 
-            if (entradaEvento.Evento is EventoParticipante participante)
+            if (entradaEvento.TipoRol.Participantes != null)
             {
-                eventoParticipante = participante;
+                evento = entradaEvento.Evento;
 
-                dashboard = await eventoParticipante.ObtenerDashboard(CategoriaId);
+                dashboard = await EventoParticipante_Service.ObtenerDashboard(CategoriaId, correo, EventoId);
             }
             else
             {

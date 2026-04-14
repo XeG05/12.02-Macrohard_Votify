@@ -1,22 +1,21 @@
-﻿using System.Text.RegularExpressions;
-using Votify.Persistencia.Entities;
+﻿using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
-namespace Votify.LógicaNegocio.Domain
+namespace Votify.LógicaNegocio.Services
 {
-    public class EventoVotante : EventoBase
+    public class EventoVotanteService
     {
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
-        public EventoVotante(Evento evento, Usuario usuario, 
-            IRepository<Proyecto> proyectoRepo, 
-            IRepository<Participante> participanteRepo, 
+        public EventoVotanteService(
+            IRepository<Proyecto> proyectoRepo,
+            IRepository<Participante> participanteRepo,
             IRepository<Grupo> grupoRepo,
             IRepository<Usuario> usuarioRepo,
-            IRepository<Categorium> categoriumRepo) : base(evento, usuario)
+            IRepository<Categorium> categoriumRepo)
         {
             _proyectoRepo = proyectoRepo;
             _participanteRepo = participanteRepo;

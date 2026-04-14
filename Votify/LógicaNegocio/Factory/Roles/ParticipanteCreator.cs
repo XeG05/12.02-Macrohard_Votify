@@ -1,4 +1,5 @@
-﻿using Votify.Persistencia.Entities;
+﻿using Votify.LógicaNegocio.Domain;
+using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Factory.Roles

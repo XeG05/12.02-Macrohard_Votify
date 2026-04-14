@@ -1,8 +1,8 @@
 ﻿@page "/eventoadmin/{EventoId:long}/votaciones/{idCategoria:long}"
 @rendermode InteractiveServer
 
-
 @inject IEventoService EventoService
+@inject EventoAdministradorService EventoAdministradorService
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -25,7 +25,7 @@ else
             ← Volver al evento
         </button>
 
-        <h1>@eventoAdmin?.Nombre</h1>
+        <h1>@evento?.Nombre</h1>
         <p>@nombreCategoria</p>
 
         <span style="background:#f59e0b; padding:5px 10px; border-radius:10px;">
@@ -75,7 +75,7 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long idCategoria { get; set; }
 
-    EventoAdministrador? eventoAdmin;
+    Evento? evento;
 
     string nombreCategoria = "";
     int numeroProyectos;
@@ -101,21 +101,21 @@ else
         {
             var entradaEvento = await EventoService.EntrarEvento(correo, EventoId);
 
-            if (entradaEvento.Evento is EventoAdministrador admin)
+            if (entradaEvento.TipoRol.Administrador != null)
             {
-                eventoAdmin = admin;
+                evento = entradaEvento.Evento;
 
-                var categorias = await admin.VerCategoria();
+                var categorias = await EventoAdministradorService.VerCategorias(EventoId);
                 var categoria = categorias.FirstOrDefault(c => c.Id == idCategoria);
 
                 nombreCategoria = categoria?.Nombre ?? "Categoría";
 
-                var proyectos = await admin.VerProyectosCategoria(idCategoria);
+                var proyectos = await EventoAdministradorService.VerProyectosCategoria(idCategoria);
                 numeroProyectos = proyectos.Count;
 
-                totalVotos = await admin.TotalVotosCategoria(idCategoria);
+                totalVotos = await EventoAdministradorService.TotalVotosCategoria(idCategoria);
 
-                resumen = await admin.ObtenerResultadosCategoria(idCategoria);
+                resumen = await EventoAdministradorService.ObtenerResultadosCategoria(idCategoria);
             }
             else
             {

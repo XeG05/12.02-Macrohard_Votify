@@ -1,22 +1,23 @@
 ﻿using Votify.LógicaNegocio.Domain;
+using Votify.Persistencia.Entities;
 
 namespace Votify.LógicaNegocio.Services
 {
 
     public class EventoContextService
     {
-        private EventoBase? _eventoActual;
+        private Evento? _eventoActual;
         private string? _rolActual;
         private long? _idEventoActual;
 
-        public EventoBase? EventoActual => _eventoActual;
+        public Evento? EventoActual => _eventoActual;
         public string? RolActual => _rolActual;
         public long? IdEventoActual => _idEventoActual;
         public bool EstaEnEvento => _eventoActual != null;
 
         public event Action? OnCambio;
 
-        public void EstablecerEvento(EventoBase evento, string rol, long idEvento)
+        public void EstablecerEvento(Evento evento, string rol, long idEvento)
         {
             _eventoActual = evento;
             _rolActual = rol;

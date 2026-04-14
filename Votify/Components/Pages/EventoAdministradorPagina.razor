@@ -3,6 +3,7 @@
 
 @inject HttpClient Http
 @inject IEventoService Evento_Service
+@inject EventoAdministradorService EventoAdministradorService
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject IHttpClientFactory HttpFactory
@@ -24,8 +25,8 @@ else
             ← Volver
         </button>
 
-        <h1 style="margin:10px 0;">@eventoAdmin?.Nombre</h1>
-        <p style="color:#cbd5f5;">@eventoAdmin?.Descripcion</p>
+        <h1 style="margin:10px 0;">@evento?.Nombre</h1>
+        <p style="color:#cbd5f5;">@evento?.Descripcion</p>
 
         <span style="background:#f59e0b; padding:5px 10px; border-radius:10px;">
             Admin
@@ -83,7 +84,7 @@ else
 
                 <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
 
-                @if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
+                @if (EventoAdministradorService.ObtenerFaseActual(EventoId) == FasesEvento.Inscripciones)
                 {
                     <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
                 }
@@ -117,12 +118,12 @@ else
 
     <h3>Periodos</h3>
 
-    @if (eventoAdmin != null)
+    @if (evento != null)
     {
         <ul>
-            <li>Fin inscripciones: @eventoAdmin.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
-            <li>Fin entrega proyectos: @eventoAdmin.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
-            <li>Fin votaciones: @eventoAdmin.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
+            <li>Fin inscripciones: @evento.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
+            <li>Fin entrega proyectos: @evento.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
+            <li>Fin votaciones: @evento.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
         </ul>
     }
 
@@ -130,12 +131,12 @@ else
 
     <h3>Configuración</h3>
 
-    @if (eventoAdmin != null)
+    @if (evento != null)
     {
         <ul>
-            <li>Tiene grupos: @(eventoAdmin.TieneGrupos ? "Sí" : "No")</li>
-            <li>Grupos completos: @(eventoAdmin.GruposCompletos ? "Sí" : "No")</li>
-            <li>Participantes por grupo: @eventoAdmin.ParticipantesPorGrupo</li>
+            <li>Tiene grupos: @(evento.TieneGrupos ? "Sí" : "No")</li>
+            <li>Grupos completos: @(evento.GruposCompletos ? "Sí" : "No")</li>
+            <li>Participantes por grupo: @evento.ParticipantesPorGrupo</li>
         </ul>
     }
 }
@@ -150,7 +151,7 @@ else
 
     Dictionary<long, string> nuevoCorreoPorGrupo = new();
 
-    EventoAdministrador? eventoAdmin;
+    Evento evento;
 
     string nombreGrupoNuevo = "";
 
@@ -180,10 +181,10 @@ else
             var entradaEvento = await Http.GetFromJsonAsync<EntradaEventoDto>(
                 $"{Nav.BaseUri}api/evento/{EventoId}");*/
 
-            if (entradaEvento.Evento is EventoAdministrador admin)
+            if (entradaEvento.TipoRol.Administrador != null)
             {
-                eventoAdmin = admin;
-                categorias = await eventoAdmin.VerCategoria();
+                evento = entradaEvento.Evento;
+                categorias = await EventoAdministradorService.VerCategorias(EventoId);
             }
             else
             {
@@ -204,10 +205,10 @@ else
 
     async Task CargarGrupos(long idCategoria)
     {
-        if (eventoAdmin != null)
+        if (evento != null)
         {
             categoriaSeleccionadaId = idCategoria;
-            grupos = await eventoAdmin.VerGrupo(idCategoria);
+            grupos = await EventoAdministradorService.VerGrupo(idCategoria);
 
             foreach (var g in grupos)
             {
@@ -219,9 +220,9 @@ else
 
     async Task CargarParticipantes(long idGrupo)
     {
-        if (eventoAdmin != null)
+        if (evento != null)
         {
-            var participantes = await eventoAdmin.VerParticipantes(idGrupo);
+            var participantes = await EventoAdministradorService.VerParticipantes(idGrupo);
             participantesPorGrupo[idGrupo] = participantes;
         }
     }
@@ -238,20 +239,20 @@ else
 
     async Task CrearGrupo() //SPRINT 2
     {
-        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
+        if (evento != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
         && categoriaSeleccionadaId is long idCat)
         {
-            await eventoAdmin.AñadirGrupo(nombreGrupoNuevo, idCat);
+            await EventoAdministradorService.AñadirGrupo(nombreGrupoNuevo, idCat, EventoId);
             nombreGrupoNuevo = "";
-            grupos = await eventoAdmin.VerGrupo(idCat);
+            grupos = await EventoAdministradorService.VerGrupo(idCat);
         }
     }
 
     async Task EliminarGrupoUI(long idGrupo) //SPRINT 2
     {
-        if (eventoAdmin != null)
+        if (evento != null)
         {
-            await eventoAdmin.EliminarGrupo(idGrupo);
+            await EventoAdministradorService.EliminarGrupo(EventoId, idGrupo);
             grupos = null;
         }
     }

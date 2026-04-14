@@ -150,17 +150,7 @@ namespace Votify.LógicaNegocio.Services
 
             var rol = await ObtenerRol(correo, eventoId);
 
-            EventoCreator creator = rol switch
-            {
-                var r when r.Administrador != null => new EventoAdministradorCreator(_eventoRepo, _proyectoRepo, _participanteRepo, _categoriumRepo, _grupoRepo, _votoRepo),
-                var r when r.Participantes != null && r.Participantes.Any() => new EventoParticipanteCreator(_participanteRepo, _grupoRepo, _proyectoRepo, _categoriumRepo,  _usuarioRepo, _votoRepo, _comentarioRepo, grupoId),
-                var r when r.Votante != null => new EventoVotanteCreator(_proyectoRepo, _participanteRepo, _grupoRepo, _usuarioRepo, _categoriumRepo),
-                _ => throw new Exception("Rol no reconocido")
-            };
-
-            EventoBase eventoBase = creator.CrearEvento(evento, usuario);
-
-            return new EntradaEventoDto(eventoBase, rol);
+            return new EntradaEventoDto(evento, rol);
         }
 
         private async Task<Rol> ObtenerRol(string correo, long idEvento)
@@ -445,15 +435,14 @@ namespace Votify.LógicaNegocio.Services
 
             Voto nuevoVoto = new Voto(
                 criterioSeleccionado.Id,
-                1, // Nota por defecto
+                1,
                 correo,
-                idProyecto, // Importante: id del proyecto
+                idProyecto,
                 criterioSeleccionado,
                 pr,
                 rol
             );
 
-            // Forzamos asignar la propiedad ID para que no falle en BD
             nuevoVoto.IdRol = idEvento;
 
             pr.Votos ??= new List<Voto>();

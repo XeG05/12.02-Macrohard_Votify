@@ -1,54 +1,57 @@
-﻿using Votify.Persistencia.Entities;
+﻿using Votify.LógicaNegocio.Domain;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
+using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
-namespace Votify.LógicaNegocio.Domain
+namespace Votify.LógicaNegocio.Services
 {
-    public class EventoParticipante : EventoBase
+    public class EventoParticipanteService
     {
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;
+        private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly long? _grupoIdActivo;
 
-        public EventoParticipante(
-            Evento evento,
-            Usuario usuario,
+        public EventoParticipanteService(
             IRepository<Participante> participanteRepo,
             IRepository<Grupo> grupoRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Categorium> categoriumRepo,
+            IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             long? grupoIdActivo = null
-        ) : base(evento, usuario)
+        )
         {
             _participanteRepo = participanteRepo;
             _grupoRepo = grupoRepo;
             _proyectoRepo = proyectoRepo;
             _categoriumRepo = categoriumRepo;
+            _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _grupoIdActivo = grupoIdActivo;
         }
 
-        private async Task<Participante> ObtenerRegistroParticipante()
+        private async Task<Participante> ObtenerRegistroParticipante(
+    string correo, long idEvento, long? grupoIdActivo = null)
         {
-            var p = await _participanteRepo.FindAsync(p =>
-                p.Correo == usuario.Correo &&
-                p.Id == evento.Id);
+            var p = await _participanteRepo.FindAsync(x =>
+                x.Correo == correo &&
+                x.Id == idEvento);
 
             Participante? participante = null;
 
-            if (_grupoIdActivo.HasValue)
-                participante = p.FirstOrDefault(x => x.IdGrupo == _grupoIdActivo.Value);
+            if (grupoIdActivo.HasValue)
+                participante = p.FirstOrDefault(x => x.IdGrupo == grupoIdActivo.Value);
 
             participante ??= p.FirstOrDefault();
 
@@ -58,15 +61,15 @@ namespace Votify.LógicaNegocio.Domain
             return participante;
         }
 
-        public async Task<Grupo?> ObtenerMiGrupo()
+        public async Task<Grupo?> ObtenerMiGrupo(string correo, long idEvento, long? grupoIdActivo = null)
         {
-            var participante = await ObtenerRegistroParticipante();
+            var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
             return await _grupoRepo.GetByIdAsync(participante.IdGrupo);
         }
 
-        public async Task<List<(string Nombre, string Correo)>> ObtenerMiembrosGrupo()
+        public async Task<List<(string Nombre, string Correo)>> ObtenerMiembrosGrupo(string correo, long idEvento, long? grupoIdActivo = null)
         {
-            var participante = await ObtenerRegistroParticipante();
+            var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
 
             var participantesGrupo = await _participanteRepo.FindAsync(p =>
                 p.IdGrupo == participante.IdGrupo);
@@ -87,19 +90,19 @@ namespace Votify.LógicaNegocio.Domain
             return resultado;
         }
 
-        public async Task<Categorium?> ObtenerCategoriaGrupo()
+        public async Task<Categorium?> ObtenerCategoriaGrupo(string correo, long idEvento, long? grupoIdActivo = null)
         {
-            var grupo = await ObtenerMiGrupo();
+            var grupo = await ObtenerMiGrupo(correo, idEvento, grupoIdActivo);
             if (grupo == null) return null;
             return (await _categoriumRepo.FindAsync(c => c.Id == grupo.IdCategoria)).FirstOrDefault();
         }
 
-        public async Task<List<Categorium>> ObtenerCategoriasEvento()
+        public async Task<List<Categorium>> ObtenerCategoriasEvento(long idEvento)
         {
-            return await _categoriumRepo.FindAsync(c => c.IdEvento == evento.Id);
+            return await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
         }
 
-        public async Task<Proyecto?> ObtenerMiProyecto()
+        public async Task<Proyecto?> ObtenerMiProyecto(string correo, long idEvento, long? grupoIdActivo)
         {
             // (PABLO) LO QUE HABIA ANTES:
             /*
@@ -115,16 +118,16 @@ namespace Votify.LógicaNegocio.Domain
 
 
             //LO NUEVO CORREGIDO (CREO):
-            var participante = await ObtenerRegistroParticipante();
+            var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
 
             return (await _proyectoRepo
                 .FindAsync(p => p.IdGrupo == participante.IdGrupo))
                 .FirstOrDefault();
         }
 
-        public async Task<bool> TieneProyecto()
+        public async Task<bool> TieneProyecto(string correo, long idEvento, long? grupoIdActivo)
         {
-            var proyecto = await ObtenerMiProyecto();
+            var proyecto = await ObtenerMiProyecto(correo, idEvento, grupoIdActivo);
             return proyecto != null;
         }
 
@@ -133,12 +136,13 @@ namespace Votify.LógicaNegocio.Domain
             string descripcionBreve,
             string descripcionCompleta,
             byte[] archivo,
-            List<byte[]> imagenes)
+            List<byte[]> imagenes,
+            string correo, long idEvento, long? grupoIdActivo)
         {
             if (string.IsNullOrWhiteSpace(nombreProyecto))
                 throw new Exception("El nombre del proyecto es obligatorio.");
 
-            var participante = await ObtenerRegistroParticipante();
+            var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
             var grupo = await _grupoRepo.GetByIdAsync(participante.IdGrupo);
 
             if (grupo == null)
@@ -146,7 +150,7 @@ namespace Votify.LógicaNegocio.Domain
 
             var categoria = (await _categoriumRepo.FindAsync(c =>
                 c.Id == grupo.IdCategoria &&
-                c.IdEvento == evento.Id))
+                c.IdEvento == idEvento))
                 .FirstOrDefault();
 
             if (categoria == null)
@@ -200,7 +204,7 @@ namespace Votify.LógicaNegocio.Domain
             }
         }
 
-        public async Task EliminarProyecto()
+        public async Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo)
         {
             //(PABLO) LO QUE HABIA ANTES:
             /*
@@ -225,7 +229,7 @@ namespace Votify.LógicaNegocio.Domain
             }*/
 
             //LO NUEVO CORREGIDO (CREO):
-            var participante = await ObtenerRegistroParticipante();
+            var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
 
             var proyecto = (await _proyectoRepo
                 .FindAsync(p => p.IdGrupo == participante.IdGrupo))
@@ -236,14 +240,14 @@ namespace Votify.LógicaNegocio.Domain
 
             await _proyectoRepo.DeleteAsync(proyecto);
         }
-        public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria)
+        public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {
-            if (ObtenerFaseActual() != FasesEvento.Resultados)
+            if(ObtenerFaseActual(idEvento) != FasesEvento.Resultados)
             {
                 throw new Exception("Los resultados aún no están disponibles");
             }
 
-            var participaciones = await _participanteRepo.FindAsync(p => p.Correo == usuario.Correo && p.Id == evento.Id);
+            var participaciones = await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento);
             Participante? participante = null;
 
             foreach (var p in participaciones)
@@ -303,7 +307,7 @@ namespace Votify.LógicaNegocio.Domain
             var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id);
 
 
-         
+
 
             return new DashboardParticipanteDTO
             {
@@ -320,7 +324,16 @@ namespace Votify.LógicaNegocio.Domain
                 }).ToList()
             };
         }
+        public FasesEvento ObtenerFaseActual(long idEvento)
+        {
+            var evento = _eventoRepo.GetByIdAsync(idEvento).Result
+                ?? throw new Exception("Evento no encontrado");
+
+            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            if (hoy <= evento.FechaFinInscripciones) return FasesEvento.Inscripciones;
+            if (hoy <= evento.FechaFinEntrega) return FasesEvento.Entregas;
+            if (hoy <= evento.FechaFinVotaciones) return FasesEvento.Votaciones;
+            return FasesEvento.Resultados;
+        }
     }
 }
-        
- 

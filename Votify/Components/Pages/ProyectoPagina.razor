@@ -73,7 +73,7 @@
 
         @if (esVotante)
         {
-            @if (eventoBase?.ObtenerFaseActual() == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
+            @if (GetFaseClass(evento) == Votify.LógicaNegocio.Enums.FasesEvento.Votaciones)
             {
                 <div class="seccion-comentarios">
                     <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
@@ -109,7 +109,7 @@ else {
     [Parameter] public long idEvento { get; set; }
 
     Proyecto? proyecto;
-    Votify.LógicaNegocio.Domain.EventoBase? eventoBase;
+    Evento? evento;
     List<Usuario>? participantes;
 
     string nuevoComentario = "";
@@ -133,7 +133,7 @@ else {
 
     private async Task EmitirVoto(ChangeEventArgs e)
     {
-        if (eventoBase?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
+        if (GetFaseClass(evento) != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
 
         bool isChecked = (bool)(e.Value ?? false);
         if (!isChecked)
@@ -179,7 +179,7 @@ else {
 
     private async Task EnviarComentario()
     {
-        if (eventoBase?.ObtenerFaseActual() != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
+        if (GetFaseClass(evento) != Votify.LógicaNegocio.Enums.FasesEvento.Votaciones) return;
         if (string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
 
         var baseUrl = Nav.BaseUri;
@@ -276,7 +276,7 @@ else {
         {
             var entrada = await EventoService.EntrarEvento(correo, idEvento);
 
-            eventoBase = entrada.Evento;
+            evento = entrada.Evento;
             esVotante = entrada.TipoRol.Votante != null && entrada.TipoRol.Administrador == null && entrada.TipoRol.Jurado == null && (entrada.TipoRol.Participantes == null || !entrada.TipoRol.Participantes.Any());
 
             var baseUrl = Nav.BaseUri;
@@ -341,5 +341,15 @@ else {
         {
             StateHasChanged();
         }
+
+    }
+
+    private FasesEvento GetFaseClass(Evento ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return Votify.LógicaNegocio.Enums.FasesEvento.Inscripciones;
+        if (hoy <= ev.FechaFinEntrega) return Votify.LógicaNegocio.Enums.FasesEvento.Entregas;
+        if (hoy <= ev.FechaFinVotaciones) return Votify.LógicaNegocio.Enums.FasesEvento.Votaciones;
+        return Votify.LógicaNegocio.Enums.FasesEvento.Resultados;
     }
 }

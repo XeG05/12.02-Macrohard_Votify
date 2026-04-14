@@ -1,6 +1,7 @@
 ﻿@page "/eventoparticipante/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
 @inject IEventoService Evento_Service
+@inject EventoParticipanteService EventoParticipanteService
 @inject EventoContextService EventoCtx
 @inject NavigationManager Nav
 @inject BlazorAuthStateProvider AuthProvider
@@ -18,7 +19,7 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="epp-alert epp-alert-error">@error</div>
     </div>
 }
-else if (eventoParticipante is null)
+else if (evento is null)
 {
     <div class="epp-wrapper">
         <div class="epp-alert epp-alert-error">No se ha podido cargar el evento del participante.</div>
@@ -34,8 +35,8 @@ else
                 <div class="epp-hero-top">
                     <div>
                         <div class="epp-eyebrow">Panel de participante</div>
-                        <h1>@eventoParticipante.Nombre</h1>
-                        <p>@eventoParticipante.Descripcion</p>
+                        <h1>@evento.Nombre</h1>
+                        <p>@evento.Descripcion</p>
                     </div>
 
                     <div class="epp-hero-side">
@@ -45,7 +46,7 @@ else
                             @(tieneProyecto ? "Proyecto entregado" : "Entrega disponible")
                         </span>
 
-                        <span class="epp-phase-pill @GetFaseClass(eventoParticipante)">@GetFaseLabel(eventoParticipante)</span>
+                        <span class="epp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
                     </div>
                 </div>
             </div>
@@ -204,7 +205,8 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long? GrupoId { get; set; }
 
-    private EventoParticipante? eventoParticipante;
+    private string? correo = "";
+    private Evento? evento;
     private bool cargando = true;
     private string? error;
     private string? mensaje;
@@ -218,7 +220,7 @@ else
     {
         if (!firstRender) return;
 
-        var correo = AuthProvider.ObtenerCorreo();
+        correo = AuthProvider.ObtenerCorreo();
         if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
         {
             Nav.NavigateTo("/login");
@@ -229,27 +231,27 @@ else
         {
             var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
 
-            if (entradaEvento.Evento is EventoParticipante participante)
+            if (entradaEvento.TipoRol.Participantes != null)
             {
-                eventoParticipante = participante;
+                evento = entradaEvento.Evento;
             }
 
-            if (eventoParticipante == null)
+            if (evento == null)
             {
                 error = "No se ha podido cargar el evento como participante.";
                 return;
             }
 
-            try { EventoCtx.EstablecerEvento(entradaEvento.Evento, "PARTICIPANTE", EventoId); } catch { }
+            try { EventoCtx.EstablecerEvento(evento, "PARTICIPANTE", EventoId); } catch { }
 
-            var grupo = await eventoParticipante.ObtenerMiGrupo();
+            var grupo = await EventoParticipanteService.ObtenerMiGrupo(correo, EventoId, GrupoId);
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            var categoria = await eventoParticipante.ObtenerCategoriaGrupo();
+            var categoria = await EventoParticipanteService.ObtenerCategoriaGrupo(correo, EventoId, GrupoId);
             nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            miembrosGrupo = await eventoParticipante.ObtenerMiembrosGrupo();
-            tieneProyecto = await eventoParticipante.TieneProyecto();
+            miembrosGrupo = await EventoParticipanteService.ObtenerMiembrosGrupo(correo, EventoId, GrupoId);
+            tieneProyecto = await EventoParticipanteService.TieneProyecto(correo, EventoId, GrupoId);
         }
         catch (Exception ex)
         {
@@ -275,8 +277,8 @@ else
             return;
         }
 
-        if (GrupoId.HasValue)
-            Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}/{GrupoId.Value}");
+        if (GrupoId != null)
+            Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}/{GrupoId}");
         else
             Nav.NavigateTo($"/eventoparticipantepresentar/{EventoId}");
     }
@@ -290,10 +292,10 @@ else
     {
         try
         {
-            if (eventoParticipante == null)
+            if (evento == null)
                 return;
 
-            var grupo = await eventoParticipante.ObtenerMiGrupo();
+            var grupo = await EventoParticipanteService.ObtenerMiGrupo(correo, EventoId, GrupoId);
             if (grupo == null)
             {
                 error = "No estás en ningún grupo.";
@@ -315,10 +317,10 @@ else
 
         try
         {
-            if (eventoParticipante == null)
+            if (evento == null)
                 return;
 
-            await eventoParticipante.EliminarProyecto();
+            await EventoParticipanteService.EliminarProyecto(correo, EventoId, GrupoId);
             tieneProyecto = false;
             mensaje = "Proyecto eliminado correctamente.";
         }
@@ -341,7 +343,7 @@ else
         return string.Concat(partes);
     }
 
-    private string GetFaseLabel(EventoBase ev)
+    private string GetFaseLabel(Evento ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
@@ -350,7 +352,7 @@ else
         return "Finalizado";
     }
 
-    private string GetFaseClass(EventoBase ev)
+    private string GetFaseClass(Evento ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
@@ -361,29 +363,29 @@ else
 
     private bool EsFaseInscripcion()
     {
-        if (eventoParticipante == null) return false;
+        if (evento == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        return hoy <= eventoParticipante.FechaFinInscripciones;
+        return hoy <= evento.FechaFinInscripciones;
     }
 
     private bool EsFaseEntrega()
     {
-        if (eventoParticipante == null) return false;
+        if (evento == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        return hoy > eventoParticipante.FechaFinInscripciones && hoy <= eventoParticipante.FechaFinEntrega;
+        return hoy > evento.FechaFinInscripciones && hoy <= evento.FechaFinEntrega;
     }
 
     private bool EsFaseVotacion()
     {
-        if (eventoParticipante == null) return false;
+        if (evento == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        return hoy > eventoParticipante.FechaFinEntrega && hoy <= eventoParticipante.FechaFinVotaciones;
+        return hoy > evento.FechaFinEntrega && hoy <= evento.FechaFinVotaciones;
     }
 
     private bool EsFaseFinalizada()
     {
-        if (eventoParticipante == null) return false;
+        if (evento == null) return false;
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        return hoy > eventoParticipante.FechaFinVotaciones;
+        return hoy > evento.FechaFinVotaciones;
     }
 }
