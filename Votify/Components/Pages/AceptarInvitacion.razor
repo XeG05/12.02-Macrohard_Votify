@@ -1,6 +1,7 @@
 ﻿@page "/aceptar-invitacion/{Token}"
 @rendermode InteractiveServer
 @layout NoLayout
+@inject IInvitacionService InvitacionService
 @inject IRepository<Usuario> UsuarioRepo
 @inject UsuarioService UsuarioService
 @inject IRepository<Rol> RolRepo
@@ -37,7 +38,6 @@ else
 
         @if (usuarioExiste)
         {
-            <!-- Usuario ya tiene cuenta: mostrar login -->
             <p>Inicia sesión para confirmar tu participación:</p>
             <div class="input">
                 <p>Contraseña:</p>
@@ -47,7 +47,6 @@ else
         }
         else
         {
-            <!-- Usuario no tiene cuenta: mostrar registro -->
             <p>Crea tu cuenta para unirte:</p>
             <div class="input">
                 <p>Nombre:</p>
@@ -119,74 +118,16 @@ else
 
     async Task Aceptar()
     {
-        error = "";
         try
         {
-            if (invitacion == null) return;
+            var jwt = await InvitacionService.AceptarInvitacionAsync(
+                Token, contraseña, nombre, contraseña2);
 
-            Usuario? usuario;
-
-            if (usuarioExiste)
-            {
-                usuario = await UsuarioService.Login(
-                    invitacion.CorreoDestino, contraseña);
-            }
-            else
-            {
-                usuario = await UsuarioService.Register(
-                    nombre,
-                    invitacion.CorreoDestino,
-                    contraseña,
-                    contraseña2);
-            }
-
-            if (usuario == null)
-                throw new Exception("No se pudo autenticar.");
-
-            var evento = await EventoRepo.GetByIdAsync(invitacion.IdEvento)
-                ?? throw new Exception("Evento no encontrado.");
-
-            var rolExistente = await RolRepo.FindAsync(
-                r => r.CorreoUsuario == usuario.Correo &&
-                     r.IdEvento == invitacion.IdEvento);
-
-            if (!rolExistente.Any())
-            {
-                var rol = new Rol
-                {
-                    CorreoUsuario = usuario.Correo,
-                    IdEvento = invitacion.IdEvento,
-                    CorreoUsuarioNavigation = usuario,
-                    IdEventoNavigation = evento
-                };
-                await RolRepo.AddAsync(rol);
-            }
-
-            var participanteExistente = await ParticipanteRepo.FindAsync(
-                p => p.Correo == usuario.Correo &&
-                     p.IdGrupo == invitacion.IdGrupo);
-
-            if (!participanteExistente.Any())
-            {
-                var participante = new Participante
-                {
-                    Correo = usuario.Correo,
-                    Id = invitacion.IdEvento,
-                    IdGrupo = invitacion.IdGrupo
-                };
-                await ParticipanteRepo.AddAsync(participante);
-            }
-
-            invitacion.Aceptada = true;
-            await InvitacionRepo.UpdateAsync(invitacion);
-
-            var token = JwtService.GenerateToken(usuario);
-            await AuthProvider.MarcarAutenticado(token);
-
+            await AuthProvider.MarcarAutenticado(jwt);
             aceptada = true;
             StateHasChanged();
             await Task.Delay(1500);
-            Nav.NavigateTo($"/home");
+            Nav.NavigateTo("/home");
         }
         catch (Exception ex)
         {

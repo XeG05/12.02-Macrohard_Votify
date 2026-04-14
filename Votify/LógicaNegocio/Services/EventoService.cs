@@ -1,15 +1,19 @@
-﻿using Votify.LógicaNegocio.Domain;
+﻿using Microsoft.EntityFrameworkCore;
+using Votify.LógicaNegocio.Domain;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Factory;
+using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Votify.LógicaNegocio.Services
 {
     public class EventoService : Service<Evento>, IEventoService
     {
+        private readonly AdministradorCreator _adminCreator;
+        private readonly ParticipanteCreator _participanteCreator;
+        private readonly VotanteCreator _votanteCreator;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
@@ -24,10 +28,12 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
-        private readonly EventoCreator _eventoCreator;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
-        public EventoService(IRepository<Evento> eventoRepo,
+        public EventoService(AdministradorCreator adminC, 
+            ParticipanteCreator participanteC, 
+            VotanteCreator votanteC,
+            IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Participante> participanteRepo,
@@ -41,10 +47,12 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
-            EventoCreator eventoCreator,
             IEmailService emailService,
             IConfiguration config) : base(eventoRepo)
         {
+            _adminCreator = adminC;
+            _participanteCreator = participanteC;
+            _votanteCreator = votanteC;
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
             _proyectoRepo = proyectoRepo;
@@ -59,7 +67,6 @@ namespace Votify.LógicaNegocio.Services
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
-            _eventoCreator = eventoCreator;
             _emailService = emailService;
             _config = config;
         }
@@ -181,39 +188,8 @@ namespace Votify.LógicaNegocio.Services
             return rol;
         }
 
-        private async Task AsignarVotanteAsync(string correo, long idEvento)
-        {
-            var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correo)).First();
-            var evento = await _eventoRepo.GetByIdAsync(idEvento)
-                ?? throw new Exception("Evento no encontrado");
-
-            var rolExistente = await _rolRepo.FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento);
-
-            Rol rol;
-            if (!rolExistente.Any())
-            {
-                rol = new Rol
-                {
-                    CorreoUsuario = correo,
-                    IdEvento = idEvento,
-                    CorreoUsuarioNavigation = usuario,
-                    IdEventoNavigation = evento
-                };
-                await _rolRepo.AddAsync(rol);
-            }
-            else
-            {
-                rol = rolExistente.First();
-            }
-
-            var nuevoVotante = new Votante
-            {
-                Correo = correo,
-                Id = idEvento,
-                Rol = rol
-            };
-            await _votanteRepo.AddAsync(nuevoVotante);
-        }
+        private Task AsignarVotanteAsync(string correo, long idEvento)
+        => _votanteCreator.AsignarAsync(correo, idEvento);
 
         public async Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto)
         {
@@ -255,7 +231,7 @@ namespace Votify.LógicaNegocio.Services
                 Rol = rol
             };
 
-            await _adminRepo.AddAsync(admin);
+            await _adminCreator.AsignarAsync(correoCreador, evento.Id);
 
             foreach (var catDto in dto.Categorias)
             {

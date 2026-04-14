@@ -6,6 +6,7 @@ using System.Text;
 using Votify.Auth;
 using Votify.Components;
 using Votify.LógicaNegocio.Factory;
+using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
@@ -14,9 +15,10 @@ using Votify.Persistencia.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<EventoCreator, EventoVotanteCreator>();
-builder.Services.AddScoped<EventoCreator, EventoAdministradorCreator>();
-builder.Services.AddScoped<EventoCreator, EventoParticipanteCreator>();
+builder.Services.AddScoped<AdministradorCreator>();
+builder.Services.AddScoped<ParticipanteCreator>();
+builder.Services.AddScoped<VotanteCreator>();
+builder.Services.AddScoped<JuradoCreator>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EventoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

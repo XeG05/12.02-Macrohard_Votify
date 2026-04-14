@@ -15,11 +15,9 @@ namespace Votify.LógicaNegocio.Services
 
         public async  Task<Usuario?> Login(string correo, string contraseña)
         {
-            var usuarios = await repository.GetAllAsync();
+            var usuario = (await repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
-            var usuario = usuarios.FirstOrDefault(u => u.Correo == correo);
-
-            if(usuario == null) { throw new Exception("Ese usuario no existe"); }
+            if (usuario == null) { throw new Exception("Ese usuario no existe"); }
 
             if(usuario.Contraseña != contraseña){ throw new Exception("Contraseña incorrecta"); }
 
@@ -31,9 +29,9 @@ namespace Votify.LógicaNegocio.Services
         {
             if(contraseña != contraseñaRepetida) { throw new Exception("Las contraseñas no coinciden"); }
 
-            var usuarios = await repository.GetAllAsync();
+            var usuarioExiste = (await repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
-            if (usuarios.Any(u => u.Correo == correo)) { throw new Exception("El correo ya está registrado"); }
+            if (usuarioExiste != null) { throw new Exception("El correo ya está registrado"); }
 
             var usuario = new Usuario
             {
