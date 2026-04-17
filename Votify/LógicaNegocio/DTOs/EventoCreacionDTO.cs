@@ -13,7 +13,7 @@ namespace Votify.LógicaNegocio.DTOs
         public bool GruposCompletos { get; set; }
         public int NumParticipantes { get; set; } = 1;
 
-        public List<CategoriaCreacionDto> Categorias { get; set; } = new();
+        public List<CategoriaDto> Categorias { get; set; } = new();
 
         public (bool esValido, string error) Validar()
         {

@@ -9,21 +9,18 @@ namespace Votify.LógicaNegocio.Services
     public class InvitacionService : IInvitacionService
     {
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
-        private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly ParticipanteCreator _participanteCreator;
-        private readonly UsuarioService _usuarioService;
+        private readonly IUsuarioService _usuarioService;
         private readonly JwtService _jwtService;
 
         public InvitacionService(IRepository<InvitacionPendiente> invitacionRepo,
-            IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
             ParticipanteCreator participanteCreator,
-            UsuarioService usuarioService,
+            IUsuarioService usuarioService,
             JwtService jwtService)
         {
             _invitacionRepo = invitacionRepo;
-            _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
             _participanteCreator = participanteCreator;
             _usuarioService = usuarioService;

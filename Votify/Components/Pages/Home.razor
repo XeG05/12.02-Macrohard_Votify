@@ -1,6 +1,6 @@
 ﻿@page "/home"
 @rendermode InteractiveServer
-@inject IEventoService EventoService
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -94,7 +94,7 @@
                     {
                         var eventoId = part.Evento.Id;
                         var ev = part.Evento;
-                        var rolTxt = part.RolTexto;
+                        var rolTxt = part.Rol;
                         var grupoId = part.Grupo?.Id;
                         <div class="evento-card" @onclick="() => IrAEventoParticipante(eventoId, grupoId)">
                             <div class="evento-card-top">
@@ -176,9 +176,9 @@
 @code {
     private string nombre = "";
     private bool cargando = true;
-    private List<Evento> eventosCreados = new();
-    private List<(Evento Evento, string RolTexto, Grupo? Grupo)> participacionesDetalladas = new();
-    private List<Evento> eventosDisponibles = new();
+    private List<EventoDto> eventosCreados = new();
+    private List<ParticipacionDto> participacionesDetalladas = new();
+    private List<EventoDto> eventosDisponibles = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -190,18 +190,19 @@
             return;
         }
 
-        var correo = AuthProvider.ObtenerCorreo()!;
-        nombre = AuthProvider.ObtenerNombre() ?? correo;
+        nombre = AuthProvider.ObtenerNombre() ?? AuthProvider.ObtenerCorreo() ?? "";
 
         try
         {
-            eventosCreados = await EventoService.GetEventosCreados(correo);
-            participacionesDetalladas = await EventoService.GetParticipacionesDetalladas(correo);
-            eventosDisponibles = await EventoService.GetEventosDisponibles(correo);
+            eventosCreados = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/creados") ?? new();
+
+            participacionesDetalladas = await ApiClient.GetFromJsonAsync<List<ParticipacionDto>>("api/evento/participacion-detallada") ?? new();
+
+            eventosDisponibles = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/disponibles") ?? new();
         }
-        catch
+        catch (Exception e)
         {
-            // Si falla la carga, simplemente dejamos las listas vacías
+            Console.WriteLine(e.Message);
         }
         finally
         {
@@ -210,7 +211,7 @@
         }
     }
 
-    private string GetFaseLabel(Evento ev)
+    private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
@@ -219,7 +220,7 @@
         return "Finalizado";
     }
 
-    private string GetFaseClass(Evento ev)
+    private string GetFaseClass(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";

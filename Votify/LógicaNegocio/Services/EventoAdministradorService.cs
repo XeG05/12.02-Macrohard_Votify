@@ -1,12 +1,12 @@
-﻿using Votify.LógicaNegocio.Domain;
-using Votify.LógicaNegocio.DTOs;
+﻿using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Services
 {
-    public class EventoAdministradorService
+    public class EventoAdministradorService : IEventoAdministradorService
     {
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Categorium> _categoriumRepo;

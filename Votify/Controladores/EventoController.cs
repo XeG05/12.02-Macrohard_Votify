@@ -3,28 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Interfaces;
+using Votify.Persistencia.Entities;
 
 namespace Votify.Controladores
 {
-
-    public class ComentarioRequest
-    {
-        public long IdEvento { get; set; }
-        public long IdProyecto { get; set; }
-        public string Comentario { get; set; } = string.Empty;
-    }
-
-    public class VotoRequest
-    {
-        public long IdEvento { get; set; }
-        public long IdProyecto { get; set; }
-        public long IdCriterio { get; set; }
-        public int? Nota { get; set; }
-    }
-
     [ApiController]
-    [Route("api/[controller]")]
-    [Authorize] //Hay que implementar JW Token para que detecte si estan logueados o no los usuarios,lo dejamos para mas adelante
+    [Route("api/evento")]
+    [Authorize]
     public class EventoController : ControllerBase
     {
         private readonly IEventoService _eventoService;
@@ -37,6 +22,59 @@ namespace Votify.Controladores
         private string? ObtenerCorreo()
             => User.FindFirst(ClaimTypes.Name)?.Value;
 
+        // ── Mappers ──────────────────────────────────────────────────────
+
+        private static EventoDto MapEvento(Evento e) => new()
+        {
+            Id = e.Id,
+            Nombre = e.Nombre,
+            Descripcion = e.Descripcion ?? "",
+            FechaFinInscripciones = e.FechaFinInscripciones,
+            FechaFinEntrega = e.FechaFinEntrega,
+            FechaFinVotaciones = e.FechaFinVotaciones,
+            TieneGrupos = e.TieneGrupos,
+            GruposCompletos = e.GruposCompletos,
+            ParticipantesPorGrupo = e.ParticipantesPorGrupo
+        };
+
+        private static GrupoDto MapGrupo(Grupo g) => new()
+        {
+            Id = g.Id,
+            Nombre = g.Nombre,
+            IdCategoria = g.IdCategoria
+        };
+
+        private static CategoriaDto MapCategoria(Categorium c) => new()
+        {
+            Id = c.Id,
+            Nombre = c.Nombre,
+            Descripcion = c.Descripcion ?? "",
+            IdEvento = c.IdEvento,
+            PonderacionPopular = c.PonderacionPopular,
+            PonderacionExperto = c.PonderacionExperto,
+            Criterios = c.Criterios?.Select(cr => new CriterioDto
+            {
+                Id = cr.Id,
+                Nombre = cr.Nombre,
+                Descripcion = cr.Descripcion ?? ""
+            }).ToList() ?? new()
+        };
+
+        private static ProyectoDto MapProyecto(Proyecto p) => new()
+        {
+            Id = p.Id,
+            Nombre = p.Nombre,
+            IdGrupo = p.IdGrupo,
+            DescripcionBreve = p.DescripcionBreve,
+            Descripcion = p.Descripcion
+        };
+
+        private static MiembroGrupoDto MapMiembro(Usuario u) => new()
+        {
+            Nombre = u.Nombre,
+            Correo = u.Correo
+        };
+
         /// Eventos creados por el usuario autenticado.
         [HttpGet("creados")]
         public async Task<IActionResult> GetEventosCreados()
@@ -45,7 +83,7 @@ namespace Votify.Controladores
             if (correo is null) return Unauthorized();
 
             var eventos = await _eventoService.GetEventosCreados(correo);
-            return Ok(eventos);
+            return Ok(eventos.Select(MapEvento));
         }
 
         /// Eventos en los que el usuario autenticado participa (no como admin).
@@ -56,7 +94,7 @@ namespace Votify.Controladores
             if (correo is null) return Unauthorized();
 
             var eventos = await _eventoService.GetEventosParticipacion(correo);
-            return Ok(eventos);
+            return Ok(eventos.Select(MapEvento));
         }
 
         /// Eventos disponibles que el usuario puede votar.
@@ -67,7 +105,22 @@ namespace Votify.Controladores
             if (correo is null) return Unauthorized();
 
             var eventos = await _eventoService.GetEventosDisponibles(correo);
-            return Ok(eventos);
+            return Ok(eventos.Select(MapEvento));
+        }
+        /// Eventos con rol y grupo detallado (para Home).
+        [HttpGet("participacion-detallada")]
+        public async Task<IActionResult> GetParticipacionDetallada()
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            var participaciones = await _eventoService.GetParticipacionesDetalladas(correo);
+            return Ok(participaciones.Select(p => new ParticipacionDto
+            {
+                Evento = MapEvento(p.Evento),
+                Rol = p.RolTexto,
+                Grupo = p.Grupo != null ? MapGrupo(p.Grupo) : null
+            }));
         }
 
         /// Entra a un evento concreto
@@ -80,7 +133,17 @@ namespace Votify.Controladores
             try
             {
                 var entrada = await _eventoService.EntrarEvento(correo, eventoId);
-                return Ok(entrada);
+                return Ok(new EntradaEventoRespuestaDto
+                {
+                    Evento = MapEvento(entrada.Evento),
+                    Rol = new RolInfoDto
+                    {
+                        EsAdministrador = entrada.TipoRol.Administrador != null,
+                        EsParticipante = entrada.TipoRol.Participantes.Any(),
+                        EsVotante = entrada.TipoRol.Votante != null,
+                        EsJurado = entrada.TipoRol.Jurado != null
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -99,12 +162,45 @@ namespace Votify.Controladores
             {
                 var evento = await _eventoService.CrearEvento(correo, dto);
                 // 201 Created con la ruta al nuevo recurso
-                return CreatedAtAction(nameof(EntrarEvento), new { eventoId = evento.Id }, evento);
+                return CreatedAtAction(nameof(EntrarEvento), new { eventoId = evento.Id }, MapEvento(evento));
             }
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        [HttpGet("{eventoId:long}/proyectos")]
+        public async Task<IActionResult> GetProyectos(long eventoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            var proyectos = await _eventoService.ListaProyectos(eventoId);
+            return Ok(proyectos.Select(MapProyecto));
+        }
+
+        /// Categorías de un evento (con criterios incluidos).
+        [HttpGet("{eventoId:long}/categorias")]
+        public async Task<IActionResult> GetCategorias(long eventoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            var categorias = await _eventoService.CategoriasDelEvento(eventoId);
+            return Ok(categorias.Select(MapCategoria));
+        }
+
+        /// Datos de un grupo concreto.
+        [HttpGet("grupo/{grupoId:long}")]
+        public async Task<IActionResult> GetGrupo(long grupoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            var grupo = await _eventoService.GrupoProyecto(grupoId);
+            if (grupo is null) return NotFound(new { error = "Grupo no encontrado" });
+            return Ok(MapGrupo(grupo));
         }
 
         /// Recupera un proyecto por su Id.
@@ -117,11 +213,8 @@ namespace Votify.Controladores
             try
             {
                 var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
-                if (proyecto == null)
-                {
-                    return NotFound(new { error = "Proyecto no encontrado" });
-                }
-                return Ok(proyecto);
+                if (proyecto is null) return NotFound(new { error = "Proyecto no encontrado" });
+                return Ok(MapProyecto(proyecto));
             }
             catch (Exception ex)
             {
@@ -138,11 +231,8 @@ namespace Votify.Controladores
             try
             {
                 var participantes = await _eventoService.ParticipantesGrupo(grupoId);
-                if (participantes == null)
-                {
-                    return NotFound(new { error = "Grupo o participantes no encontrado/s" });
-                }
-                return Ok(participantes);
+                if (participantes is null) return NotFound(new { error = "Grupo o participantes no encontrado/s" });
+                return Ok(participantes.Select(MapMiembro));
             }
             catch (Exception ex)
             {
@@ -179,10 +269,7 @@ namespace Votify.Controladores
             try
             {
                 var comentario = await _eventoService.ObtenerComentarioUsuario(proyectoId, correo);
-                if (comentario == null)
-                {
-                    return NoContent();
-                }
+                if (comentario is null) return NoContent();
 
                 // IMPORTANTE: Devolvemos sólo las propiedades necesarias como objeto anónimo para evitar un problema de
                 // referencia circular (el Comentario llama al Proyecto que llama a los Comentarios por la base de datos).
@@ -206,7 +293,7 @@ namespace Votify.Controladores
                 var info = await _eventoService.ObtenerInfoVotoSimple(eventoId, proyectoId, correo);
                 int votosRestantes = Math.Max(0, 3 - info.VotosTotales);
 
-                return Ok(new { HaVotado = info.HaVotado, VotosRestantes = votosRestantes });
+                return Ok(new { HaVotado = info.HaVotado, VotosRestantes = Math.Max(0, 3 - info.VotosTotales) });
             }
             catch (Exception ex)
             {

@@ -183,27 +183,27 @@ else
 
     private void AñadirCategoria()
     {
-        dto.Categorias.Add(new CategoriaCreacionDto());
+        dto.Categorias.Add(new CategoriaDto());
     }
 
-    private void EliminarCategoria(CategoriaCreacionDto cat)
+    private void EliminarCategoria(CategoriaDto cat)
     {
         dto.Categorias.Remove(cat);
     }
 
-    private void AñadirCriterio(CategoriaCreacionDto cat)
+    private void AñadirCriterio(CategoriaDto cat)
     {
-        cat.Criterios.Add(new CriterioCreacionDto());
+        cat.Criterios.Add(new CriterioDto());
     }
 
-    private void EliminarCriterio(CategoriaCreacionDto cat, CriterioCreacionDto crit)
+    private void EliminarCriterio(CategoriaDto cat, CriterioDto crit)
     {
         cat.Criterios.Remove(crit);
     }
 
-    private void AñadirGrupo(CategoriaCreacionDto cat)
+    private void AñadirGrupo(CategoriaDto cat)
     {
-        cat.Grupos.Add(new GrupoCreacionDto
+        cat.Grupos.Add(new GrupoDto
         {
             CorreosParticipantes = Enumerable
                 .Repeat(string.Empty, dto.NumParticipantes)
@@ -211,7 +211,7 @@ else
         });
     }
 
-    private void EliminarGrupo(CategoriaCreacionDto cat, GrupoCreacionDto grupo)
+    private void EliminarGrupo(CategoriaDto cat, GrupoDto grupo)
     {
         cat.Grupos.Remove(grupo);
     }

@@ -1,14 +1,7 @@
 ﻿@page "/aceptar-invitacion/{Token}"
 @rendermode InteractiveServer
 @layout NoLayout
-@inject IInvitacionService InvitacionService
-@inject IRepository<Usuario> UsuarioRepo
-@inject UsuarioService UsuarioService
-@inject IRepository<Rol> RolRepo
-@inject IRepository<Participante> ParticipanteRepo
-@inject IRepository<Evento> EventoRepo
-@inject IRepository<InvitacionPendiente> InvitacionRepo
-@inject JwtService JwtService
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -96,20 +89,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var lista = await InvitacionRepo.FindAsync(
-            i => i.Token == Token &&
-                 !i.Aceptada &&
-                 i.FechaExpiracion > DateTime.UtcNow);
+        var lista = await ApiClient.GetFromJsonAsync<List<InvitacionPendiente>>($"api/invitacion?token={Token}&aceptada=false&fechaExpiracion>{DateTime.UtcNow}");
+        if(lista == null || !lista.Any())
+        {
+            cargando = false;
+            return;
+        }
         invitacion = lista.FirstOrDefault();
 
         if (invitacion != null)
         {
-            var evento = await EventoRepo.GetByIdAsync(invitacion.IdEvento);
+            var evento = await ApiClient.GetFromJsonAsync<Evento>($"api/evento/{invitacion.IdEvento}");
             nombreEvento = evento?.Nombre ?? "";
 
             // Comprobar si ya tiene cuenta
-            var usuarios = await UsuarioRepo.FindAsync(
-                u => u.Correo == invitacion.CorreoDestino);
+            var usuarios = await ApiClient.GetFromJsonAsync<List<Usuario>>($"api/usuario?correo={invitacion.CorreoDestino}");
+            if(usuarios == null)
+                usuarios = new List<Usuario>();
             usuarioExiste = usuarios.Any();
         }
 
@@ -120,14 +116,24 @@ else
     {
         try
         {
-            var jwt = await InvitacionService.AceptarInvitacionAsync(
-                Token, contraseña, nombre, contraseña2);
-
-            await AuthProvider.MarcarAutenticado(jwt);
-            aceptada = true;
-            StateHasChanged();
-            await Task.Delay(1500);
-            Nav.NavigateTo("/home");
+            var jwt = await ApiClient.PostAnonymousAsync("api/invitacion/aceptar", new { Token, contraseña, nombre, contraseña2 });
+            if(jwt.IsSuccessStatusCode)
+            {
+                var jwtString = await jwt.Content.ReadAsStringAsync();
+                if(string.IsNullOrEmpty(jwtString))
+                {
+                    error = "Error al procesar la invitación.";
+                    return;
+                }
+                else
+                {
+                    await AuthProvider.MarcarAutenticado(jwtString);
+                    aceptada = true;
+                    StateHasChanged();
+                    await Task.Delay(1500);
+                    Nav.NavigateTo("/home");
+                }
+            }
         }
         catch (Exception ex)
         {

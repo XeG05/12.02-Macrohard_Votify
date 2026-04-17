@@ -1,31 +1,46 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Votify.Auth;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Interfaces;
-using Votify.Persistencia.Entities;
 
 namespace Votify.Controladores
 {
     [ApiController]
-    [Route("api/[controller]")]
-    //[Authorize] mas adelante
+    [Route("api/usuario")]
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _usuarioService;
-        public UsuarioController(IUsuarioService usuarioService)
+        private readonly JwtService _jwtService;
+        public UsuarioController(IUsuarioService usuarioService, JwtService jwtService)
         {
             _usuarioService = usuarioService;
+            _jwtService = jwtService;
         }
 
-        [HttpGet("login")]
-        public async Task<Usuario?> Login(string correo, string contraseña)
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            return await _usuarioService.Login(correo, contraseña);
+            var usuario = await _usuarioService.Login(loginDto.Correo, loginDto.Contraseña);
+            if (usuario == null)
+            {
+                return Unauthorized();
+            }
+            var token = _jwtService.GenerateToken(usuario);
+            return Ok(new AuthDto { Token = token, Correo = usuario.Correo, Nombre = usuario.Nombre});
+
         }
 
-        [HttpGet("register")]
-        public async Task<Usuario?> Register(string nombre, string correo, string contraseña, string contraseñaRepetida)
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegistroDto registroDto)
         {
-            return await _usuarioService.Register(nombre, correo, contraseña, contraseñaRepetida);
+            var usuario = await _usuarioService.Register(registroDto.Nombre, registroDto.Correo, registroDto.Contraseña, registroDto.ConfirmarContraseña);
+            if (usuario == null) return BadRequest(new { error = "Error al registrar el usuario" });
+            var token = _jwtService.GenerateToken(usuario);
+            return Created(string.Empty, new AuthDto{
+                Token = token, Correo = usuario.Correo, Nombre = usuario.Nombre });
         }
     }
 }

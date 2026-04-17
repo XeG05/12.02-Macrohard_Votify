@@ -1,9 +1,10 @@
-﻿using Votify.Persistencia.Entities;
+﻿using Votify.LógicaNegocio.Interfaces;
+using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Services
 {
-    public class EventoVotanteService
+    public class EventoVotanteService : IEventoVotanteService
     {
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Participante> _participanteRepo;

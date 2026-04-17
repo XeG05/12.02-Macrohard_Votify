@@ -1,8 +1,7 @@
 ﻿@page "/"
 @page "/login"
-@rendermode InteractiveServer
-@inject IUsuarioService UsuarioService
-@inject JwtService JwtService
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @layout NoLayout
@@ -49,13 +48,22 @@
  
         try
         {
-            var usuario = await UsuarioService.Login(correo, contraseña);
- 
-            if (usuario != null)
+            var response = await ApiClient.PostAnonymousAsync("api/usuario/login", new { correo, contraseña });
+
+            if (response.IsSuccessStatusCode)
             {
-                var token = JwtService.GenerateToken(usuario);
-                await AuthProvider.MarcarAutenticado(token);
-                Nav.NavigateTo("/home");
+                var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
+                if (auth != null)
+                {
+                    await AuthProvider.MarcarAutenticado(auth.Token);
+                    Nav.NavigateTo("/home");
+                }
+            }
+            else
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensaje = err?.Error ?? "Credenciales incorrectas";
+                error = true;
             }
         }
         catch (Exception ex)

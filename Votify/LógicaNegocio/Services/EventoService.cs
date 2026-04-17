@@ -344,16 +344,18 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<List<Categorium>> CategoriasDelEvento(long idEvento)
         {
-            return await _categoriumRepo.FindAsync(c => c.IdEvento == idEvento);
+            return await _categoriumRepo.AsQueryable()
+                .Where(c => c.IdEvento == idEvento)
+                .Include(c => c.Criterios)
+                .ToListAsync();
         }
 
         public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
         {
-            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
-            if (pr == null) throw new Exception("Proyecto no encontrado.");
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) ?? throw new Exception("Proyecto no encontrado.");
 
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault();
-            if (rol == null) throw new Exception("Rol no encontrado para el usuario en este evento.");
+            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault() ?? 
+                throw new Exception("Rol no encontrado para el usuario en este evento.");
 
             Comentario comentario1 = new Comentario
             (

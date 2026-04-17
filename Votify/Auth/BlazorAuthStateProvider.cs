@@ -36,9 +36,9 @@ namespace Votify.Auth
                     }
                     _initialized = true;
                 }
-                catch
+                catch (Exception ex) 
                 {
-
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
 
@@ -53,7 +53,9 @@ namespace Votify.Auth
                 _currentUser = principal;
                 _initialized = true; // ← evita que sobreescriba el estado tras login
                 await _js.InvokeVoidAsync("authStorage.saveToken", jwtToken);
-                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+                NotifyAuthenticationStateChanged(
+                    Task.FromResult(new AuthenticationState(_currentUser))
+                );
             }
         }
 
@@ -62,7 +64,9 @@ namespace Votify.Auth
             _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
             _initialized = true;
             await _js.InvokeVoidAsync("authStorage.removeToken");
-            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+            NotifyAuthenticationStateChanged(
+                Task.FromResult(new AuthenticationState(_currentUser))
+            );
         }
 
         public async Task<string?> ObtenerToken()

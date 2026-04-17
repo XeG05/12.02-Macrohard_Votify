@@ -1,0 +1,15 @@
+﻿namespace Votify.LógicaNegocio.DTOs
+{
+    public class EventoDto
+    {
+        public long Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Descripcion { get; set; } = string.Empty;
+        public DateOnly FechaFinInscripciones { get; set; }
+        public DateOnly FechaFinEntrega { get; set; }
+        public DateOnly FechaFinVotaciones { get; set; }
+        public bool TieneGrupos { get; set; }
+        public bool GruposCompletos { get; set; }
+        public int ParticipantesPorGrupo { get; set; }
+    }
+}

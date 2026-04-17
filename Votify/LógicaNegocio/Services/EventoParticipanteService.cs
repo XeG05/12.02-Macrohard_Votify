@@ -1,12 +1,12 @@
-﻿using Votify.LógicaNegocio.Domain;
-using Votify.LógicaNegocio.DTOs;
+﻿using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
 namespace Votify.LógicaNegocio.Services
 {
-    public class EventoParticipanteService
+    public class EventoParticipanteService : IEventoParticipanteService
     {
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IRepository<Grupo> _grupoRepo;
@@ -41,8 +41,7 @@ namespace Votify.LógicaNegocio.Services
             _grupoIdActivo = grupoIdActivo;
         }
 
-        private async Task<Participante> ObtenerRegistroParticipante(
-    string correo, long idEvento, long? grupoIdActivo = null)
+        public async Task<Participante> ObtenerRegistroParticipante(string correo, long idEvento, long? grupoIdActivo = null)
         {
             var p = await _participanteRepo.FindAsync(x =>
                 x.Correo == correo &&

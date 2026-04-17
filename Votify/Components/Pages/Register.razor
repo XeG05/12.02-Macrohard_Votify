@@ -1,6 +1,8 @@
 ﻿@page "/register"
-@rendermode InteractiveServer
-@inject IUsuarioService UsuarioService
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
 @layout NoLayout
 
 <div class="layout">
@@ -23,9 +25,11 @@
         <input @bind="contraseña2" type="password" placeholder="Inserte su contraseña de nuevo" />
     </div>
     <div class="button">
-        <button @onclick="register">Registrarse</button>
+        <button @onclick="register" disabled="@cargando">
+            @(cargando ? "Registrando..." : "Registrarse")
+        </button>
     </div>
-    <p>@mensaje</p>
+    <p class="@(error ? "error" : "ok")">@mensaje</p>
     <div class="options">
         <NavLink href="/login">¿Ya tienes cuenta? Inicia sesión</NavLink>
     </div>
@@ -39,20 +43,42 @@
     string contraseña = "";
     string contraseña2 = "";
     string mensaje = "Registro de ejemplo";
+    bool error = false;
+    bool cargando = false;
 
 
     async Task register()
     {
-        
+
         mensaje = "Intentando registrar";
         try
         {
-            await UsuarioService.Register(nombre, correo, contraseña, contraseña2);
-            mensaje = "Usuario creado";
+            var response = await ApiClient.PostAnonymousAsync("api/usuario/register", new { nombre, correo, contraseña, contraseña2 });
+            if (response.IsSuccessStatusCode)
+            {
+                var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
+                if(auth != null)
+                {
+                    await AuthProvider.MarcarAutenticado(auth.Token);
+                    Nav.NavigateTo("/home");
+                }
+            }
+            else
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensaje = err?.Error ?? "Formato de datos incorrecto";
+                error = true;
+            }
+        mensaje = "Usuario creado";
         }
         catch (Exception ex)
         {
             mensaje = ex.Message;
+            error = true;
+        }
+        finally
+        {
+            cargando = false;
         }
     }
 }
