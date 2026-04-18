@@ -145,7 +145,7 @@ else {
             IdProyecto = idProyecto
         };
 
-        var response = await ApiClient.PostAsJsonAsync("api/Evento/proyecto/votar", peticion);
+        var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/votar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
@@ -176,7 +176,7 @@ else {
             Comentario = nuevoComentario
         };
 
-        var response = await ApiClient.PostAsJsonAsync("api/Evento/proyecto/comentar", peticion);
+        var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/comentar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
@@ -255,18 +255,18 @@ else {
             esVotante = entrada.Rol.EsVotante && !entrada.Rol.EsAdministrador
             && !entrada.Rol.EsJurado && !entrada.Rol.EsParticipante;
 
-            proyecto = await ApiClient.GetFromJsonAsync<ProyectoDto>($"api/Evento/proyecto/{idProyecto}");
+            proyecto = await ApiClient.GetFromJsonAsync<ProyectoDto>($"api/evento/proyecto/{idProyecto}");
             if(proyecto == null)
             {
                 errorMessage = "No se pudo cargar el proyecto. Por favor, inténtalo de nuevo más tarde.";
                 return;
             }
-            participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/Evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
+            participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
 
             // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
             try
             {
-                var responseComentario = await ApiClient.GetAsync($"api/Evento/proyecto/{idProyecto}/comentario/usuario");
+                var responseComentario = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/comentario/usuario");
                 if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
                     // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
@@ -286,7 +286,7 @@ else {
             if (esVotante) {
                 try
                 {
-                    var responseVoto = await ApiClient.GetAsync($"api/Evento/proyecto/{idProyecto}/evento/{idEvento}/voto-info");
+                    var responseVoto = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/evento/{idEvento}/voto-info");
                     if (responseVoto.IsSuccessStatusCode)
                     {
                         var votoInfo = await responseVoto.Content.ReadFromJsonAsync<VotoInfoDto>();
