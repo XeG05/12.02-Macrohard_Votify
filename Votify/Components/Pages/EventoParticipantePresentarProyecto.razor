@@ -268,15 +268,15 @@ else
 
             var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
 
-            var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/eventoparticipante/{EventoId}/mi-grupo{grupoQuery}");
+            var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/participante/{EventoId}/mi-grupo{grupoQuery}");
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/eventoparticipante/{EventoId}/mi-categoria{grupoQuery}");
+            var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/participante/{EventoId}/mi-categoria{grupoQuery}");
             nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/eventoparticipante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
+            miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/participante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
 
-            var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/eventoparticipante/{EventoId}/tiene-proyecto{grupoQuery}");
+            var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/participante/{EventoId}/tiene-proyecto{grupoQuery}");
             tieneProyecto = tpResp?.TieneProyecto ?? false;
 
             if (tieneProyecto)
@@ -373,7 +373,7 @@ else
             }
 
             var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
-            var response = await ApiClient.PostMultipartAsync($"api/eventoparticipante/{EventoId}/proyecto{grupoQuery}", content);
+            var response = await ApiClient.PostMultipartAsync($"api/participante/{EventoId}/proyecto{grupoQuery}", content);
 
             if (response.IsSuccessStatusCode)
             {

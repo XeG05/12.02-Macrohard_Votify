@@ -80,7 +80,7 @@ else
 
                 <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
 
-                @if (faseActual != null && faseActual?.Fase == nameof(FasesEvento.Inscripciones))
+                @if (faseActual != null && faseActual?.Fase == nameof(LógicaNegocio.Enums.FasesEvento.Inscripciones))
                 {
                     <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
                 }

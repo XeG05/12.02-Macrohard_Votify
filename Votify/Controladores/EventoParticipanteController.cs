@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Interfaces;
-using Votify.LógicaNegocio.Services;
 using Votify.Persistencia.Entities;
 
 namespace Votify.Controladores
@@ -13,9 +12,9 @@ namespace Votify.Controladores
     [Authorize]
     public class EventoParticipanteController : ControllerBase
     {
-        private readonly EventoParticipanteService _participanteService;
+        private readonly IEventoParticipanteService _participanteService;
 
-        public EventoParticipanteController(EventoParticipanteService participanteService)
+        public EventoParticipanteController(IEventoParticipanteService participanteService)
         {
             _participanteService = participanteService;
         }

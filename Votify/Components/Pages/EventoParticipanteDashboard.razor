@@ -127,7 +127,7 @@ else
             {
                 evento = entradaEvento.Evento;
 
-                dashboard = await ApiClient.GetFromJsonAsync<DashboardParticipanteDto>($"api/evento/{EventoId}/dashboard/{CategoriaId}");
+                dashboard = await ApiClient.GetFromJsonAsync<DashboardParticipanteDto>($"api/participante/{EventoId}/dashboard/{CategoriaId}");
             }
             else
             {
