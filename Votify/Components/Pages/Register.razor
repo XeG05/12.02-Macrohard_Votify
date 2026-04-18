@@ -53,7 +53,7 @@
         mensaje = "Intentando registrar";
         try
         {
-            var response = await ApiClient.PostAnonymousAsync("api/usuario/register", new { nombre, correo, contraseña, contraseña2 });
+            var response = await ApiClient.PostAnonymousAsync("api/usuario/register", new { Nombre = nombre, Correo = correo, Contraseña = contraseña, ConfirmarContraseña = contraseña2 });
             if (response.IsSuccessStatusCode)
             {
                 var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
