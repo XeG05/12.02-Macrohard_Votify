@@ -77,10 +77,10 @@
             <div class="seccion-header">
                 <div class="seccion-indicador participante-color"></div>
                 <h2>Participando en</h2>
-                <span class="badge">@participacionesDetalladas.Count</span>
+                <span class="badge">@eventoParticipando.Count</span>
             </div>
 
-            @if (participacionesDetalladas.Count == 0)
+            @if (eventoParticipando.Count == 0)
             {
                 <div class="empty-state">
                     <span class="empty-icon">🔍</span>
@@ -90,7 +90,7 @@
             else
             {
                 <div class="eventos-grid">
-                    @foreach (var part in participacionesDetalladas)
+                    @foreach (var part in eventoParticipando)
                     {
                         var eventoId = part.Evento.Id;
                         var ev = part.Evento;
@@ -177,7 +177,7 @@
     private string nombre = "";
     private bool cargando = true;
     private List<EventoDto> eventosCreados = new();
-    private List<ParticipacionDto> participacionesDetalladas = new();
+    private List<EventoParticipanteDto> eventoParticipando = new();
     private List<EventoDto> eventosDisponibles = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -196,7 +196,7 @@
         {
             eventosCreados = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/creados") ?? new();
 
-            participacionesDetalladas = await ApiClient.GetFromJsonAsync<List<ParticipacionDto>>("api/evento/participacion-detallada") ?? new();
+            eventoParticipando = await ApiClient.GetFromJsonAsync<List<EventoParticipanteDto>>("api/evento/participacion") ?? new();
 
             eventosDisponibles = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/disponibles") ?? new();
         }

@@ -15,8 +15,6 @@ namespace Votify.LógicaNegocio.Interfaces
 
         Task<List<Evento>> GetEventosDisponibles(string correo);
 
-        Task<List<(Evento Evento, string RolTexto, Grupo? Grupo)>> GetParticipacionesDetalladas(string correo);
-
         Task<Proyecto> RecuperarProyecto(long idProyecto);
 
         Task<List<Usuario>> ParticipantesGrupo(long idGrupo);

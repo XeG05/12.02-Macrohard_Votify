@@ -1,9 +1,7 @@
 ﻿@page "/eventoparticipantepresentar/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
-@inject IEventoService Evento_Service
-@inject EventoParticipanteService EventoParticipanteService
+@inject ApiClient ApiClient
 @inject NavigationManager Nav
-@inject EventoContextService EventoCtx
 @inject BlazorAuthStateProvider AuthProvider
 
 @if (cargando)
@@ -223,7 +221,7 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long? GrupoId { get; set; }
 
-    private Evento? evento;
+    private EventoDto? evento;
     private string? correo = "";
     private bool cargando = true;
     private bool tieneProyecto = false;
@@ -234,7 +232,9 @@ else
 
     private string nombreGrupo = "Grupo";
     private string nombreCategoria = "Sin categoría";
-    private List<(string Nombre, string Correo)> miembrosGrupo = new();
+    private List<MiembroGrupoDto> miembrosGrupo = new();
+
+    private record TieneProyectoResponse(bool TieneProyecto);
 
     private IBrowserFile? archivoProyecto;
     private List<IBrowserFile> imagenesProyecto = new();
@@ -258,40 +258,29 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
-
-            if (entradaEvento.TipoRol.Participantes != null)
-            {
-                evento = entradaEvento.Evento;
-            }
-
-            if (evento == null)
+            var entradaEvento = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{EventoId}");
+            if (entradaEvento == null || !entradaEvento.Rol.EsParticipante)
             {
                 error = "No se ha podido cargar el evento como participante.";
                 return;
             }
+            evento = entradaEvento.Evento;
 
-            try { EventoCtx.EstablecerEvento(entradaEvento.Evento, "PARTICIPANTE", EventoId); } catch { }
+            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
 
-            var grupo = await EventoParticipanteService.ObtenerMiGrupo(correo, EventoId, GrupoId);
+            var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/eventoparticipante/{EventoId}/mi-grupo{grupoQuery}");
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            var categoria = await EventoParticipanteService.ObtenerCategoriaGrupo(correo, EventoId, GrupoId);
+            var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/eventoparticipante/{EventoId}/mi-categoria{grupoQuery}");
             nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            miembrosGrupo = await EventoParticipanteService.ObtenerMiembrosGrupo(correo, EventoId, GrupoId);
+            miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/eventoparticipante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
 
-            try
-            {
-                tieneProyecto = await EventoParticipanteService.TieneProyecto(correo, EventoId, GrupoId);
-                if (tieneProyecto)
-                {
-                    mensaje = "Tu grupo ya tiene un proyecto entregado para este evento.";
-                }
-            }
-            catch
-            {
-            }
+            var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/eventoparticipante/{EventoId}/tiene-proyecto{grupoQuery}");
+            tieneProyecto = tpResp?.TieneProyecto ?? false;
+
+            if (tieneProyecto)
+                mensaje = "Tu grupo ya tiene un proyecto entregado para este evento.";
         }
         catch (Exception ex)
         {
@@ -357,47 +346,45 @@ else
 
         try
         {
-            if (evento == null)
-                return;
-
-            if (await EventoParticipanteService.TieneProyecto(correo, EventoId, GrupoId))
-                throw new Exception("No puedes entregar un nuevo proyecto: ya existe uno entregado por tu grupo.");
+            if (evento == null) return;
 
             if (string.IsNullOrWhiteSpace(nombreProyecto))
                 throw new Exception("Debes indicar un nombre para el proyecto.");
 
-            if (string.IsNullOrWhiteSpace(nombreArchivoProyecto) || archivoProyecto == null)
+            if (archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
 
-            byte[] archivoBytes;
-            var maxFileSize = 10 * 1024 * 1024; // 10 MB limit
-            using (var ms = new MemoryStream())
-            {
-                await archivoProyecto.OpenReadStream(maxFileSize).CopyToAsync(ms);
-                archivoBytes = ms.ToArray();
-            }
+            var maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-            List<byte[]> imagenesBytes = new();
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(nombreProyecto),    "nombreProyecto");
+            content.Add(new StringContent(descripcionBreve),  "descripcionBreve");
+            content.Add(new StringContent(descripcionCompleta), "descripcionCompleta");
+
+            // Archivo principal
+            var archivoStream = archivoProyecto.OpenReadStream(maxFileSize);
+            content.Add(new StreamContent(archivoStream), "archivo", archivoProyecto.Name);
+
+            // Imágenes
             foreach (var img in imagenesProyecto)
             {
-                using (var msImg = new MemoryStream())
-                {
-                    await img.OpenReadStream(maxFileSize).CopyToAsync(msImg);
-                    imagenesBytes.Add(msImg.ToArray());
-                }
+                var imgStream = img.OpenReadStream(maxFileSize);
+                content.Add(new StreamContent(imgStream), "imagenes", img.Name);
             }
 
-            await EventoParticipanteService.CrearProyecto(
-                nombreProyecto,
-                descripcionBreve,
-                descripcionCompleta,
-                archivoBytes,
-                imagenesBytes,
-                correo, EventoId, GrupoId
-            );
+            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
+            var response = await ApiClient.PostMultipartAsync($"api/eventoparticipante/{EventoId}/proyecto{grupoQuery}", content);
 
-            mensaje = "Proyecto entregado correctamente.";
-            VolverEvento();
+            if (response.IsSuccessStatusCode)
+            {
+                mensaje = "Proyecto entregado correctamente.";
+                VolverEvento();
+            }
+            else
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                error = err?.Error ?? $"Error {(int)response.StatusCode} al entregar el proyecto.";
+            }
         }
         catch (Exception ex)
         {
@@ -417,21 +404,21 @@ else
 
         return string.Concat(partes);
     }
-    private string GetFaseLabel(Evento ev)
+    private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
-        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
-        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        if (hoy <= ev.FechaFinEntrega)        return "En fase de entrega";
+        if (hoy <= ev.FechaFinVotaciones)     return "En fase de votación";
         return "Finalizado";
     }
 
-    private string GetFaseClass(Evento ev)
+    private string GetFaseClass(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
-        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
-        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        if (hoy <= ev.FechaFinEntrega)        return "fase-entregas";
+        if (hoy <= ev.FechaFinVotaciones)     return "fase-votaciones";
         return "fase-finalizado";
     }
 

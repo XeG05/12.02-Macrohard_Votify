@@ -9,7 +9,7 @@ using Votify.Persistencia.Entities;
 namespace Votify.Controladores
 {
     [ApiController]
-    [Route("api/eventoparticipante")]
+    [Route("api/participante")]
     [Authorize]
     public class EventoParticipanteController : ControllerBase
     {

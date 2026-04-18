@@ -46,9 +46,6 @@ builder.Services.AddScoped<BlazorAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(
     sp => sp.GetRequiredService<BlazorAuthStateProvider>());
 
-// Contexto de evento activo scoped al circuito
-builder.Services.AddScoped<EventoContextService>();
-
 // Soporte para [Authorize] en componentes Blazor
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

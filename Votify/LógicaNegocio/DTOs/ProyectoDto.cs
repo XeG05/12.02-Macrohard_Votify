@@ -7,5 +7,7 @@
         public long IdGrupo { get; set; }
         public string DescripcionBreve { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
+        public List<string> Imagenes { get; set; } = new();
+        public bool TieneArchivo { get; set; }
     }
 }

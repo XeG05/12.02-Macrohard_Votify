@@ -1,12 +1,8 @@
 ﻿@page "/eventoadmin/{EventoId:long}"
 @rendermode InteractiveServer
-
-@inject HttpClient Http
-@inject IEventoService Evento_Service
-@inject EventoAdministradorService EventoAdministradorService
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
-@inject IHttpClientFactory HttpFactory
 
 @if (cargando)
 {
@@ -84,7 +80,7 @@ else
 
                 <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
 
-                @if (EventoAdministradorService.ObtenerFaseActual(EventoId) == FasesEvento.Inscripciones)
+                @if (faseActual != null && faseActual?.Fase == nameof(FasesEvento.Inscripciones))
                 {
                     <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
                 }
@@ -144,14 +140,15 @@ else
 @code {
     [Parameter] public long EventoId { get; set; }
 
-    List<Categorium>? categorias;
-    List<Grupo>? grupos;
+    List<CategoriaDto>? categorias;
+    List<GrupoDto>? grupos;
 
-    Dictionary<long, List<Participante>> participantesPorGrupo = new();
+    Dictionary<long, List<MiembroGrupoDto>> participantesPorGrupo = new();
 
     Dictionary<long, string> nuevoCorreoPorGrupo = new();
 
-    Evento evento;
+    EventoDto? evento;
+    FaseDto? faseActual;
 
     string nombreGrupoNuevo = "";
 
@@ -173,23 +170,25 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId); //NO HTTP
-            
-            /*var token = await AuthProvider.ObtenerToken();
-            var Http = HttpFactory.CreateClient("API");
-            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var entradaEvento = await Http.GetFromJsonAsync<EntradaEventoDto>(
-                $"{Nav.BaseUri}api/evento/{EventoId}");*/
+            var entradaEvento = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{EventoId}");
+            if(entradaEvento == null)
+            {
+                error = "No se pudo cargar el evento.";
+                return;
+            }
 
-            if (entradaEvento.TipoRol.Administrador != null)
+            if (entradaEvento.Rol.EsAdministrador)
             {
                 evento = entradaEvento.Evento;
-                categorias = await EventoAdministradorService.VerCategorias(EventoId);
+                categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/evento/{EventoId}/categorias");
+                faseActual = await ApiClient.GetFromJsonAsync<FaseDto>($"api/administrador/{EventoId}/fase");
             }
             else
             {
                 error = "No tienes permisos de administrador en este evento.";
             }
+            
+            
         }
         catch (Exception ex)
         {
@@ -208,8 +207,12 @@ else
         if (evento != null)
         {
             categoriaSeleccionadaId = idCategoria;
-            grupos = await EventoAdministradorService.VerGrupo(idCategoria);
-
+            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>($"api/administrador/categoria/{idCategoria}/grupos");
+            if(grupos == null)
+            {
+                error = "No se pudieron cargar los grupos.";
+                return;
+            }
             foreach (var g in grupos)
             {
                 if (!nuevoCorreoPorGrupo.ContainsKey(g.Id))
@@ -222,7 +225,12 @@ else
     {
         if (evento != null)
         {
-            var participantes = await EventoAdministradorService.VerParticipantes(idGrupo);
+            var participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/administrador/grupo/{idGrupo}/participantes");
+            if(participantes == null)
+            {
+                error = "No se pudieron cargar los participantes.";
+                return;
+            }
             participantesPorGrupo[idGrupo] = participantes;
         }
     }
@@ -242,9 +250,9 @@ else
         if (evento != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
         && categoriaSeleccionadaId is long idCat)
         {
-            await EventoAdministradorService.AñadirGrupo(nombreGrupoNuevo, idCat, EventoId);
+            await ApiClient.PostAsJsonAsync($"api/administrador/{EventoId}/categoria/{idCat}/grupos", new { nombreGrupoNuevo, idCat, EventoId });
             nombreGrupoNuevo = "";
-            grupos = await EventoAdministradorService.VerGrupo(idCat);
+            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>($"api/administrador/{EventoId}/categoria/{idCat}/grupos");
         }
     }
 
@@ -252,7 +260,7 @@ else
     {
         if (evento != null)
         {
-            await EventoAdministradorService.EliminarGrupo(EventoId, idGrupo);
+            await ApiClient.DeleteAsync($"api/administrador/{EventoId}/grupos/{idGrupo}");
             grupos = null;
         }
     }

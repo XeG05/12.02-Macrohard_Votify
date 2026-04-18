@@ -3,16 +3,20 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
-@inject IEventoService EventoService
+@inject ApiClient ApiClient
 
-@if (evento == null && proyectos == null)
+@if (error != null)
+{
+    <div class="evp-alert evp-alert-error">@error</div>
+}
+else if (evento == null)
 {
     <div class="evp-loading-state">
         <div class="evp-spinner"></div>
         <p>Cargando evento...</p>
     </div>
 }
-else if (evento != null)
+else
 {
     <div class="evp-wrapper">
         <div class="evp-hero">
@@ -94,14 +98,13 @@ else if (evento != null)
 @code {
     [Parameter] public long idEvento { get; set; }
 
-    List<Proyecto>? proyectos;
-
-    Evento? evento;
-
+    List<ProyectoDto>? proyectos;
+    EventoDto? evento;
     string tipoRol = "";
+    string? error;
 
-    Dictionary<long, List<Usuario>> participantesPorGrupo = new();
-    Dictionary<long, Categorium> categorias = new();
+    Dictionary<long, List<MiembroGrupoDto>> participantesPorGrupo = new();
+    Dictionary<long, CategoriaDto> categorias = new();
     Dictionary<long, long> proyectoCategoria = new();
 
     private void VolverHome()
@@ -109,54 +112,65 @@ else if (evento != null)
         Nav.NavigateTo($"/home");
     }
 
-    
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
-        var correo = AuthProvider.ObtenerCorreo();
-        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        if (!AuthProvider.EstaAutenticado)
         {
-            // usuario no autenticado, volver al login
             Nav.NavigateTo("/");
             return;
         }
 
         try
         {
-            var entrada = await EventoService.EntrarEvento(correo, idEvento);
+            var entrada = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{idEvento}");
+            if (entrada is null)
+            {
+                error = "No se pudo cargar el evento.";
+                return;
+            }
 
             evento = entrada.Evento;
+            if (entrada.Rol.EsAdministrador)  tipoRol = "Administrador";
+            else if (entrada.Rol.EsJurado)    tipoRol = "Jurado";
+            else if (entrada.Rol.EsParticipante) tipoRol = "Participante";
+            else tipoRol = "Visitante";
 
-            if (entrada.TipoRol.Administrador != null) tipoRol = "Administrador";
-            else if (entrada.TipoRol.Jurado != null) tipoRol = "Jurado";
-            else if (entrada.TipoRol.Participantes != null && entrada.TipoRol.Participantes.Any()) tipoRol = "Participante";
-            else tipoRol = "Votante";
+            StateHasChanged();
 
-            proyectos = await EventoService.ListaProyectos(idEvento);
+            var proyectosTask  = ApiClient.GetFromJsonAsync<List<ProyectoDto>>($"api/evento/{idEvento}/proyectos");
+            var categoriasTask = ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/evento/{idEvento}/categorias");
+            await Task.WhenAll(proyectosTask, categoriasTask);//En paralelo para optimizar tiempos de carga
 
-            participantesPorGrupo = new();
+            proyectos = await proyectosTask ?? new();
+            var cats  = await categoriasTask ?? new();
 
-            var cats = await EventoService.CategoriasDelEvento(idEvento);
-            foreach(var c in cats) {
-                categorias[c.Id] = c;
-            }
+            foreach (var c in cats) categorias[c.Id] = c;
 
-            foreach (var p in proyectos)
+            var tareas = proyectos.Select(async p =>
             {
-                var participantes = await EventoService.ParticipantesGrupo(p.IdGrupo);
-                participantesPorGrupo[p.IdGrupo] = participantes;
-                var grupo = await EventoService.GrupoProyecto(p.IdGrupo);
-                if (grupo != null) {
-                    proyectoCategoria[p.Id] = grupo.IdCategoria;
-                }
-            }
+                var miembrosTask = ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/evento/proyecto/{p.Id}/grupo/{p.IdGrupo}/participantes");
+                var grupoTask = ApiClient.GetFromJsonAsync<GrupoDto>($"api/evento/grupo/{p.IdGrupo}");
+
+                await Task.WhenAll(miembrosTask, grupoTask);
+
+                var miembros = await miembrosTask;
+                var grupo = await grupoTask;
+
+                if (miembros is not null) participantesPorGrupo[p.IdGrupo] = miembros;
+                if (grupo is not null) proyectoCategoria[p.Id]          = grupo.IdCategoria;
+            });
+            await Task.WhenAll(tareas);
+        }
+        catch (HttpRequestException ex)
+        {
+            error = $"Error cargando datos ({(int?)ex.StatusCode}): {ex.Message}";
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
-            throw;
+            error = $"Error inesperado: {ex.Message}";
         }
         finally
         {
@@ -169,7 +183,7 @@ else if (evento != null)
         Nav.NavigateTo($"/{idEvento}/proyecto/{id}");
     }
 
-    private string GetFaseLabel(Evento ev)
+    private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
@@ -178,7 +192,7 @@ else if (evento != null)
         return "Finalizado";
     }
 
-    private string GetFaseClass(Evento ev)
+    private string GetFaseClass(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";

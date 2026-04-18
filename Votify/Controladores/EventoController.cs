@@ -66,7 +66,9 @@ namespace Votify.Controladores
             Nombre = p.Nombre,
             IdGrupo = p.IdGrupo,
             DescripcionBreve = p.DescripcionBreve,
-            Descripcion = p.Descripcion
+            Descripcion = p.Descripcion,
+            Imagenes = p.Imagenes?.Select(i => Convert.ToBase64String(i.Archivo)).ToList() ?? new(),
+            TieneArchivo = p.Archivo != null && p.Archivo.Length > 0
         };
 
         private static MiembroGrupoDto MapMiembro(Usuario u) => new()
@@ -106,21 +108,6 @@ namespace Votify.Controladores
 
             var eventos = await _eventoService.GetEventosDisponibles(correo);
             return Ok(eventos.Select(MapEvento));
-        }
-        /// Eventos con rol y grupo detallado (para Home).
-        [HttpGet("participacion-detallada")]
-        public async Task<IActionResult> GetParticipacionDetallada()
-        {
-            var correo = ObtenerCorreo();
-            if (correo is null) return Unauthorized();
-
-            var participaciones = await _eventoService.GetParticipacionesDetalladas(correo);
-            return Ok(participaciones.Select(p => new ParticipacionDto
-            {
-                Evento = MapEvento(p.Evento),
-                Rol = p.RolTexto,
-                Grupo = p.Grupo != null ? MapGrupo(p.Grupo) : null
-            }));
         }
 
         /// Entra a un evento concreto
@@ -220,6 +207,20 @@ namespace Votify.Controladores
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        [HttpGet("proyecto/{proyectoId:long}/descargar")]
+        public async Task<IActionResult> DescargarProyecto(long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+            var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
+            if (proyecto is null || proyecto.Archivo is null || proyecto.Archivo.Length == 0)
+            {
+                return NotFound(new { error = "Archivo del proyecto no encontrado" });
+            }
+            var nombreArchivo = $"{proyecto.Nombre}.zip";
+            return File(proyecto.Archivo, "application/zip", nombreArchivo);
         }
 
         [HttpGet("proyecto/{proyectoId:long}/grupo/{grupoId:long}/participantes")]

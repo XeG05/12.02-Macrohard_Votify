@@ -239,7 +239,7 @@ namespace Votify.LógicaNegocio.Services
 
             await _proyectoRepo.DeleteAsync(proyecto);
         }
-        public async Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria,string correo, long idEvento)
+        public async Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {
             if(ObtenerFaseActual(idEvento) != FasesEvento.Resultados)
             {
@@ -308,7 +308,7 @@ namespace Votify.LógicaNegocio.Services
 
 
 
-            return new DashboardParticipanteDTO
+            return new DashboardParticipanteDto
             {
                 NombreProyecto = proyecto.Nombre,
                 NombreGrupo = grupo?.Nombre ?? "Sin grupo",
@@ -316,7 +316,7 @@ namespace Votify.LógicaNegocio.Services
                 TotalVotos = totalVotos,
                 Posicion = posicion,
 
-                Comentarios = comentarios.Select(c => new ComentarioDTO
+                Comentarios = comentarios.Select(c => new ComentarioDto
                 {
                     Autor = c.CorreoRol ?? "Anónimo",
                     Contenido = c.Contenido

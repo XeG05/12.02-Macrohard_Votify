@@ -97,12 +97,11 @@ namespace Votify.LógicaNegocio.Services
             return votos.Count;
         }
 
-        public async Task<List<ProyectoResumenDTO>> ObtenerResultadosCategoria(long idCategoria)
+        public async Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria)
         {
             var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
 
-            var resultado = new List<ProyectoResumenDTO>();
-
+            var resultado = new List<ProyectoResultadosDto>();
             foreach (var g in grupos)
             {
                 var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == g.Id)).FirstOrDefault();
@@ -112,7 +111,7 @@ namespace Votify.LógicaNegocio.Services
 
                 var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
 
-                resultado.Add(new ProyectoResumenDTO
+                resultado.Add(new ProyectoResultadosDto
                 {
                     NombreProyecto = proyecto.Nombre,
                     NombreGrupo = g.Nombre,

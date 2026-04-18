@@ -107,37 +107,6 @@ namespace Votify.LógicaNegocio.Services
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
         }
 
-        public async Task<List<(Evento Evento, string RolTexto, Grupo? Grupo)>> GetParticipacionesDetalladas(string correo)
-        {
-            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
-            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
-
-            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
-            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
-
-            var res = new List<(Evento, string, Grupo?)>();
-            var todos = await _eventoRepo.GetAllAsync();
-
-            foreach (var j in jurados)
-            {
-                if (adminEventIds.Contains(j.Id)) continue;
-                var ev = todos.FirstOrDefault(e => e.Id == j.Id);
-                if (ev != null)
-                    res.Add((ev, "Jurado", null));
-            }
-
-            foreach (var p in participantes)
-            {
-                if (adminEventIds.Contains(p.Id)) continue;
-                var ev = todos.FirstOrDefault(e => e.Id == p.Id);
-                var gr = await _grupoRepo.GetByIdAsync(p.IdGrupo);
-                if (ev != null)
-                    res.Add((ev, "Participante", gr));
-            }
-
-            return res;
-        }
-
         public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null)
         {
             var usuario = (await _usuarioRepo

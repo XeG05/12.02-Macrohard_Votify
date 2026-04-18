@@ -1,7 +1,6 @@
 ﻿@page "/EventCreator"
 @rendermode InteractiveServer
-@inject IEventoService EventoService
-@inject AuthenticationStateProvider AuthStateProvider
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
  
@@ -169,7 +168,7 @@ else
     {
         if (!firstRender) return;
 
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
 
         if (!authState.User.Identity?.IsAuthenticated ?? true)
         {
@@ -220,26 +219,26 @@ else
     {
         dto.FechaFinInscripciones = fechaFinInscripciones.HasValue
             ? DateOnly.FromDateTime(fechaFinInscripciones.Value) : null;
- 
+
         dto.FechaFinEntrega = fechaFinEntrega.HasValue
             ? DateOnly.FromDateTime(fechaFinEntrega.Value) : null;
- 
+
         dto.FechaFinVotaciones = fechaFinVotaciones.HasValue
             ? DateOnly.FromDateTime(fechaFinVotaciones.Value) : null;
     }
- 
+
     private async Task Guardar()
     {
         SincronizarFechas();
         await EjecutarCreacion(publicar: false);
     }
- 
+
     private async Task Publicar()
     {
         SincronizarFechas();
         await EjecutarCreacion(publicar: true);
     }
- 
+
     private async Task EjecutarCreacion(bool publicar)
     {
         try
@@ -279,9 +278,37 @@ else
             }
 
             var correo = AuthProvider.ObtenerCorreo()!;
-            var evento = await EventoService.CrearEvento(correo, dto);
 
-            Nav.NavigateTo($"/eventoadmin/{evento.Id}");
+            // No se puede añadir a uno mismo como participante
+            var todosLosCorreos = dto.Categorias
+                .SelectMany(cat => cat.Grupos)
+                .SelectMany(g => g.CorreosParticipantes)
+                .Where(c => !string.IsNullOrWhiteSpace(c));
+
+            if (todosLosCorreos.Any(c => c.Trim().Equals(correo, StringComparison.OrdinalIgnoreCase)))
+            {
+                mensaje = "No puedes añadirte a ti mismo como participante.";
+                error = true;
+                return;
+            }
+
+            var response = await ApiClient.PostAsJsonAsync<EventoCreacionDto>("api/evento", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                var evento = await response.Content.ReadFromJsonAsync<EventoDto>();
+                if(evento == null)
+                {
+                    mensaje = "Evento creado pero no se pudo obtener su información.";
+                    error = true;
+                    return;
+                }
+                Nav.NavigateTo($"/eventoadmin/{evento.Id}");
+            }
+            else
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensaje = error?.Error ?? "Error desconocido al crear el evento.";
+            }
         }
         catch (Exception ex)
         {

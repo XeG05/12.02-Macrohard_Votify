@@ -1,8 +1,6 @@
 ﻿@page "/dashboard/{EventoId:long}/{CategoriaId:long}"
 @rendermode InteractiveServer
-
-@inject IEventoService Evento_Service
-@inject EventoParticipanteService EventoParticipante_Service
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -100,8 +98,8 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long CategoriaId { get; set; }
 
-    Evento? evento;
-    DashboardParticipanteDTO? dashboard;
+    EventoDto? evento;
+    DashboardParticipanteDto? dashboard;
 
     bool cargando = true;
     string error = "";
@@ -119,13 +117,17 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId);
-
-            if (entradaEvento.TipoRol.Participantes != null)
+            var entradaEvento = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{EventoId}");
+            if(entradaEvento == null)
+            {
+                error = "No se encontró el evento.";
+                return;
+            }
+            if (entradaEvento.Rol.EsParticipante)
             {
                 evento = entradaEvento.Evento;
 
-                dashboard = await EventoParticipante_Service.ObtenerDashboard(CategoriaId, correo, EventoId);
+                dashboard = await ApiClient.GetFromJsonAsync<DashboardParticipanteDto>($"api/evento/{EventoId}/dashboard/{CategoriaId}");
             }
             else
             {

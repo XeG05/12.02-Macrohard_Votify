@@ -1,6 +1,6 @@
 ﻿namespace Votify.LógicaNegocio.DTOs
 {
-    public class ProyectoResumenDTO
+    public class ProyectoResultadosDto
     {
         public string NombreProyecto { get; set; } = "";
         public string NombreGrupo { get; set; } = "";

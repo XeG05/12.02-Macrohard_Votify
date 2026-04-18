@@ -14,7 +14,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<List<Participante>> VerParticipantes(long idGrupo);
         Task<List<Proyecto>> VerProyectosCategoria(long idCategoria);
         Task<int> ContarVotosProyecto(long idProyecto);
-        Task<List<ProyectoResumenDTO>> ObtenerResultadosCategoria(long idCategoria);
+        Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria);
         Task<int> TotalVotosCategoria(long idCategoria);
         Task AñadirGrupo(string nombreGrupo, long idCategoria, long idEvento);
         Task EliminarGrupo(long idEvento, long idGrupo);

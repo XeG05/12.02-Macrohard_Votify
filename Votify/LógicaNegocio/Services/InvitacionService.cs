@@ -1,4 +1,6 @@
-﻿using Votify.Auth;
+﻿using Microsoft.EntityFrameworkCore;
+using Votify.Auth;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
@@ -32,6 +34,26 @@ namespace Votify.LógicaNegocio.Services
             var lista = await _invitacionRepo.FindAsync(
                 i => i.Token == token && !i.Aceptada && i.FechaExpiracion > DateTime.UtcNow);
             return lista.FirstOrDefault();
+        }
+
+        public async Task<InvitacionDto?> ObtenerInvitacionInfoAsync(string token)
+        {
+            // Cargamos la invitación junto con el evento para obtener su nombre
+            var invitacion = await _invitacionRepo.AsQueryable()
+                .Include(i => i.IdEventoNavigation)
+                .FirstOrDefaultAsync(i => i.Token == token && i.FechaExpiracion > DateTime.UtcNow);
+
+            if (invitacion is null) return null;
+
+            var usuarioExiste = (await _usuarioRepo.FindAsync(u => u.Correo == invitacion.CorreoDestino)).Any();
+
+            return new InvitacionDto
+            {
+                CorreoDestino = invitacion.CorreoDestino,
+                NombreEvento  = invitacion.IdEventoNavigation?.Nombre ?? "",
+                UsuarioExiste = usuarioExiste,
+                Aceptada      = invitacion.Aceptada
+            };
         }
 
         public async Task<string> AceptarInvitacionAsync(

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Interfaces;
 
 namespace Votify.Controladores
@@ -59,10 +60,10 @@ namespace Votify.Controladores
         }
 
         [HttpGet("{eventoId:long}/fase")]
-        public async Task<IActionResult> GetFase(long eventoId)
+        public IActionResult GetFase(long eventoId)
         {
             var fase = _eventoAdministradorService.ObtenerFaseActual(eventoId);
-            return Ok(fase);
+            return Ok(new FaseDto { Fase = fase.ToString() });
         }
 
         [HttpPut("{eventoId:long}/nombre")]

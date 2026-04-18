@@ -1,8 +1,6 @@
 ﻿@page "/eventoadmin/{EventoId:long}/votaciones/{idCategoria:long}"
 @rendermode InteractiveServer
-
-@inject IEventoService EventoService
-@inject EventoAdministradorService EventoAdministradorService
+@inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
@@ -75,7 +73,7 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long idCategoria { get; set; }
 
-    Evento? evento;
+    EventoDto? evento;
 
     string nombreCategoria = "";
     int numeroProyectos;
@@ -84,7 +82,7 @@ else
     bool cargando = true;
     string error = "";
 
-    List<ProyectoResumenDTO>? resumen;
+    List<ProyectoResultadosDto>? resumen;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -99,23 +97,27 @@ else
 
         try
         {
-            var entradaEvento = await EventoService.EntrarEvento(correo, EventoId);
-
-            if (entradaEvento.TipoRol.Administrador != null)
+            var entradaEvento = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{EventoId}");
+            if(entradaEvento == null)
+            {
+                error = "No se pudo obtener la información del evento.";
+                return;
+            }
+            if (entradaEvento.Rol.EsAdministrador)
             {
                 evento = entradaEvento.Evento;
 
-                var categorias = await EventoAdministradorService.VerCategorias(EventoId);
+                var categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/administrador/{EventoId}/categorias") ?? new();
                 var categoria = categorias.FirstOrDefault(c => c.Id == idCategoria);
 
                 nombreCategoria = categoria?.Nombre ?? "Categoría";
 
-                var proyectos = await EventoAdministradorService.VerProyectosCategoria(idCategoria);
+                var proyectos = await ApiClient.GetFromJsonAsync<List<ProyectoDto>>($"api/administrador/categoria/{idCategoria}/proyectos") ?? new();
                 numeroProyectos = proyectos.Count;
 
-                totalVotos = await EventoAdministradorService.TotalVotosCategoria(idCategoria);
+                totalVotos = await ApiClient.GetFromJsonAsync<int>($"api/administrador/categoria/{idCategoria}/votos");
 
-                resumen = await EventoAdministradorService.ObtenerResultadosCategoria(idCategoria);
+                resumen = await ApiClient.GetFromJsonAsync<List<ProyectoResultadosDto>>($"api/administrador/categoria/{idCategoria}/resultados");
             }
             else
             {

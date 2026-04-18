@@ -15,7 +15,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<bool> TieneProyecto(string correo, long idEvento, long? grupoIdActivo);
         Task CrearProyecto(string nombreProyecto, string descripcionBreve, string descripcionCompleta, byte[] archivo, List<byte[]> imagenes, string correo, long idEvento, long? grupoIdActivo);
         Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo);
-        Task<DashboardParticipanteDTO> ObtenerDashboard(long idCategoria, string correo, long idEvento);
+        Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria, string correo, long idEvento);
         FasesEvento ObtenerFaseActual(long idEvento);
     }
 }

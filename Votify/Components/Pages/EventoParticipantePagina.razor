@@ -1,8 +1,6 @@
 ﻿@page "/eventoparticipante/{EventoId:long}/{GrupoId:long?}"
 @rendermode InteractiveServer
-@inject IEventoService Evento_Service
-@inject EventoParticipanteService EventoParticipanteService
-@inject EventoContextService EventoCtx
+@inject ApiClient ApiClient
 @inject NavigationManager Nav
 @inject BlazorAuthStateProvider AuthProvider
 
@@ -206,7 +204,8 @@ else
     [Parameter] public long? GrupoId { get; set; }
 
     private string? correo = "";
-    private Evento? evento;
+    private EventoDto? evento;
+    private GrupoDto? grupoActual;
     private bool cargando = true;
     private string? error;
     private string? mensaje;
@@ -214,7 +213,9 @@ else
 
     private string nombreGrupo = "Grupo";
     private string nombreCategoria = "Sin categoría";
-    private List<(string Nombre, string Correo)> miembrosGrupo = new();
+    private List<MiembroGrupoDto> miembrosGrupo = new();
+
+    private record TieneProyectoResponse(bool TieneProyecto);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -229,9 +230,13 @@ else
 
         try
         {
-            var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId, GrupoId);
-
-            if (entradaEvento.TipoRol.Participantes != null)
+            var entradaEvento = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>($"api/evento/{EventoId}");
+            if(entradaEvento == null)
+            {
+                error = "No se ha podido cargar el evento.";
+                return;
+            }
+            if (entradaEvento.Rol.EsParticipante)
             {
                 evento = entradaEvento.Evento;
             }
@@ -242,16 +247,20 @@ else
                 return;
             }
 
-            try { EventoCtx.EstablecerEvento(evento, "PARTICIPANTE", EventoId); } catch { }
+            // Se agrega el query param solo si GrupoId tiene valor, para mantener compatibilidad con endpoints que lo aceptan de forma opcional
+            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : ""; 
 
-            var grupo = await EventoParticipanteService.ObtenerMiGrupo(correo, EventoId, GrupoId);
+            var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/eventoparticipante/{EventoId}/mi-grupo{grupoQuery}");
+            grupoActual = grupo;
             nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
 
-            var categoria = await EventoParticipanteService.ObtenerCategoriaGrupo(correo, EventoId, GrupoId);
+            var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/eventoparticipante/{EventoId}/mi-categoria{grupoQuery}");
             nombreCategoria = categoria?.Nombre ?? "Sin categoría";
 
-            miembrosGrupo = await EventoParticipanteService.ObtenerMiembrosGrupo(correo, EventoId, GrupoId);
-            tieneProyecto = await EventoParticipanteService.TieneProyecto(correo, EventoId, GrupoId);
+            miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/eventoparticipante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
+
+            var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/eventoparticipante/{EventoId}/tiene-proyecto{grupoQuery}");
+            tieneProyecto = tpResp?.TieneProyecto ?? false;
         }
         catch (Exception ex)
         {
@@ -288,26 +297,14 @@ else
         Nav.NavigateTo($"/listaproyectos/{EventoId}");
     }
 
-    private async Task IrADashboard()
+    private void IrADashboard()
     {
-        try
+        if (grupoActual == null)
         {
-            if (evento == null)
-                return;
-
-            var grupo = await EventoParticipanteService.ObtenerMiGrupo(correo, EventoId, GrupoId);
-            if (grupo == null)
-            {
-                error = "No estás en ningún grupo.";
-                return;
-            }
-
-            Nav.NavigateTo($"/dashboard/{EventoId}/{grupo.IdCategoria}");
+            error = "No estás en ningún grupo.";
+            return;
         }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-        }
+        Nav.NavigateTo($"/dashboard/{EventoId}/{grupoActual.IdCategoria}");
     }
 
     private async Task EliminarProyecto()
@@ -317,16 +314,26 @@ else
 
         try
         {
-            if (evento == null)
-                return;
+            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
+            var response = await ApiClient.DeleteAsync($"api/eventoparticipante/{EventoId}/proyecto{grupoQuery}");
 
-            await EventoParticipanteService.EliminarProyecto(correo, EventoId, GrupoId);
-            tieneProyecto = false;
-            mensaje = "Proyecto eliminado correctamente.";
+            if (response.IsSuccessStatusCode)
+            {
+                tieneProyecto = false;
+                mensaje = "Proyecto eliminado correctamente.";
+            }
+            else
+            {
+                error = "No se pudo eliminar el proyecto.";
+            }
         }
         catch (Exception ex)
         {
             error = ex.Message;
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 
@@ -343,21 +350,21 @@ else
         return string.Concat(partes);
     }
 
-    private string GetFaseLabel(Evento ev)
+    private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
-        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
-        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        if (hoy <= ev.FechaFinEntrega)        return "En fase de entrega";
+        if (hoy <= ev.FechaFinVotaciones)     return "En fase de votación";
         return "Finalizado";
     }
 
-    private string GetFaseClass(Evento ev)
+    private string GetFaseClass(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
-        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
-        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        if (hoy <= ev.FechaFinEntrega)        return "fase-entregas";
+        if (hoy <= ev.FechaFinVotaciones)     return "fase-votaciones";
         return "fase-finalizado";
     }
 

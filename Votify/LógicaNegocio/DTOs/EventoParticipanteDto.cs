@@ -1,6 +1,6 @@
 ﻿namespace Votify.LógicaNegocio.DTOs
 {
-    public class ParticipacionDto
+    public class EventoParticipanteDto
     {
         public EventoDto Evento { get; set; } = new();
         public string Rol { get; set; } = string.Empty;
