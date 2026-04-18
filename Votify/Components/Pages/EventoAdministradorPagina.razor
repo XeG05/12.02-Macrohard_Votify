@@ -175,11 +175,6 @@ else
         {
             var entradaEvento = await Evento_Service.EntrarEvento(correo, EventoId); //NO HTTP
             
-            /*var token = await AuthProvider.ObtenerToken();
-            var Http = HttpFactory.CreateClient("API");
-            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var entradaEvento = await Http.GetFromJsonAsync<EntradaEventoDto>(
-                $"{Nav.BaseUri}api/evento/{EventoId}");*/
 
             if (entradaEvento.TipoRol.Administrador != null)
             {
