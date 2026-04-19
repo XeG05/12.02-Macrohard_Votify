@@ -248,23 +248,47 @@ else
             }
 
             // Se agrega el query param solo si GrupoId tiene valor, para mantener compatibilidad con endpoints que lo aceptan de forma opcional
-            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : ""; 
+            var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
+            try
+            {
+                var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/participante/{EventoId}/mi-grupo{grupoQuery}");
+                grupoActual = grupo;
+                nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"No se pudo cargar el grupo del participante: {ex.Message}");
+            }
 
-            var grupo = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/participante/{EventoId}/mi-grupo{grupoQuery}");
-            grupoActual = grupo;
-            nombreGrupo = grupo?.Nombre ?? "Grupo sin nombre";
+            try
+            {
+                var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/participante/{EventoId}/mi-categoria{grupoQuery}");
+                nombreCategoria = categoria?.Nombre ?? "Sin categoría";
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"No se pudo cargar la categoría del participante: {ex.Message}");
+            }
 
-            var categoria = await ApiClient.GetFromJsonAsync<CategoriaDto>($"api/participante/{EventoId}/mi-categoria{grupoQuery}");
-            nombreCategoria = categoria?.Nombre ?? "Sin categoría";
+            try
+            {
+                miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/participante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"No se pudieron cargar los miembros del grupo: {ex.Message}");
+            }
 
-            miembrosGrupo = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/participante/{EventoId}/miembros-grupo{grupoQuery}") ?? new();
-
-            var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/participante/{EventoId}/tiene-proyecto{grupoQuery}");
-            tieneProyecto = tpResp?.TieneProyecto ?? false;
-        }
-        catch (HttpRequestException ex)
-        {
-            error = $"Error en la solicitud: {ex.Message}";
+            try
+            {
+                var tpResp = await ApiClient.GetFromJsonAsync<TieneProyectoResponse>($"api/participante/{EventoId}/tiene-proyecto{grupoQuery}");
+                tieneProyecto = tpResp?.TieneProyecto ?? false;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"No se pudo verificar si el grupo tiene proyecto entregado: {ex.Message}");
+            }
+            
         }
         catch (Exception ex)
         {

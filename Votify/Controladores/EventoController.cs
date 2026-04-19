@@ -96,7 +96,11 @@ namespace Votify.Controladores
             if (correo is null) return Unauthorized();
 
             var eventos = await _eventoService.GetEventosParticipacion(correo);
-            return Ok(eventos.Select(MapEvento));
+            return Ok(eventos.Select(e => new EventoParticipanteDto
+            {
+                Evento = MapEvento(e),
+                Rol = "Participante"
+            }));
         }
 
         /// Eventos disponibles que el usuario puede votar.
