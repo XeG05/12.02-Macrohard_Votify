@@ -19,5 +19,6 @@ namespace Votify.LógicaNegocio.Interfaces
         Task AñadirGrupo(string nombreGrupo, long idCategoria, long idEvento);
         Task EliminarGrupo(long idEvento, long idGrupo);
         FasesEvento ObtenerFaseActual(long idEvento);
+        Task ActualizarFechas(long eventoId, DateTime finInscripciones, DateTime finEntrega, DateTime finVotaciones);
     }
 }

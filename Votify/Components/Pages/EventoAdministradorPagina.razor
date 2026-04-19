@@ -121,6 +121,16 @@ else
             <li>Fin entrega proyectos: @evento.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
             <li>Fin votaciones: @evento.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
         </ul>
+
+        <h3>Editar fechas</h3>
+
+        <input type="date" @bind="finInscripciones" />
+        <input type="date" @bind="finEntrega" />
+        <input type="date" @bind="finVotaciones" />
+
+        <button @onclick="ActualizarFechas">
+            Guardar cambios
+        </button>
     }
 
     <hr />
@@ -149,6 +159,11 @@ else
 
     EventoDto? evento;
     FaseDto? faseActual;
+
+    DateTime finInscripciones;
+    DateTime finEntrega;
+    DateTime finVotaciones;
+
 
     string nombreGrupoNuevo = "";
 
@@ -243,6 +258,33 @@ else
     private void VolverHome()
     {
         Nav.NavigateTo("/home");
+    }
+
+    async Task ActualizarFechas()
+    {
+        try
+        {
+
+            var dto = new ActualizarFechasDto
+            {
+                FechaFinInscripciones = finInscripciones,
+                FechaFinEntrega = finEntrega,
+                FechaFinVotaciones = finVotaciones
+            };
+
+            var response = await ApiClient.PutAsJsonAsync(
+                $"api/administrador/{EventoId}/fechas", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
     }
 
     async Task CrearGrupo() //SPRINT 2

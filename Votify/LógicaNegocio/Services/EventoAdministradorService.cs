@@ -183,6 +183,60 @@ namespace Votify.LógicaNegocio.Services
             await _grupoRepo.DeleteAsync(grupo);
         }
 
+        public async Task ActualizarFechas(long eventoId,
+        DateTime finInscripciones,
+        DateTime finEntrega,
+        DateTime finVotaciones)
+        {
+            DateOnly finInscripcionesOnly = DateOnly.FromDateTime(finInscripciones);
+            DateOnly finEntregaOnly = DateOnly.FromDateTime(finEntrega);
+            DateOnly finVotacionesOnly = DateOnly.FromDateTime(finVotaciones);
+
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("Evento no encontrado");
+
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            //  Validar orden
+            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly))
+                throw new Exception("Las fechas deben estar en orden lógico");
+
+            //  No fechas pasadas
+            if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy)
+        throw new Exception("No puedes poner fechas en el pasado");
+
+            //  Restricción por fase
+            var faseActual = ObtenerFaseActual(eventoId);
+
+            if (faseActual == FasesEvento.Entregas)
+            {
+                // ya pasó inscripción
+                if (finInscripcionesOnly != evento.FechaFinInscripciones)
+                    throw new Exception("No puedes modificar la fase de inscripción");
+            }
+
+            if (faseActual == FasesEvento.Votaciones)
+            {
+                if (finInscripcionesOnly != evento.FechaFinInscripciones ||
+                    finEntregaOnly != evento.FechaFinEntrega)
+                    throw new Exception("Solo puedes modificar la fase actual");
+            }
+
+            if (faseActual == FasesEvento.Resultados)
+            {
+                throw new Exception("El evento ya ha finalizado");
+            }
+
+            //  actualizar
+            evento.FechaFinInscripciones = finInscripcionesOnly;
+            evento.FechaFinEntrega = finEntregaOnly;
+            evento.FechaFinVotaciones = finVotacionesOnly;
+
+            await _eventoRepo.UpdateAsync(evento);
+        }
+
         /*
         public async Task AñadirParticipante(string correo, long idGrupo)
         {

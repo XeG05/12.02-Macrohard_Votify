@@ -94,5 +94,24 @@ namespace Votify.Controladores
             await _eventoAdministradorService.EliminarGrupo(eventoId, grupoId);
             return NoContent();
         }
+
+        [HttpPut("{eventoId:long}/fechas")]
+        public async Task<IActionResult> ActualizarFechas(long eventoId, [FromBody] ActualizarFechasDto dto)
+        {
+            try
+            {
+                await _eventoAdministradorService.ActualizarFechas(
+                    eventoId,
+                    dto.FechaFinInscripciones,
+                    dto.FechaFinEntrega,
+                    dto.FechaFinVotaciones);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
