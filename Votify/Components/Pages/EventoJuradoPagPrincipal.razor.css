@@ -1,0 +1,211 @@
+/* Contenedor principal de la página */
+.ejp-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: inherit;
+}
+
+/* ========================================================
+   SECCIÓN HERO (La cabecera del evento)
+======================================================== */
+.ejp-hero {
+    display: flex;
+    justify-content: space-between; /* Lanza texto a la izq y botones a la derecha */
+    align-items: flex-start;
+    border: 1px solid #ccc; /* Borde fino gris como en el mockup */
+    border-radius: 12px;    /* Bordes redondeados */
+    padding: 2rem;
+    background-color: #ffffff;
+    margin-bottom: 3rem;
+}
+
+.ejp-hero-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.ejp-btn-volver {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    padding: 0.2rem;
+    margin-top: 0.4rem; /* Alinea ópticamente con el H1 */
+    transition: transform 0.2s ease;
+}
+.ejp-btn-volver:hover {
+    transform: translateX(-4px); /* Animación suave al pasar el ratón */
+    color: #000;
+}
+
+.ejp-hero-text h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #111;
+}
+
+.ejp-hero-text p {
+    margin: 0;
+    color: #555;
+    font-size: 1rem;
+}
+
+.ejp-hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-width: 160px; /* Asegura que ambos botones midan parecido */
+}
+
+/* Las pastillas fijas de rol y fase */
+.ejp-badge {
+    display: inline-block;
+    padding: 0.6rem 1.5rem;
+    border: 1px solid #333;
+    border-radius: 50px; /* Bordes totalmente curvos tipo píldora */
+    text-align: center;
+    font-weight: 500;
+    color: #333;
+    background-color: #fff;
+    font-size: 0.95rem;
+}
+
+.ejp-badge-fase {
+    /* Puedes cambiar el color si quieres diferenciarlo visualmente  */
+    color: #555;
+    border-color: #999;
+}
+
+/* ========================================================
+   SECCIÓN CATEGORÍAS
+======================================================== */
+.ejp-categories-section {
+    margin-top: 1rem;
+}
+
+.ejp-section-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #222;
+}
+
+.ejp-divider {
+    border: none;
+    border-top: 2px solid #ccc;
+    margin: 0.8rem 0 2rem 0;
+}
+
+.ejp-categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Separación entre cada tarjeta de categoría */
+}
+
+/* Tarjeta individual de categoría */
+.ejp-category-card {
+    border: 1px solid #aeaeae;
+    border-radius: 12px;
+    padding: 1.5rem;
+    background-color: #fff;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    /* Usamos flex de columna pero permitimos que el contenido tome el espacio arriba
+       y el badge se empuje hacia abajo a la derecha */
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+}
+
+.ejp-category-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Sombra suave para indicar que es clickeable */
+    border-color: #666;
+}
+
+.ejp-category-content {
+    margin-bottom: 2rem; /* Espacio para que no choque con la caja de progreso */
+}
+
+.ejp-category-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #111;
+}
+
+.ejp-category-desc {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* Contenedor Inferior de la Tarjeta */
+.ejp-category-footer {
+    display: flex;
+    justify-content: flex-end; /* Empuja el contenido (la pastilla) a la derecha */
+    margin-top: auto; /* Empuja este footer al fondo de la tarjeta */
+}
+
+.ejp-progress-pill {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid #777;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #444;
+    background-color: #f9f9f9;
+}
+
+/* Un pequeño toque extra: si el jurado evaluó todo (16/16), lo pintamos sutilmente de verde */
+.ejp-progress-pill.completado {
+    border-color: #22c55e;
+    color: #166534;
+    background-color: #f0fdf4;
+}
+
+/* ========================================================
+   UTILIDADES (Loaders y Alertas)
+======================================================== */
+.ejp-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    color: #666;
+}
+
+.ejp-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #333;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.ejp-alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+.ejp-alert-error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.ejp-alert-info {
+    background-color: #f0fdfa;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}

@@ -1,0 +1,152 @@
+﻿@page "/eventojurado/{EventoId:long}"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject BlazorAuthStateProvider AuthProvider
+
+<h3 class="ejp-titulo-pagina">Evento Jurado</h3>
+
+@if (cargando)
+{
+    <div class="ejp-loading-state">
+        <div class="ejp-spinner"></div>
+        <p>Cargando panel de jurado...</p>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="ejp-wrapper">
+        <div class="ejp-alert ejp-alert-error">@error</div>
+    </div>
+}
+else if (evento is null)
+{
+    <div class="ejp-wrapper">
+        <div class="ejp-alert ejp-alert-error">No se ha podido cargar el evento.</div>
+    </div>
+}
+else
+{
+    <div class="ejp-wrapper">
+       
+        <div class="ejp-hero">
+            <div class="ejp-hero-left">
+                <button class="ejp-btn-volver" @onclick="VolverHome" title="Volver">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                    </svg>
+                </button>
+                <div class="ejp-hero-text">
+                    <h1>@evento.Nombre</h1>
+                    <p>@evento.Descripcion</p>
+                </div>
+            </div>
+            <div class="ejp-hero-right">
+                <span class="ejp-badge">Jurado</span>
+                <span class="ejp-badge ejp-badge-fase">@GetFaseLabel(evento)</span>
+            </div>
+        </div>
+
+        <div class="ejp-categories-section">
+            <h2 class="ejp-section-title">Categorías en las que participas</h2>
+            <hr class="ejp-divider" />
+
+            @if (categorias == null || !categorias.Any())
+            {
+                <div class="ejp-alert ejp-alert-info">No tienes ninguna categoría asignada para evaluar en este evento.</div>
+            }
+            else
+            {
+                <div class="ejp-categories-list">
+                    @foreach (var categoria in categorias)
+                    {
+                        <div class="ejp-category-card" @onclick="() => IrACategoria(categoria.Id)">
+                            <div class="ejp-category-content">
+                                <h3 class="ejp-category-title">@categoria.Nombre</h3>
+                                <p class="ejp-category-desc">@categoria.Descripcion</p>
+                            </div>
+                            <div class="ejp-category-footer">
+                                <div class="ejp-progress-pill @(categoria.ProyectosRevisados == categoria.ProyectosTotales ? "completado" : "")">
+                                    Proyectos revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+}
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+
+    private string? correo = "";
+    private EventoDto? evento;
+    private List<CategoriaJuradoDto> categorias = new();
+    
+    private bool cargando = true;
+    private string? error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            var baseUrl = Nav.BaseUri;
+            var token = await AuthProvider.ObtenerToken(); 
+            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetFromJsonAsync<EntradaEventoRespuestaDto>($"{baseUrl}api/Evento/{EventoId}");
+            
+            if (response == null || response.Evento == null)
+            {
+                error = "No se ha podido cargar el evento.";
+                return;
+            }
+            evento = response.Evento;
+
+            // Simulando endpoint: api/jurado/{id}/mis-categorias
+            // var categoriasResponse = await Http.GetFromJsonAsync<List<CategoriaJuradoDto>>($"{baseUrl}api/jurado/{EventoId}/mis-categorias");
+            // categorias = categoriasResponse ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error general: {ex.Message}");
+            error = "Ocurrió un error inesperado al contactar con el servidor.";
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private void VolverHome()
+    {
+        Nav.NavigateTo("/home");
+    }
+
+    private void IrACategoria(long idCategoria)
+    {
+        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{idCategoria}");
+    }
+
+    private string GetFaseLabel(EventoDto ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "Fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega) return "Fase de entrega";
+        if (hoy <= ev.FechaFinVotaciones) return "Fase de evaluación";
+        return "Fase finalizada";
+    }
+}
