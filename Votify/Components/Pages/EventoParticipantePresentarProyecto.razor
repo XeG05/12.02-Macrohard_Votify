@@ -206,9 +206,9 @@ else
                     </div>
 
                     <div class="epr-actions">
-                        <button class="epr-secondary" @onclick="VolverEvento">Cancelar</button>
-                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseEntrega())">
-                            @(tieneProyecto ? "Proyecto ya entregado" : (!EsFaseEntrega() ? "Plazo de entrega cerrado" : "Entregar proyecto"))
+                        <button class="epr-secondary" @onclick="VolverEvento" disabled="@enviando">Cancelar</button>
+                        <button class="epr-primary" @onclick="EntregarProyecto" disabled="@(tieneProyecto || !EsFaseEntrega() || enviando)">
+                            @(enviando ? "Entregando..." : (tieneProyecto ? "Proyecto ya entregado" : (!EsFaseEntrega() ? "Plazo de entrega cerrado" : "Entregar proyecto")))
                         </button>
                     </div>
                 </div>
@@ -225,6 +225,7 @@ else
     private string? correo = "";
     private bool cargando = true;
     private bool tieneProyecto = false;
+    private bool enviando = false;
 
     private string nombreProyecto = string.Empty;
     private string descripcionBreve = string.Empty;
@@ -343,6 +344,7 @@ else
     {
         error = null;
         mensaje = null;
+        enviando = true;
 
         try
         {
@@ -354,26 +356,38 @@ else
             if (archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
 
-            var maxFileSize = 10 * 1024 * 1024; // 10 MB
+            var maxFileSize = 15 * 1024 * 1024; // 15 MB
 
             var content = new MultipartFormDataContent();
             content.Add(new StringContent(nombreProyecto),    "nombreProyecto");
-            content.Add(new StringContent(descripcionBreve),  "descripcionBreve");
-            content.Add(new StringContent(descripcionCompleta), "descripcionCompleta");
+            content.Add(new StringContent(descripcionBreve ?? ""),  "descripcionBreve");
+            content.Add(new StringContent(descripcionCompleta ?? ""), "descripcionCompleta");
 
-            // Archivo principal
-            var archivoStream = archivoProyecto.OpenReadStream(maxFileSize);
-            content.Add(new StreamContent(archivoStream), "archivo", archivoProyecto.Name);
+            // Read files into memory explicitly to prevent HttpClient from making synchronous reads 
+            // or dragging SignalR stream over network loopbacks.
+            var archivoMs = new MemoryStream();
+            using var fileStream = archivoProyecto.OpenReadStream(maxFileSize);
+            await fileStream.CopyToAsync(archivoMs);
+            archivoMs.Position = 0;
+            content.Add(new StreamContent(archivoMs), "archivo", archivoProyecto.Name);
 
-            // Imágenes
+            var imagesMs = new List<MemoryStream>();
             foreach (var img in imagenesProyecto)
             {
-                var imgStream = img.OpenReadStream(maxFileSize);
-                content.Add(new StreamContent(imgStream), "imagenes", img.Name);
+                var imgMs = new MemoryStream();
+                using var imgStream = img.OpenReadStream(maxFileSize);
+                await imgStream.CopyToAsync(imgMs);
+                imgMs.Position = 0;
+                imagesMs.Add(imgMs);
+                content.Add(new StreamContent(imgMs), "imagenes", img.Name);
             }
 
             var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
             var response = await ApiClient.PostMultipartAsync($"api/participante/{EventoId}/proyecto{grupoQuery}", content);
+
+            // Cleanup memory streams
+            archivoMs.Dispose();
+            foreach(var ms in imagesMs) { ms.Dispose(); }
 
             if (response.IsSuccessStatusCode)
             {
@@ -382,13 +396,17 @@ else
             }
             else
             {
-                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
-                error = err?.Error ?? $"Error {(int)response.StatusCode} al entregar el proyecto.";
+                var errJson = await response.Content.ReadAsStringAsync();
+                error = $"Error {(int)response.StatusCode} al entregar el proyecto: {errJson}";
             }
         }
         catch (Exception ex)
         {
             error = ex.Message;
+        }
+        finally
+        {
+            enviando = false;
         }
     }
 

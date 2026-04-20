@@ -188,8 +188,6 @@ namespace Votify.LógicaNegocio.Services
                 Imagenes = new List<ImagenProyecto>()
             };
 
-            await _proyectoRepo.AddAsync(nuevoProyecto);
-
             if (imagenes != null && imagenes.Any())
             {
                 var imagenesProyecto = imagenes.Select(img => new ImagenProyecto
@@ -199,8 +197,9 @@ namespace Votify.LógicaNegocio.Services
                 }).ToList();
 
                 nuevoProyecto.Imagenes.AddRange(imagenesProyecto);
-                await _proyectoRepo.UpdateAsync(nuevoProyecto);
             }
+
+            await _proyectoRepo.AddAsync(nuevoProyecto);
         }
 
         public async Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo)

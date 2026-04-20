@@ -136,7 +136,7 @@ namespace Votify.Controladores
             [FromForm] string? descripcionBreve,
             [FromForm] string? descripcionCompleta,
             IFormFile? archivo,
-            IFormFileCollection? imagenes)
+            List<IFormFile>? imagenes)
         {
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
