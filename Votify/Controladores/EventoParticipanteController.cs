@@ -39,11 +39,13 @@ namespace Votify.Controladores
             IdEvento = c.IdEvento,
             PonderacionPopular = c.PonderacionPopular,
             PonderacionExperto = c.PonderacionExperto,
+            CriteriosSonPorcentaje = c.CriteriosSonPorcentaje,
             Criterios = c.Criterios?.Select(cr => new CriterioDto
             {
                 Id = cr.Id,
                 Nombre = cr.Nombre,
-                Descripcion = cr.Descripcion ?? ""
+                Descripcion = cr.Descripcion ?? "",
+                Ponderacion = cr.Ponderacion
             }).ToList() ?? new()
         };
 

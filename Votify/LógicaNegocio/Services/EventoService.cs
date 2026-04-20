@@ -200,7 +200,8 @@ namespace Votify.LógicaNegocio.Services
                     Descripcion = catDto.Descripcion,
                     IdEvento = evento.Id,
                     PonderacionPopular = catDto.PonderacionPopular,
-                    PonderacionExperto = catDto.PonderacionExperto
+                    PonderacionExperto = catDto.PonderacionExperto,
+                    CriteriosSonPorcentaje = catDto.CriteriosSonPorcentaje
                 };
                 await _categoriumRepo.AddAsync(categoria);
 

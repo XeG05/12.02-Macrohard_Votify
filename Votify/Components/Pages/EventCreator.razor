@@ -78,6 +78,15 @@ else
                                 <input type="number" min="0" max="100"
                                        @bind="cat.PonderacionExperto" style="width:70px;" />
                             </label>
+                            <label>
+                                Evaluación de Criterios
+                                <select value="@(cat.CriteriosSonPorcentaje.ToString().ToLower())"
+                                        @onchange="@(e => cat.CriteriosSonPorcentaje = e.Value?.ToString() == "true")"
+                                        style="margin-left:8px;">
+                                    <option value="true">Porcentaje (100%)</option>
+                                    <option value="false">Sistema de Puntos</option>
+                                </select>
+                            </label>
                         </div>
                         @foreach (var crit in cat.Criterios)
                         {
@@ -86,8 +95,16 @@ else
                                        @bind="crit.Nombre" />
                                 <input type="text" placeholder="Descripción"
                                        @bind="crit.Descripcion" />
-                                <input type="number" min="0" max="100" placeholder="Pond %"
-                                       @bind="crit.Ponderacion" style="width:70px;" />
+                                @if (cat.CriteriosSonPorcentaje)
+                                {
+                                    <input type="number" min="0" max="100" placeholder="Pond %"
+                                           @bind="crit.Ponderacion" style="width:70px;" />
+                                }
+                                else
+                                {
+                                    <input type="number" min="0" placeholder="Puntos"
+                                           @bind="crit.Ponderacion" style="width:70px;" />
+                                }
                                 <button type="button" @onclick="() => EliminarCriterio(cat, crit)">✕</button>
                             </div>
                         }

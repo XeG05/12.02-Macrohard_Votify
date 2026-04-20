@@ -48,6 +48,12 @@ namespace Votify.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("CriteriosSonPorcentaje")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("criterios_son_porcentaje");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text")

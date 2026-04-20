@@ -77,6 +77,7 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("nombre");
             entity.Property(e => e.PonderacionExperto).HasColumnName("ponderacion_experto");
             entity.Property(e => e.PonderacionPopular).HasColumnName("ponderacion_popular");
+            entity.Property(e => e.CriteriosSonPorcentaje).HasColumnName("criterios_son_porcentaje").HasDefaultValue(true);
 
             entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Categorias)
                 .HasForeignKey(d => d.IdEvento)

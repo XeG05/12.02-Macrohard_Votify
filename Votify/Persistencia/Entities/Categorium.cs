@@ -14,6 +14,8 @@ public class Categorium
 
     public long PonderacionExperto { get; set; }
 
+    public bool CriteriosSonPorcentaje { get; set; } = true;
+
     public virtual ICollection<Criterio> Criterios { get; set; } = new List<Criterio>();
 
     public virtual Evento IdEventoNavigation { get; set; } = null!;
@@ -25,13 +27,14 @@ public class Categorium
         Criterios = new List<Criterio>();
         Grupos = new List<Grupo>();
     }
-    public Categorium(string nombre, string descripcion, long idEvento, long ponderacionPopular, long ponderacionExperto, Evento idEventoNavigation, Criterio criterio1)
+    public Categorium(string nombre, string descripcion, long idEvento, long ponderacionPopular, long ponderacionExperto, Evento idEventoNavigation, Criterio criterio1, bool criteriosSonPorcentaje = true)
     {
         Nombre = nombre;
         Descripcion = descripcion;
         IdEvento = idEvento;
         PonderacionPopular = ponderacionPopular;
         PonderacionExperto = ponderacionExperto;
+        CriteriosSonPorcentaje = criteriosSonPorcentaje;
         IdEventoNavigation = idEventoNavigation;
         Criterios = new List<Criterio>();
         Grupos = new List<Grupo>();
