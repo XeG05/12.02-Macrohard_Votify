@@ -203,9 +203,9 @@ namespace Votify.LógicaNegocio.Services
             if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly))
                 throw new Exception("Las fechas deben estar en orden lógico");
 
-            //  No fechas pasadas
+            /*//  No fechas pasadas
             if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy)
-        throw new Exception("No puedes poner fechas en el pasado");
+        throw new Exception("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
 
             //  Restricción por fase
             var faseActual = ObtenerFaseActual(eventoId);

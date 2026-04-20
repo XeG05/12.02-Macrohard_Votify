@@ -124,13 +124,32 @@ else
 
         <h3>Editar fechas</h3>
 
-        <input type="date" @bind="finInscripciones" />
-        <input type="date" @bind="finEntrega" />
-        <input type="date" @bind="finVotaciones" />
+        <input type="date" @bind="finInscripciones" disabled="@(!puedeEditarInscripciones)" />
+        <input type="date" @bind="finEntrega" disabled="@(!puedeEditarEntrega)" />
+        <input type="date" @bind="finVotaciones" disabled="@(!puedeEditarVotaciones)" />
 
-        <button @onclick="ActualizarFechas">
-            Guardar cambios
+        <button @onclick="ActualizarFechas"
+                disabled="@(!hayCambiosFechas || guardando)"
+                style="
+                    background-color:@((!hayCambiosFechas || guardando) ? "#9ca3af" : "#2563eb");
+                    color:white;
+                    opacity:@((!hayCambiosFechas || guardando) ? "0.6" : "1");
+                ">
+            @(guardando ? "Guardando..." : "Guardar cambios")
         </button>
+
+        @if (!string.IsNullOrWhiteSpace(mensajeError))
+        {
+            <div style="
+                    margin-top:15px;
+                    padding:10px;
+                    border-radius:10px;
+                    background:@(hayError ? "#fee2e2" : "#dcfce7");
+                    color:@(hayError ? "#991b1b" : "#166534");
+                ">
+                @mensajeError
+            </div>
+        }
     }
 
     <hr />
@@ -160,9 +179,14 @@ else
     EventoDto? evento;
     FaseDto? faseActual;
 
-    DateTime finInscripciones;
-    DateTime finEntrega;
-    DateTime finVotaciones;
+    DateTime _finInscripciones;
+    DateTime _finEntrega;
+    DateTime _finVotaciones;
+
+    bool puedeEditarInscripciones;
+    bool puedeEditarEntrega;
+    bool puedeEditarVotaciones;
+    bool hayCambiosFechas;
 
 
     string nombreGrupoNuevo = "";
@@ -170,6 +194,36 @@ else
     public long? categoriaSeleccionadaId;
     bool cargando = true;
     string error = "";
+
+    DateTime finInscripciones
+    {
+        get => _finInscripciones;
+        set
+        {
+            _finInscripciones = value;
+            DetectarCambios();
+        }
+    }
+
+    DateTime finEntrega
+    {
+        get => _finEntrega;
+        set
+        {
+            _finEntrega = value;
+            DetectarCambios();
+        }
+    }
+
+    DateTime finVotaciones
+    {
+        get => _finVotaciones;
+        set
+        {
+            _finVotaciones = value;
+            DetectarCambios();
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -195,8 +249,21 @@ else
             if (entradaEvento.Rol.EsAdministrador)
             {
                 evento = entradaEvento.Evento;
+                finInscripciones = evento.FechaFinInscripciones.ToDateTime(TimeOnly.MinValue);
+                finEntrega = evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue);
+                finVotaciones = evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue);
+
                 categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/evento/{EventoId}/categorias");
                 faseActual = await ApiClient.GetFromJsonAsync<FaseDto>($"api/administrador/{EventoId}/fase");
+
+                if (faseActual != null)
+                {
+                    var fase = faseActual.Fase;
+
+                    puedeEditarInscripciones = fase == "Inscripciones";
+                    puedeEditarEntrega = fase == "Inscripciones" || fase == "Entrega";
+                    puedeEditarVotaciones = fase != "Resultados";
+                }
             }
             else
             {
@@ -260,11 +327,18 @@ else
         Nav.NavigateTo("/home");
     }
 
+    string mensajeError = "";
+    bool hayError = false;
+    bool guardando = false;
+
     async Task ActualizarFechas()
     {
+        guardando = true;
+        hayError = false;
+        mensajeError = "";
+
         try
         {
-
             var dto = new ActualizarFechasDto
             {
                 FechaFinInscripciones = finInscripciones,
@@ -275,17 +349,47 @@ else
             var response = await ApiClient.PutAsJsonAsync(
                 $"api/administrador/{EventoId}/fechas", dto);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new Exception(error);
+                mensajeError = "Fechas actualizadas correctamente";
+                hayError = false;
+
+                //  actualizar estado base
+                evento.FechaFinInscripciones = DateOnly.FromDateTime(finInscripciones); 
+                evento.FechaFinEntrega = DateOnly.FromDateTime(finEntrega);
+                evento.FechaFinVotaciones = DateOnly.FromDateTime(finVotaciones);
+
+                hayCambiosFechas = false;
+            }
+            else
+            {
+                var json = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+                mensajeError = json?["error"] ?? "Error";
+                hayError = true;
             }
         }
         catch (Exception ex)
         {
-            error = ex.Message;
+            mensajeError = ex.Message;
+            hayError = true;
+        }
+        finally
+        {
+            guardando = false;
         }
     }
+
+    void DetectarCambios()
+    {
+        if (evento == null) return;
+
+        hayCambiosFechas =
+            finInscripciones != evento.FechaFinInscripciones.ToDateTime(TimeOnly.MinValue) ||
+            finEntrega != evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue) ||
+            finVotaciones != evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue); 
+    }
+
+
 
     async Task CrearGrupo() //SPRINT 2
     {
