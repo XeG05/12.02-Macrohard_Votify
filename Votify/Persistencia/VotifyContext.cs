@@ -154,6 +154,8 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("fecha_fin_entrega");
             entity.Property(e => e.FechaFinVotaciones)
                 .HasColumnName("fecha_fin_votaciones");
+            entity.Property(e => e.FechaFinEvaluacionExperta)
+                .HasColumnName("fecha_fin_evaluacion_experta");
             entity.Property(e => e.SinComentarios)
                 .HasColumnName("sin_comentario");
             entity.Property(e => e.ComentariosOpcionales)

@@ -29,7 +29,7 @@ namespace Votify.LógicaNegocio.Factory.Roles
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
                 ?? throw new Exception("Evento no encontrado");
 
-            await ValidarAsignacionAsync(usuario, evento, datosExtra);   // hook 1
+            await ValidarAsignacionAsync(usuario, evento, datosExtra);   
 
             var rolExistente = (await _rolRepo.FindAsync(
                 r => r.CorreoUsuario == correo && r.IdEvento == idEvento)).FirstOrDefault();

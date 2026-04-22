@@ -146,7 +146,8 @@ else
         var hoy = DateOnly.FromDateTime(DateTime.Now);
         if (hoy <= ev.FechaFinInscripciones) return "Fase de inscripción";
         if (hoy <= ev.FechaFinEntrega) return "Fase de entrega";
-        if (hoy <= ev.FechaFinVotaciones) return "Fase de evaluación";
+        if (hoy <= ev.FechaFinVotaciones) return "Fase de votación";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "Fase de evaluación experta";
         return "Fase finalizada";
     }
 }

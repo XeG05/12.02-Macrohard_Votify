@@ -1,0 +1,292 @@
+/* Reset y Base */
+.ejc-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: inherit;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* ========================================================
+   ESTADOS DE CARGA Y ALERTAS
+======================================================== */
+.ejc-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 0;
+    color: #6b7280;
+}
+
+.ejc-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6; /* Color azul jurado */
+    border-radius: 50%;
+    animation: ejc-spin 0.8s linear infinite;
+}
+
+@keyframes ejc-spin {
+    to { transform: rotate(360deg); }
+}
+
+.ejc-alert {
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+.ejc-alert-error {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* ========================================================
+   HERO (Cabecera de Categoría)
+======================================================== */
+.ejc-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid #d1d5db; /* Borde sutil tipo mockup */
+    border-radius: 12px;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    margin-bottom: 2rem;
+}
+
+.ejc-hero-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.ejc-btn-volver {
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 0.2rem;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.ejc-btn-volver:hover {
+    color: #111827;
+    transform: translateX(-2px);
+}
+
+.ejc-hero-text h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.ejc-hero-text .ejc-eyebrow {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+    display: block;
+}
+
+.ejc-hero-text p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.ejc-hero-right {
+    display: flex;
+    align-items: flex-end;
+    align-self: stretch;
+    justify-content: flex-end;
+}
+
+.ejc-progress-pill {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+/* ========================================================
+   LISTADO DE PROYECTOS Y TARJETAS
+======================================================== */
+.ejc-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    color: #111827;
+}
+
+.ejc-proyectos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.ejc-proyecto-card {
+    position: relative;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+/* Icono Revisado (arriba a la derecha del proyecto) */
+.ejc-proyecto-status-icon {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    opacity: 0.8;
+}
+
+.ejc-proyecto-cols {
+    display: grid;
+    grid-template-columns: 2fr 3fr 1fr;
+    min-height: 140px;
+}
+
+/* Celdas comunes en la grid del proyecto (bordes) */
+.ejc-col-left, .ejc-col-center, .ejc-col-right {
+    padding: 1.25rem;
+}
+
+.ejc-col-center {
+    border-left: 1px solid #d1d5db;
+    border-right: 1px solid #d1d5db;
+}
+
+.ejc-col-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.ejc-proyecto-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: #111827;
+}
+
+.ejc-participantes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ejc-participantes-list p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.ejc-col-center {
+    padding-top: 1.25rem; /* Alineado para que coincida visualmente*/
+}
+
+.ejc-desc-box p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #374151;
+}
+
+/* Grupo de botones a la derecha */
+.ejc-col-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    padding-right: 2.5rem; /* Para que quede espacio para el scroll o el icono revisado lateral */
+}
+
+.ejc-card-btn {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #9ca3af;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    text-align: center;
+    color: #374151;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.ejc-card-btn:hover {
+    background-color: #f3f4f6;
+    border-color: #6b7280;
+    color: #111827;
+}
+
+/* ========================================================
+   CHAT FLOTANTE MOCKUP
+======================================================== */
+.ejc-chat-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: #ffffff;
+    border: 2px solid #9ca3af;
+    border-radius: 999px;
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    z-index: 50;
+}
+
+.ejc-chat-fab:hover {
+    transform: scale(1.05);
+}
+
+.ejc-chat-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #374151;
+    border-radius: 50%;
+}
+
+/* ========================================================
+   DISEÑO ADAPTATIVO (MÓVILES Y PANTALLAS PEQUEÑAS)
+======================================================== */
+@media (max-width: 800px) {
+    .ejc-hero {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .ejc-hero-right {
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .ejc-proyecto-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .ejc-col-center {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid #d1d5db;
+        border-bottom: 1px solid #d1d5db;
+    }
+}

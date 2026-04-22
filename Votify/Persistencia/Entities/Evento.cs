@@ -16,6 +16,8 @@ public class Evento
 
     public DateOnly FechaFinVotaciones { get; set; }
 
+    public DateOnly FechaFinEvaluacionExperta { get; set; }
+
     public bool SinComentarios { get; set; }
     public bool ComentariosOpcionales { get; set; }
     public bool ComentariosObligatorios { get; set; }
@@ -46,6 +48,7 @@ public class Evento
     public Evento(string nombre, string descripcion, DateOnly fechaFinInscripciones,
         DateOnly fechaFinEntrega,
         DateOnly fechaFinVotaciones,
+        DateOnly fechaFinEvaluacionExperta,
         bool sinComentarios,
         bool comentariosOpcionales,
         bool comentariosObligatorios,
@@ -64,6 +67,7 @@ public class Evento
         FechaFinInscripciones = fechaFinInscripciones;
         FechaFinEntrega = fechaFinEntrega;
         FechaFinVotaciones = fechaFinVotaciones;
+        FechaFinEvaluacionExperta = fechaFinEvaluacionExperta;
         SinComentarios = sinComentarios;
         ComentariosOpcionales = comentariosOpcionales;
         ComentariosObligatorios = comentariosObligatorios;
