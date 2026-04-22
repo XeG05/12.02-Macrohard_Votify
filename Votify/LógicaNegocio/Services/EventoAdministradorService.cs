@@ -210,21 +210,29 @@ namespace Votify.LógicaNegocio.Services
             //  Restricción por fase
             var faseActual = ObtenerFaseActual(eventoId);
 
-            if (faseActual == FasesEvento.Entregas)
+            // 🔹 INSCRIPCIONES → puedes modificar todo
+            if (faseActual == FasesEvento.Inscripciones)
             {
-                // ya pasó inscripción
-                if (finInscripcionesOnly != evento.FechaFinInscripciones)
-                    throw new Exception("No puedes modificar la fase de inscripción");
+                // no bloqueas nada
             }
 
-            if (faseActual == FasesEvento.Votaciones)
+            // 🔹 ENTREGAS → no puedes tocar inscripciones
+            else if (faseActual == FasesEvento.Entregas)
+            {
+                if (finInscripcionesOnly != evento.FechaFinInscripciones)
+                    throw new Exception("No puedes modificar la fase de inscripciones");
+            }
+
+            // 🔹 VOTACIONES → solo puedes tocar votaciones
+            else if (faseActual == FasesEvento.Votaciones)
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones ||
                     finEntregaOnly != evento.FechaFinEntrega)
-                    throw new Exception("Solo puedes modificar la fase actual");
+                    throw new Exception("Solo puedes modificar la fase de votaciones");
             }
 
-            if (faseActual == FasesEvento.Resultados)
+            // 🔹 FINALIZADO → nada
+            else
             {
                 throw new Exception("El evento ya ha finalizado");
             }

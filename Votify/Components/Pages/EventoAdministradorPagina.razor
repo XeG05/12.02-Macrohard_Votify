@@ -124,9 +124,33 @@ else
 
         <h3>Editar fechas</h3>
 
-        <input type="date" @bind="finInscripciones" disabled="@(!puedeEditarInscripciones)" />
-        <input type="date" @bind="finEntrega" disabled="@(!puedeEditarEntrega)" />
-        <input type="date" @bind="finVotaciones" disabled="@(!puedeEditarVotaciones)" />
+        <div style="display:flex; flex-direction:column; gap:15px; max-width:350px;">
+
+            <div>
+                <label style="font-weight:bold;">Fin de inscripciones</label><br />
+                <input type="date"
+                       @bind="finInscripciones"
+                       disabled="@(!puedeEditarInscripciones)"
+                       style="padding:6px; border-radius:8px; border:1px solid #ccc; width:100%;" />
+            </div>
+
+            <div>
+                <label style="font-weight:bold;">Fin de entrega de proyectos</label><br />
+                <input type="date"
+                       @bind="finEntrega"
+                       disabled="@(!puedeEditarEntrega)"
+                       style="padding:6px; border-radius:8px; border:1px solid #ccc; width:100%;" />
+            </div>
+
+            <div>
+                <label style="font-weight:bold;">Fin de votaciones</label><br />
+                <input type="date"
+                       @bind="finVotaciones"
+                       disabled="@(!puedeEditarVotaciones)"
+                       style="padding:6px; border-radius:8px; border:1px solid #ccc; width:100%;" />
+            </div>
+
+        </div>
 
         <button @onclick="ActualizarFechas"
                 disabled="@(!hayCambiosFechas || guardando)"
@@ -261,7 +285,7 @@ else
                     var fase = faseActual.Fase;
 
                     puedeEditarInscripciones = fase == "Inscripciones";
-                    puedeEditarEntrega = fase == "Inscripciones" || fase == "Entrega";
+                    puedeEditarEntrega = fase == "Inscripciones" || fase == "Entregas";
                     puedeEditarVotaciones = fase != "Resultados";
                 }
             }
