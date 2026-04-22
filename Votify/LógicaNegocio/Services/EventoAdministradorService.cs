@@ -286,6 +286,7 @@ namespace Votify.LógicaNegocio.Services
             if (hoy <= evento.FechaFinInscripciones) return FasesEvento.Inscripciones;
             if (hoy <= evento.FechaFinEntrega) return FasesEvento.Entregas;
             if (hoy <= evento.FechaFinVotaciones) return FasesEvento.Votaciones;
+            if (hoy <= evento.FechaFinEvaluacionExperta) return FasesEvento.EvaluacionExperta;
             return FasesEvento.Resultados;
         }
     }
