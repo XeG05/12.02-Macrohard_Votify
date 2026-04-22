@@ -189,6 +189,7 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
         if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
         if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
         return "Finalizado";
     }
 
@@ -198,6 +199,7 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion";
         return "fase-finalizado";
     }
 }
