@@ -14,6 +14,8 @@ public class Evento
 
     public DateOnly FechaFinVotaciones { get; set; }
 
+    public DateOnly FechaFinEvaluacionExperta { get; set; }
+
     public bool TieneGrupos { get; set; }
 
     public bool GruposCompletos { get; set; }
@@ -32,6 +34,7 @@ public class Evento
     public Evento(string nombre, string descripcion, DateOnly fechaFinInscripciones,
         DateOnly fechaFinEntrega,
         DateOnly fechaFinVotaciones,
+        DateOnly fechaFinEvaluacionExperta,
         bool tieneGrupos,
         bool gruposCompletos,
         int participantesPorGrupo)
@@ -41,6 +44,7 @@ public class Evento
         FechaFinInscripciones = fechaFinInscripciones;
         FechaFinEntrega = fechaFinEntrega;
         FechaFinVotaciones = fechaFinVotaciones;
+        FechaFinEvaluacionExperta = fechaFinEvaluacionExperta;
         TieneGrupos = tieneGrupos;
         GruposCompletos = gruposCompletos;
         ParticipantesPorGrupo = participantesPorGrupo;

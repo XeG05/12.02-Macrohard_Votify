@@ -1,0 +1,203 @@
+﻿@page "/eventojurado/{EventoId:long}/categoria/{CategoriaId:long}"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject BlazorAuthStateProvider AuthProvider
+@using Votify.LógicaNegocio.DTOs
+
+@if (cargando)
+{
+    <div class="ejc-loading-state">
+        <div class="ejc-spinner"></div>
+        <p>Cargando información de la categoría...</p>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="ejc-wrapper">
+        <div class="ejc-alert ejc-alert-error">@error</div>
+    </div>
+}
+else if (evento != null && categoria != null)
+{
+    <div class="ejc-wrapper">
+
+        <!-- Hero/Header de la Categoria -->
+        <div class="ejc-hero">
+            <div class="ejc-hero-left">
+                <button class="ejc-btn-volver" @onclick="VolverAlEvento" title="Volver a categorías">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+                    </svg>
+                </button>
+                <div class="ejc-hero-text">
+                    <span class="ejc-eyebrow">@evento.Nombre</span>
+                    <h1>@categoria.Nombre</h1>
+                    <p>@categoria.Descripcion</p>
+                </div>
+            </div>
+
+            <div class="ejc-hero-right">
+                <div class="ejc-progress-pill">
+                    <span class="ejc-progress-text">Proyectos revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales</span>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="ejc-section-title">Proyectos</h2>
+
+        <div class="ejc-proyectos-list">
+            @if (proyectos != null && proyectos.Any())
+            {
+                @foreach (var p in proyectos)
+                {
+                    <div class="ejc-proyecto-card">
+
+                        <!-- Indicador visual de si ha sido revisado (simulado) -->
+                        <div class="ejc-proyecto-status-icon" title="@(p.Revisado ? "Proyecto Revisado" : "Pendiente de revisar")">
+                            @if (p.Revisado)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#10b981" viewBox="0 0 16 16">
+                                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                    <path d="M2.5 1.5A1.5 1.5 0 0 1 4 .5h8a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V1.5zM4 1.5v13h8v-13H4z"/>
+                                </svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#9ca3af" viewBox="0 0 16 16">
+                                    <path d="M2.5 1.5A1.5 1.5 0 0 1 4 .5h8a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V1.5zM4 1.5v13h8v-13H4z"/>
+                                </svg>
+                            }
+                        </div>
+
+                        <!-- 3 Columnas principales de info del proyecto -->
+                        <div class="ejc-proyecto-cols">
+
+                            <!-- Izquierda: Titulo + Participantes -->
+                            <div class="ejc-col-left">
+                                <h3 class="ejc-proyecto-title">@p.Nombre</h3>
+                                <div class="ejc-participantes-list">
+                                    @if(participantesPorProyecto.ContainsKey(p.Id))
+                                    {
+                                        foreach(var participante in participantesPorProyecto[p.Id])
+                                        {
+                                            <p>@participante</p>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Centro: Descripcion Breve -->
+                            <div class="ejc-col-center">
+                                <div class="ejc-desc-box">
+                                    <p>@p.DescripcionBreve</p>
+                                </div>
+                            </div>
+
+                            <!-- Derecha: Botones -->
+                            <div class="ejc-col-right">
+                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.Id)">Resultado de la votación popular</button>
+                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.Id)">Comentarios del jurado</button>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="color:#6b7280; font-style:italic;">No hay proyectos asociados a esta categoría.</p>
+            }
+        </div>
+
+        <!-- Botón flotante Chat (Simulado según el mockup) -->
+        <button class="ejc-chat-fab">
+            <span>Chat</span>
+            <div class="ejc-chat-dot"></div>
+        </button>
+
+    </div>
+}
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+    [Parameter] public long CategoriaId { get; set; }
+
+    private bool cargando = true;
+    private string error = "";
+
+    // DTO ampliado localmente para simulacion de la maquetación (Revisado)
+    private class ProyectoJuradoViewDto : ProyectoDto {
+        public bool Revisado { get; set; }
+    }
+
+    private EventoDto? evento;
+    private CategoriaJuradoDto? categoria;
+    private List<ProyectoJuradoViewDto>? proyectos;
+    private Dictionary<long, List<string>> participantesPorProyecto = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            // SIMULACION temporal para levantar el mockup, en un futuro rellenaremos haciendo peticiones a API reales.
+            await Task.Delay(500); // UI simulando carga
+
+            evento = new EventoDto { Id = EventoId, Nombre = "Nombre del evento" };
+            categoria = new CategoriaJuradoDto { 
+                Id = CategoriaId, 
+                Nombre = "Nombre de la categoría", 
+                Descripcion = "Pequeña descripción de la categoria",
+                ProyectosRevisados = 16,
+                ProyectosTotales = 16
+            };
+
+            proyectos = new List<ProyectoJuradoViewDto>
+            {
+                new ProyectoJuradoViewDto { 
+                    Id = 1, Nombre = "Nombre del proyecto", DescripcionBreve = "Descripción breve del Proyecto", Revisado = true 
+                },
+                new ProyectoJuradoViewDto { 
+                    Id = 2, Nombre = "Nombre del proyecto", DescripcionBreve = "Descripción breve del Proyecto", Revisado = false 
+                }
+            };
+
+            participantesPorProyecto = new Dictionary<long, List<string>>
+            {
+                { 1, new List<string> { "Participante 1", "Participante 2", "Participante 3", "Participante 4" } },
+                { 2, new List<string> { "Participante 1", "Participante 2", "Participante 3", "Participante 4" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            error = "Ocurrió un error cargando los datos.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void VolverAlEvento()
+    {
+        Nav.NavigateTo($"/eventojurado/{EventoId}");
+    }
+
+    private void IrAResultadoPopular(long idProyecto)
+    {
+        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idProyecto}/resultados");
+    }
+
+    private void IrAComentariosJurado(long idProyecto)
+    {
+        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idProyecto}/comentarios");
+    }
+}

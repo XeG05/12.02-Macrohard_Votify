@@ -165,6 +165,7 @@ namespace Votify.LógicaNegocio.Services
                 dto.FechaFinInscripciones!.Value,
                 dto.FechaFinEntrega!.Value,
                 dto.FechaFinVotaciones!.Value,
+                dto.FechaFinEvaluacionExperta!.Value,
                 dto.TieneGrupos,
                 dto.GruposCompletos,
                 dto.NumParticipantes
