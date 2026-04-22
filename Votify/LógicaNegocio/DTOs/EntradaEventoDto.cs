@@ -1,5 +1,4 @@
-﻿using Votify.LógicaNegocio.Domain;
-using Votify.Persistencia.Entities;
+﻿using Votify.Persistencia.Entities;
 
 namespace Votify.LógicaNegocio.DTOs
 {
