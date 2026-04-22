@@ -42,8 +42,53 @@ else
                 <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
             </div>
         </div>
+        <div class="opcionesVotacion">
+            <h4>Votaciones</h4>
+            <hr/>
+            <div>
+                <div id="partvotar">
+                    <input type="checkbox" @bind="dto.ParticipantesVotan"/>
+                    <p>Los participantes pueden votar</p>
+                </div>
+                <div>
+                    <p>Comentarios de los votantes</p>
+                    <div class="radio-opcion">
+                        <input type="radio" name="comentarios" @bind="dto.SinComentarios" checked/>
+                        <p>Sin comentarios</p>
+                    </div>
+                    <div class="radio-opcion">
+                        <input type="radio" name="comentarios" @bind="dto.ComentariosOpcionales" />
+                        <p>Comentarios opcionales</p>
+                    </div>
+                    <div class="radio-opcion">
+                        <input type="radio" name="comentarios" @bind="dto.ComentariosObligatorios" />
+                        <p>Comentarios obligatorios con el voto</p>
+                    </div>
+                </div>
+                <div>
+                    <p>Tipo de votación(por Criterio)</p>
+                    <div class="radio-opcion">
+                        <input type="radio" name="votos" checked="@dto.CalificarNumericamente"
+                               @onchange="@(() => SetTipoVoto("calificar"))" />
+                        <p>Calificar numéricamente(de 1 a 10)</p>
+                    </div>
+                    <div class="radio-opcion">
+                        <input type="radio" name="votos" checked="@dto.VotarXProyectos"
+                               @onchange="@(() => SetTipoVoto("proyectos"))" />
+                        <p>Voto simple: votar X proyectos</p>
+                        <input type="number" min="1" max="100" @bind="dto.VotarProyectos" disabled="@(!dto.VotarXProyectos)" />
+                    </div >
+                    <div class="radio-opcion">
+                        <input type="radio" name="votos" checked="@dto.RepartirPuntos"
+                               @onchange="@(() => SetTipoVoto("puntos"))" />
+                        <p>Repartir X puntos entre los proyectos</p>
+                        <input type="number" min="1" max="100" @bind="dto.PuntosARepartir" disabled="@(!dto.RepartirPuntos)" />
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="opciones">
-            <h4>Opciones</h4>
+            <h4>Opciones de grupo</h4>
             <hr />
             <div class="num-participantes">
                 <p>Número de participantes por grupo:</p>
@@ -196,6 +241,14 @@ else
         autenticado = true;
         StateHasChanged();
     }
+
+    private void SetTipoVoto(string tipo)
+    {
+        dto.VotarXProyectos = tipo == "proyectos";
+        dto.RepartirPuntos = tipo == "puntos";
+        dto.CalificarNumericamente = tipo == "calificar";
+    }
+
 
     private void AñadirCategoria()
     {

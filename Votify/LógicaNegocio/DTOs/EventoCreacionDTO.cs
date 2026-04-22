@@ -9,6 +9,18 @@ namespace Votify.LógicaNegocio.DTOs
         public DateOnly? FechaFinEntrega { get; set; }
         public DateOnly? FechaFinVotaciones { get; set; }
 
+        public bool SinComentarios { get; set; }
+        public bool ComentariosOpcionales { get; set; }
+        public bool ComentariosObligatorios { get; set; }
+
+        public bool ParticipantesVotan { get; set; }
+
+        public bool VotarXProyectos { get; set; }
+        public bool RepartirPuntos { get; set; }
+        public bool CalificarNumericamente { get; set; }
+        public int VotarProyectos { get; set; } = 1;
+        public int PuntosARepartir { get; set; } = 1;
+
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
         public int NumParticipantes { get; set; } = 1;

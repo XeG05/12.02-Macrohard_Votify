@@ -154,6 +154,24 @@ public partial class VotifyContext : DbContext
                 .HasColumnName("fecha_fin_entrega");
             entity.Property(e => e.FechaFinVotaciones)
                 .HasColumnName("fecha_fin_votaciones");
+            entity.Property(e => e.SinComentarios)
+                .HasColumnName("sin_comentario");
+            entity.Property(e => e.ComentariosOpcionales)
+                .HasColumnName("comentario_opcional");
+            entity.Property(e => e.ComentariosObligatorios)
+                .HasColumnName("comentario_obligatorio");
+            entity.Property(e => e.ParticipantesVotan)
+                .HasColumnName("participante_votan");
+            entity.Property(e => e.CalificarNumericamente)
+                .HasColumnName("calificar_numericamente");
+            entity.Property(e => e.VotarXProyectos)
+                .HasColumnName("votar_x_proyecto");
+            entity.Property(e => e.VotarProyectos)
+                .HasColumnName("votar_proyecto");
+            entity.Property(e => e.RepartirPuntos)
+                .HasColumnName("repartir_puntos");
+            entity.Property(e => e.PuntosARepartir)
+                .HasColumnName("puntos_a_repartir");
             entity.Property(e => e.TieneGrupos)
                 .HasColumnName("tiene_grupos");
             entity.Property(e => e.GruposCompletos)

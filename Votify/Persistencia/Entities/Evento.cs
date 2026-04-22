@@ -1,4 +1,6 @@
-﻿namespace Votify.Persistencia.Entities;
+﻿using Humanizer;
+
+namespace Votify.Persistencia.Entities;
 
 public class Evento
 {
@@ -13,6 +15,18 @@ public class Evento
     public DateOnly FechaFinEntrega { get; set; }
 
     public DateOnly FechaFinVotaciones { get; set; }
+
+    public bool SinComentarios { get; set; }
+    public bool ComentariosOpcionales { get; set; }
+    public bool ComentariosObligatorios { get; set; }
+
+    public bool ParticipantesVotan { get; set; }
+
+    public bool VotarXProyectos { get; set; }
+    public bool RepartirPuntos { get; set; }
+    public bool CalificarNumericamente { get; set; }
+    public int VotarProyectos { get; set; }
+    public int PuntosARepartir { get; set; }
 
     public bool TieneGrupos { get; set; }
 
@@ -32,6 +46,15 @@ public class Evento
     public Evento(string nombre, string descripcion, DateOnly fechaFinInscripciones,
         DateOnly fechaFinEntrega,
         DateOnly fechaFinVotaciones,
+        bool sinComentarios,
+        bool comentariosOpcionales,
+        bool comentariosObligatorios,
+        bool participantesVotan,
+        bool calificarNumericamente,
+        bool votarXProyecto,
+        int votarProyecto,
+        bool repartirPuntos,
+        int puntosARepartir,
         bool tieneGrupos,
         bool gruposCompletos,
         int participantesPorGrupo)
@@ -41,6 +64,15 @@ public class Evento
         FechaFinInscripciones = fechaFinInscripciones;
         FechaFinEntrega = fechaFinEntrega;
         FechaFinVotaciones = fechaFinVotaciones;
+        SinComentarios = sinComentarios;
+        ComentariosOpcionales = comentariosOpcionales;
+        ComentariosObligatorios = comentariosObligatorios;
+        ParticipantesVotan = participantesVotan;
+        CalificarNumericamente = calificarNumericamente;
+        VotarXProyectos = votarXProyecto;
+        VotarProyectos = votarProyecto;
+        RepartirPuntos = repartirPuntos;
+        PuntosARepartir = puntosARepartir;
         TieneGrupos = tieneGrupos;
         GruposCompletos = gruposCompletos;
         ParticipantesPorGrupo = participantesPorGrupo;

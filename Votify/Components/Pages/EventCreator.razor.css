@@ -22,7 +22,7 @@ h3 {
     width: 400px;
 }
 
-.time-container, .opciones, .participantes, .categorias {
+.time-container, .opciones, .participantes, .categorias, .opcionesVotacion {
     margin-top: 20px;
 }
 
@@ -81,6 +81,49 @@ h3 {
 .time-container > div > input {
     width: 200px;
 }
+
+.opcionesVotacion > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .opcionesVotacion > div > p {
+        margin:8px;
+    }
+
+    .opcionesVotacion > div > div {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid black;
+        border-radius: 10px;
+        padding: 5px;
+    }
+
+    .opcionesVotacion > div > div> p {
+        margin: 5px;
+    }
+
+#partvotar {
+    display: flex;
+    flex-direction: row;
+}
+
+.radio-opcion {
+    display: flex;
+    flex-direction: row;
+    align-items:center;
+    margin-left: 10px;
+}
+
+    .radio-opcion > p {
+        margin: 7px;
+    }
+
+    .radio-opcion > input {
+        height: 90%;
+    }
+
 
 .opciones > div {
     display: flex;
