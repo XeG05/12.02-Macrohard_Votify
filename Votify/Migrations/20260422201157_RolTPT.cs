@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class RefactorRolTPT : Migration
+    public partial class RolTPT : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -106,7 +106,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.PrimaryKey("PK_rol", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
                         name: "correo_usuarioFK",
                         column: x => x.correo_usuario,
@@ -173,7 +173,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.PrimaryKey("PK_administrador", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
                         name: "FK_administrador_rol_correo_usuario_id_evento",
                         columns: x => new { x.correo_usuario, x.id_evento },
@@ -191,7 +191,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.PrimaryKey("PK_jurado", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
                         name: "FK_jurado_rol_correo_usuario_id_evento",
                         columns: x => new { x.correo_usuario, x.id_evento },
@@ -209,7 +209,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.PrimaryKey("PK_votante", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
                         name: "FK_votante_rol_correo_usuario_id_evento",
                         columns: x => new { x.correo_usuario, x.id_evento },
@@ -283,7 +283,7 @@ namespace Votify.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.PrimaryKey("PK_participante", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
                         name: "FK_participante_rol_correo_usuario_id_evento",
                         columns: x => new { x.correo_usuario, x.id_evento },

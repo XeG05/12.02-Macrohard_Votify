@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260422195401_RefactorRolTPT")]
-    partial class RefactorRolTPT
+    [Migration("20260422201157_RolTPT")]
+    partial class RolTPT
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -436,8 +436,7 @@ namespace Votify.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("id_evento");
 
-                    b.HasKey("CorreoUsuario", "IdEvento")
-                        .HasName("rol_pkey");
+                    b.HasKey("CorreoUsuario", "IdEvento");
 
                     b.HasIndex("IdEvento");
 

@@ -11,39 +11,26 @@ public partial class VotifyContext : DbContext
     }
 
     public virtual DbSet<Administrador> Administradors { get; set; }
-
     public virtual DbSet<Categorium> Categoria { get; set; }
-
     public virtual DbSet<Comentario> Comentarios { get; set; }
-
     public virtual DbSet<Criterio> Criterios { get; set; }
-
     public virtual DbSet<Evento> Eventos { get; set; }
-
     public virtual DbSet<Grupo> Grupos { get; set; }
-
     public virtual DbSet<Jurado> Jurados { get; set; }
-
     public virtual DbSet<Notificacion> Notificacions { get; set; }
-
     public virtual DbSet<Participante> Participantes { get; set; }
-
     public virtual DbSet<Proyecto> Proyectos { get; set; }
-
     public virtual DbSet<Reclamacion> Reclamacions { get; set; }
-
     public virtual DbSet<Rol> Rols { get; set; }
-
     public virtual DbSet<Usuario> Usuarios { get; set; }
-
     public virtual DbSet<Votante> Votantes { get; set; }
-
     public virtual DbSet<Voto> Votos { get; set; }
-
     public virtual DbSet<InvitacionPendiente> InvitacionesPendientes { get; set; }
     public DbSet<ImagenProyecto> ImagenProyecto { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // ── Herencia TPT ─────────────────────────────────────────────────────
         modelBuilder.Entity<Rol>().UseTptMappingStrategy();
 
         modelBuilder.Entity<Administrador>(entity =>
@@ -80,9 +67,10 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_grupo");
         });
 
+        // ── Rol (base) ───────────────────────────────────────────────────────
         modelBuilder.Entity<Rol>(entity =>
         {
-            entity.HasKey(e => new { e.CorreoUsuario, e.IdEvento }).HasName("rol_pkey");
+            entity.HasKey(e => new { e.CorreoUsuario, e.IdEvento }); // sin HasName — EF genera nombres únicos por tabla
 
             entity.ToTable("rol");
 
@@ -102,20 +90,15 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_eventoFK");
         });
 
+        // ── Resto de entidades ────────────────────────────────────────────────
         modelBuilder.Entity<Categorium>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("categoria_pkey");
-
             entity.ToTable("categoria");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.IdEvento).HasColumnName("id_evento");
-            entity.Property(e => e.Nombre)
-                .HasColumnType("character varying")
-                .HasColumnName("nombre");
+            entity.Property(e => e.Nombre).HasColumnType("character varying").HasColumnName("nombre");
             entity.Property(e => e.PonderacionExperto).HasColumnName("ponderacion_experto");
             entity.Property(e => e.PonderacionPopular).HasColumnName("ponderacion_popular");
             entity.Property(e => e.CriteriosSonPorcentaje).HasColumnName("criterios_son_porcentaje").HasDefaultValue(true);
@@ -133,13 +116,9 @@ public partial class VotifyContext : DbContext
         modelBuilder.Entity<Comentario>(entity =>
         {
             entity.HasKey(e => new { e.IdRol, e.CorreoRol, e.IdProyectoGru }).HasName("comentario_pkey");
-
             entity.ToTable("comentario");
-
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
-            entity.Property(e => e.CorreoRol)
-                .HasMaxLength(50)
-                .HasColumnName("correo_rol");
+            entity.Property(e => e.CorreoRol).HasMaxLength(50).HasColumnName("correo_rol");
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
@@ -149,7 +128,7 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_rolFK");
 
             entity.HasOne(d => d.Proyecto).WithMany(p => p.Comentarios)
-                .HasForeignKey(d => new { d.IdProyectoGru})
+                .HasForeignKey(d => new { d.IdProyectoGru })
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
         });
@@ -157,17 +136,11 @@ public partial class VotifyContext : DbContext
         modelBuilder.Entity<Criterio>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("criterio_pkey");
-
             entity.ToTable("criterio");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .HasColumnName("nombre");
+            entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
             entity.Property(e => e.Ponderacion).HasColumnName("ponderacion");
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Criterios)
@@ -179,76 +152,44 @@ public partial class VotifyContext : DbContext
         modelBuilder.Entity<Evento>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("evento_pkey");
-
             entity.ToTable("evento");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .HasColumnName("nombre");
-            entity.Property(e => e.FechaFinInscripciones)
-        .HasColumnName("fecha_fin_inscripciones");
-            entity.Property(e => e.FechaFinEntrega)
-                .HasColumnName("fecha_fin_entrega");
-            entity.Property(e => e.FechaFinVotaciones)
-                .HasColumnName("fecha_fin_votaciones");
-            entity.Property(e => e.FechaFinEvaluacionExperta)
-                .HasColumnName("fecha_fin_evaluacion_experta");
-            entity.Property(e => e.SinComentarios)
-                .HasColumnName("sin_comentario");
-            entity.Property(e => e.ComentariosOpcionales)
-                .HasColumnName("comentario_opcional");
-            entity.Property(e => e.ComentariosObligatorios)
-                .HasColumnName("comentario_obligatorio");
-            entity.Property(e => e.ParticipantesVotan)
-                .HasColumnName("participante_votan");
-            entity.Property(e => e.CalificarNumericamente)
-                .HasColumnName("calificar_numericamente");
-            entity.Property(e => e.VotarXProyectos)
-                .HasColumnName("votar_x_proyecto");
-            entity.Property(e => e.VotarProyectos)
-                .HasColumnName("votar_proyecto");
-            entity.Property(e => e.RepartirPuntos)
-                .HasColumnName("repartir_puntos");
-            entity.Property(e => e.PuntosARepartir)
-                .HasColumnName("puntos_a_repartir");
-            entity.Property(e => e.TieneGrupos)
-                .HasColumnName("tiene_grupos");
-            entity.Property(e => e.GruposCompletos)
-                .HasColumnName("grupos_completos");
-            entity.Property(e => e.ParticipantesPorGrupo)
-                .HasColumnName("participantes_por_grupo");
+            entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
+            entity.Property(e => e.FechaFinInscripciones).HasColumnName("fecha_fin_inscripciones");
+            entity.Property(e => e.FechaFinEntrega).HasColumnName("fecha_fin_entrega");
+            entity.Property(e => e.FechaFinVotaciones).HasColumnName("fecha_fin_votaciones");
+            entity.Property(e => e.FechaFinEvaluacionExperta).HasColumnName("fecha_fin_evaluacion_experta");
+            entity.Property(e => e.SinComentarios).HasColumnName("sin_comentario");
+            entity.Property(e => e.ComentariosOpcionales).HasColumnName("comentario_opcional");
+            entity.Property(e => e.ComentariosObligatorios).HasColumnName("comentario_obligatorio");
+            entity.Property(e => e.ParticipantesVotan).HasColumnName("participante_votan");
+            entity.Property(e => e.CalificarNumericamente).HasColumnName("calificar_numericamente");
+            entity.Property(e => e.VotarXProyectos).HasColumnName("votar_x_proyecto");
+            entity.Property(e => e.VotarProyectos).HasColumnName("votar_proyecto");
+            entity.Property(e => e.RepartirPuntos).HasColumnName("repartir_puntos");
+            entity.Property(e => e.PuntosARepartir).HasColumnName("puntos_a_repartir");
+            entity.Property(e => e.TieneGrupos).HasColumnName("tiene_grupos");
+            entity.Property(e => e.GruposCompletos).HasColumnName("grupos_completos");
+            entity.Property(e => e.ParticipantesPorGrupo).HasColumnName("participantes_por_grupo");
         });
 
         modelBuilder.Entity<Grupo>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("grupo_pkey");
-
             entity.ToTable("grupo");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.HojaRutaTexto).HasColumnName("hoja_ruta_texto");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .HasColumnName("nombre");
+            entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
         });
 
         modelBuilder.Entity<Notificacion>(entity =>
         {
             entity.HasKey(e => new { e.Id, e.Correo }).HasName("notificacion_pkey");
-
             entity.ToTable("notificacion");
-
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Correo)
-                .HasMaxLength(50)
-                .HasColumnName("correo");
+            entity.Property(e => e.Correo).HasMaxLength(50).HasColumnName("correo");
             entity.Property(e => e.Contenido).HasColumnName("contenido");
 
             entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Notificaciones)
@@ -259,26 +200,12 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Proyecto>(entity =>
         {
-            entity.HasKey(e => e.Id)
-                  .HasName("proyecto_pkey");
-
+            entity.HasKey(e => e.Id).HasName("proyecto_pkey");
             entity.ToTable("proyecto");
-
-            entity.Property(e => e.Id)
-                  .ValueGeneratedOnAdd()
-                  .HasColumnName("id");
-
-            entity.Property(e => e.IdGrupo)
-                  .HasColumnName("id_grupo");
-
-            entity.Property(e => e.Nombre)
-                  .HasMaxLength(50)
-                  .HasColumnName("nombre");
-
-            entity.Property(e => e.Archivo)
-                  .IsRequired()
-                  .HasColumnType("bytea")
-                  .HasColumnName("archivo");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+            entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
+            entity.Property(e => e.Archivo).IsRequired().HasColumnType("bytea").HasColumnName("archivo");
 
             entity.HasOne(d => d.IdGrupoNavigation).WithOne(p => p.Proyecto)
                 .HasForeignKey<Proyecto>(d => d.IdGrupo)
@@ -289,14 +216,10 @@ public partial class VotifyContext : DbContext
         modelBuilder.Entity<Reclamacion>(entity =>
         {
             entity.HasKey(e => new { e.IdCriterio, e.IdRol, e.CorreoRol }).HasName("reclamacion_pkey");
-
             entity.ToTable("reclamacion");
-
             entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
-            entity.Property(e => e.CorreoRol)
-                .HasMaxLength(50)
-                .HasColumnName("correo_rol");
+            entity.Property(e => e.CorreoRol).HasMaxLength(50).HasColumnName("correo_rol");
             entity.Property(e => e.Comentario).HasColumnName("comentario");
 
             entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Reclamaciones)
@@ -313,35 +236,21 @@ public partial class VotifyContext : DbContext
         modelBuilder.Entity<Usuario>(entity =>
         {
             entity.HasKey(e => e.Correo).HasName("usuarios_pkey");
-
             entity.ToTable("usuario");
-
-            entity.Property(e => e.Correo)
-                .HasMaxLength(50)
-                .HasColumnName("correo");
-            entity.Property(e => e.Contraseña)
-                .HasMaxLength(50)
-                .HasColumnName("contraseña");
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .HasColumnName("nombre");
+            entity.Property(e => e.Correo).HasMaxLength(50).HasColumnName("correo");
+            entity.Property(e => e.Contraseña).HasMaxLength(50).HasColumnName("contraseña");
+            entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
         });
 
         modelBuilder.Entity<Voto>(entity =>
         {
-            entity.HasKey(e => new {e.Id, e.IdRol, e.IdCriterio, e.IdProyectoGru}).HasName("voto_pkey");
-
+            entity.HasKey(e => new { e.Id, e.IdRol, e.IdCriterio, e.IdProyectoGru }).HasName("voto_pkey");
             entity.ToTable("voto");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
             entity.Property(e => e.IdProyectoGru).HasColumnName("id_proyecto_gru");
-            entity.Property(e => e.CorreoRol)
-                .HasColumnType("character varying")
-                .HasColumnName("correo_rol");
+            entity.Property(e => e.CorreoRol).HasColumnType("character varying").HasColumnName("correo_rol");
             entity.Property(e => e.Nota).HasColumnName("nota");
 
             entity.HasOne(d => d.IdCriterioNavigation).WithMany(p => p.Votos)
@@ -359,29 +268,20 @@ public partial class VotifyContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_proyectoFK");
         });
+
         modelBuilder.Entity<ImagenProyecto>(entity =>
         {
             entity.ToTable("imagen_proyecto");
-
             entity.HasKey(i => i.Id);
-
-            entity.Property(i => i.Id)
-                  .ValueGeneratedOnAdd()
-                  .HasColumnName("id");
-
-            entity.Property(i => i.Archivo)
-                  .IsRequired()
-                  .HasColumnType("bytea")
-                  .HasColumnName("archivo");
-
-            entity.Property(i => i.ProyectoIdGrupo)
-                  .HasColumnName("proyecto_id_grupo");
+            entity.Property(i => i.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(i => i.Archivo).IsRequired().HasColumnType("bytea").HasColumnName("archivo");
+            entity.Property(i => i.ProyectoIdGrupo).HasColumnName("proyecto_id_grupo");
 
             entity.HasOne(i => i.Proyecto)
-                  .WithMany(p => p.Imagenes)
-                  .HasForeignKey(i => i.ProyectoIdGrupo)
-                  .HasPrincipalKey(p => p.IdGrupo)
-                  .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(p => p.Imagenes)
+                .HasForeignKey(i => i.ProyectoIdGrupo)
+                .HasPrincipalKey(p => p.IdGrupo)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<InvitacionPendiente>(entity =>
@@ -404,8 +304,8 @@ public partial class VotifyContext : DbContext
 
             entity.HasOne(d => d.IdEventoNavigation)
                 .WithMany()
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasForeignKey(d => d.IdEvento);
+                .HasForeignKey(d => d.IdEvento)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);
