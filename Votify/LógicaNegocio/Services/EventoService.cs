@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Votify.LógicaNegocio.Domain;
 using Votify.LógicaNegocio.DTOs;
-using Votify.LógicaNegocio.Factory;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
@@ -12,7 +10,6 @@ namespace Votify.LógicaNegocio.Services
     public class EventoService : Service<Evento>, IEventoService
     {
         private readonly AdministradorCreator _adminCreator;
-        private readonly ParticipanteCreator _participanteCreator;
         private readonly VotanteCreator _votanteCreator;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
@@ -22,7 +19,6 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Categorium> _categoriumRepo;
         private readonly IRepository<Administrador> _adminRepo;
         private readonly IRepository<Jurado> _juradoRepo;
-        private readonly IRepository<Votante> _votanteRepo;
         private readonly IRepository<Rol> _rolRepo;
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Voto> _votoRepo;
@@ -31,7 +27,6 @@ namespace Votify.LógicaNegocio.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         public EventoService(AdministradorCreator adminC, 
-            ParticipanteCreator participanteC, 
             VotanteCreator votanteC,
             IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
@@ -44,14 +39,12 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Votante> votanteRepo,
             IRepository<Rol> rolRepo,
             IRepository<Criterio> criterioRepo,
-            IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
             IEmailService emailService,
             IConfiguration config) : base(eventoRepo)
         {
             _adminCreator = adminC;
-            _participanteCreator = participanteC;
             _votanteCreator = votanteC;
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
@@ -61,10 +54,8 @@ namespace Votify.LógicaNegocio.Services
             _categoriumRepo = categoriumRepo;
             _adminRepo = adminRepo;
             _juradoRepo = juradoRepo;
-            _votanteRepo = votanteRepo;
             _rolRepo = rolRepo;
             _criterioRepo = criterioRepo;
-            _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
             _emailService = emailService;
@@ -73,22 +64,21 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<List<Evento>> GetEventosCreados(string correo)
         {
-            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
-            var eventIds = admins.Select(a => a.Id).ToHashSet();
+            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
+            var eventIds = admins.Select(a => a.IdEvento).ToHashSet();
             var todos = await _eventoRepo.GetAllAsync();
             return todos.Where(e => eventIds.Contains(e.Id)).ToList();
         }
 
         public async Task<List<Evento>> GetEventosParticipacion(string correo)
         {
-            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
-            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
+            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
+            var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
 
-            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
-            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
-
-            var participacionIds = participantes.Select(p => p.Id)
-                .Concat(jurados.Select(j => j.Id))
+            var participantes = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo);
+            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo);
+            var participacionIds = participantes.Select(p => p.IdEvento)
+                .Concat(jurados.Select(j => j.IdEvento))
                 .Where(id => !adminEventIds.Contains(id))
                 .ToHashSet();
 
@@ -128,27 +118,8 @@ namespace Votify.LógicaNegocio.Services
                 .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
                 .FirstOrDefault();
 
-            if (rol == null)
-            {
-                await AsignarVotanteAsync(correo, idEvento);
-
-                rol = (await _rolRepo
-                    .FindAsync(r => r.CorreoUsuario == correo && r.IdEvento == idEvento))
-                    .FirstOrDefault()
-                    ?? throw new Exception("Error al asignar rol de votante");
-            }
-
-            // Cargar explícitamente las propiedades de navegación si no están cargadas
-            rol.Administrador ??= (await _adminRepo.FindAsync(a => a.Correo == correo && a.Id == idEvento)).FirstOrDefault();
-            rol.Participantes = (await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento)).ToList();
-            rol.Votante ??= (await _votanteRepo.FindAsync(v => v.Correo == correo && v.Id == idEvento)).FirstOrDefault();
-            rol.Jurado ??= (await _juradoRepo.FindAsync(j => j.Correo == correo && j.Id == idEvento)).FirstOrDefault();
-
-            return rol;
+            return rol ?? await _votanteCreator.CrearAsync(correo, idEvento);
         }
-
-        private Task AsignarVotanteAsync(string correo, long idEvento)
-        => _votanteCreator.AsignarAsync(correo, idEvento);
 
         public async Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto)
         {
@@ -158,6 +129,24 @@ namespace Votify.LógicaNegocio.Services
             var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correoCreador))
                 .FirstOrDefault()
                 ?? throw new Exception("Usuario no encontrado");
+
+            if (dto.TieneGrupos)
+            {
+                var todosLosCorreos = dto.Categorias
+                    .SelectMany(c => c.Grupos)
+                    .SelectMany(g => g.CorreosParticipantes)
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToList();
+
+                var duplicados = todosLosCorreos
+                    .GroupBy(c => c)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (duplicados.Any())
+                    throw new Exception($"Correos duplicados entre grupos: {string.Join(", ", duplicados)}");
+            }
 
             var evento = new Evento(
                 dto.Nombre,
@@ -181,26 +170,7 @@ namespace Votify.LógicaNegocio.Services
             );
 
             await _eventoRepo.AddAsync(evento);
-
-            var rol = new Rol
-            {
-                CorreoUsuario = correoCreador,
-                IdEvento = evento.Id,
-                CorreoUsuarioNavigation = usuario,
-                IdEventoNavigation = evento
-            };
-
-            await _rolRepo.AddAsync(rol);
-
-
-            var admin = new Administrador
-            {
-                Correo = correoCreador,
-                Id = evento.Id,
-                Rol = rol
-            };
-
-            await _adminCreator.AsignarAsync(correoCreador, evento.Id);
+            await _adminCreator.CrearAsync(correoCreador, evento.Id);
 
             foreach (var catDto in dto.Categorias)
             {
@@ -226,7 +196,6 @@ namespace Votify.LógicaNegocio.Services
                     };
                     await _criterioRepo.AddAsync(criterio);
                 }
-
 
                 if (dto.TieneGrupos)
                 {
@@ -303,7 +272,7 @@ namespace Votify.LógicaNegocio.Services
             List<Usuario> usuarios = new List<Usuario>();
             foreach (var participante in participantes)
             {
-                var usuario = await _usuarioRepo.FindAsync(u => u.Correo == participante.Correo);
+                var usuario = await _usuarioRepo.FindAsync(u => u.Correo == participante.CorreoUsuario);
                 if (usuario != null && usuario.Any())
                 {
                     usuarios.Add(usuario.First());

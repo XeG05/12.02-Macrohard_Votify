@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class MigracionFFF : Migration
+    public partial class RefactorRolTPT : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,16 @@ namespace Votify.Migrations
                     fecha_fin_inscripciones = table.Column<DateOnly>(type: "date", nullable: false),
                     fecha_fin_entrega = table.Column<DateOnly>(type: "date", nullable: false),
                     fecha_fin_votaciones = table.Column<DateOnly>(type: "date", nullable: false),
+                    fecha_fin_evaluacion_experta = table.Column<DateOnly>(type: "date", nullable: false),
+                    sin_comentario = table.Column<bool>(type: "boolean", nullable: false),
+                    comentario_opcional = table.Column<bool>(type: "boolean", nullable: false),
+                    comentario_obligatorio = table.Column<bool>(type: "boolean", nullable: false),
+                    participante_votan = table.Column<bool>(type: "boolean", nullable: false),
+                    votar_x_proyecto = table.Column<bool>(type: "boolean", nullable: false),
+                    repartir_puntos = table.Column<bool>(type: "boolean", nullable: false),
+                    calificar_numericamente = table.Column<bool>(type: "boolean", nullable: false),
+                    votar_proyecto = table.Column<int>(type: "integer", nullable: false),
+                    puntos_a_repartir = table.Column<int>(type: "integer", nullable: false),
                     tiene_grupos = table.Column<bool>(type: "boolean", nullable: false),
                     grupos_completos = table.Column<bool>(type: "boolean", nullable: false),
                     participantes_por_grupo = table.Column<int>(type: "integer", nullable: false)
@@ -55,7 +65,8 @@ namespace Votify.Migrations
                     descripcion = table.Column<string>(type: "text", nullable: false),
                     id_evento = table.Column<long>(type: "bigint", nullable: false),
                     ponderacion_popular = table.Column<long>(type: "bigint", nullable: false),
-                    ponderacion_experto = table.Column<long>(type: "bigint", nullable: false)
+                    ponderacion_experto = table.Column<long>(type: "bigint", nullable: false),
+                    criterios_son_porcentaje = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
@@ -157,51 +168,54 @@ namespace Votify.Migrations
                 name: "administrador",
                 columns: table => new
                 {
-                    correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    id = table.Column<long>(type: "bigint", nullable: false)
+                    correo_usuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    id_evento = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("administrador_pkey", x => new { x.correo, x.id });
+                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
-                        name: "id_rolFK",
-                        columns: x => new { x.correo, x.id },
+                        name: "FK_administrador_rol_correo_usuario_id_evento",
+                        columns: x => new { x.correo_usuario, x.id_evento },
                         principalTable: "rol",
-                        principalColumns: new[] { "correo_usuario", "id_evento" });
+                        principalColumns: new[] { "correo_usuario", "id_evento" },
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "jurado",
                 columns: table => new
                 {
-                    correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    id = table.Column<long>(type: "bigint", nullable: false)
+                    correo_usuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    id_evento = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("jurado_pkey", x => new { x.correo, x.id });
+                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
-                        name: "id_rolFK",
-                        columns: x => new { x.correo, x.id },
+                        name: "FK_jurado_rol_correo_usuario_id_evento",
+                        columns: x => new { x.correo_usuario, x.id_evento },
                         principalTable: "rol",
-                        principalColumns: new[] { "correo_usuario", "id_evento" });
+                        principalColumns: new[] { "correo_usuario", "id_evento" },
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "votante",
                 columns: table => new
                 {
-                    correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    id = table.Column<long>(type: "bigint", nullable: false)
+                    correo_usuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    id_evento = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("votante_pkey", x => new { x.correo, x.id });
+                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
                     table.ForeignKey(
-                        name: "id_rolFK",
-                        columns: x => new { x.correo, x.id },
+                        name: "FK_votante_rol_correo_usuario_id_evento",
+                        columns: x => new { x.correo_usuario, x.id_evento },
                         principalTable: "rol",
-                        principalColumns: new[] { "correo_usuario", "id_evento" });
+                        principalColumns: new[] { "correo_usuario", "id_evento" },
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -263,24 +277,25 @@ namespace Votify.Migrations
                 name: "participante",
                 columns: table => new
                 {
-                    correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    id = table.Column<long>(type: "bigint", nullable: false),
+                    correo_usuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    id_evento = table.Column<long>(type: "bigint", nullable: false),
                     id_grupo = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("participante_pkey", x => new { x.id, x.correo, x.id_grupo });
+                    table.PrimaryKey("rol_pkey", x => new { x.correo_usuario, x.id_evento });
+                    table.ForeignKey(
+                        name: "FK_participante_rol_correo_usuario_id_evento",
+                        columns: x => new { x.correo_usuario, x.id_evento },
+                        principalTable: "rol",
+                        principalColumns: new[] { "correo_usuario", "id_evento" },
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "id_grupo",
                         column: x => x.id_grupo,
                         principalTable: "grupo",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "id_rolFK",
-                        columns: x => new { x.correo, x.id },
-                        principalTable: "rol",
-                        principalColumns: new[] { "correo_usuario", "id_evento" });
                 });
 
             migrationBuilder.CreateTable(
@@ -388,6 +403,11 @@ namespace Votify.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_administrador_id_evento",
+                table: "administrador",
+                column: "id_evento");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_categoria_id_evento",
                 table: "categoria",
                 column: "id_evento");
@@ -428,14 +448,19 @@ namespace Votify.Migrations
                 column: "id_grupo");
 
             migrationBuilder.CreateIndex(
+                name: "IX_jurado_id_evento",
+                table: "jurado",
+                column: "id_evento");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_notificacion_correo",
                 table: "notificacion",
                 column: "correo");
 
             migrationBuilder.CreateIndex(
-                name: "IX_participante_correo_id",
+                name: "IX_participante_id_evento",
                 table: "participante",
-                columns: new[] { "correo", "id" });
+                column: "id_evento");
 
             migrationBuilder.CreateIndex(
                 name: "IX_participante_id_grupo",
@@ -450,6 +475,11 @@ namespace Votify.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_rol_id_evento",
                 table: "rol",
+                column: "id_evento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_votante_id_evento",
+                table: "votante",
                 column: "id_evento");
 
             migrationBuilder.CreateIndex(

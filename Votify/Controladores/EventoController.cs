@@ -131,10 +131,10 @@ namespace Votify.Controladores
                     Evento = MapEvento(entrada.Evento),
                     Rol = new RolInfoDto
                     {
-                        EsAdministrador = entrada.TipoRol.Administrador != null,
-                        EsParticipante = entrada.TipoRol.Participantes.Any(),
-                        EsVotante = entrada.TipoRol.Votante != null,
-                        EsJurado = entrada.TipoRol.Jurado != null
+                        EsAdministrador = entrada.TipoRol is Administrador,
+                        EsParticipante = entrada.TipoRol is Participante,
+                        EsVotante = entrada.TipoRol is Votante,
+                        EsJurado = entrada.TipoRol is Jurado
                     }
                 });
             }

@@ -44,21 +44,62 @@ public partial class VotifyContext : DbContext
     public DbSet<ImagenProyecto> ImagenProyecto { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Rol>().UseTptMappingStrategy();
+
         modelBuilder.Entity<Administrador>(entity =>
         {
-            entity.HasKey(e => new { e.Correo, e.Id }).HasName("administrador_pkey");
-
             entity.ToTable("administrador");
+            entity.Property(e => e.CorreoUsuario).HasColumnName("correo").HasMaxLength(50);
+            entity.Property(e => e.IdEvento).HasColumnName("id");
+        });
 
-            entity.Property(e => e.Correo)
+        modelBuilder.Entity<Votante>(entity =>
+        {
+            entity.ToTable("votante");
+            entity.Property(e => e.CorreoUsuario).HasColumnName("correo").HasMaxLength(50);
+            entity.Property(e => e.IdEvento).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<Jurado>(entity =>
+        {
+            entity.ToTable("jurado");
+            entity.Property(e => e.CorreoUsuario).HasColumnName("correo").HasMaxLength(50);
+            entity.Property(e => e.IdEvento).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<Participante>(entity =>
+        {
+            entity.ToTable("participante");
+            entity.Property(e => e.CorreoUsuario).HasColumnName("correo").HasMaxLength(50);
+            entity.Property(e => e.IdEvento).HasColumnName("id");
+            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
+
+            entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Participantes)
+                .HasForeignKey(d => d.IdGrupo)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_grupo");
+        });
+
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.HasKey(e => new { e.CorreoUsuario, e.IdEvento }).HasName("rol_pkey");
+
+            entity.ToTable("rol");
+
+            entity.Property(e => e.CorreoUsuario)
                 .HasMaxLength(50)
-                .HasColumnName("correo");
-            entity.Property(e => e.Id).HasColumnName("id");
+                .HasColumnName("correo_usuario");
+            entity.Property(e => e.IdEvento).HasColumnName("id_evento");
 
-            entity.HasOne(d => d.Rol).WithOne(p => p.Administrador)
-                .HasForeignKey<Administrador>(d => new { d.Correo, d.Id })
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("id_rolFK");
+            entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.CorreoUsuario)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("correo_usuarioFK");
+
+            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Roles)
+                .HasForeignKey(d => d.IdEvento)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_eventoFK");
         });
 
         modelBuilder.Entity<Categorium>(entity =>
@@ -198,23 +239,6 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.IdCategoria).HasColumnName("id_categoria");
         });
 
-        modelBuilder.Entity<Jurado>(entity =>
-        {
-            entity.HasKey(e => new { e.Correo, e.Id }).HasName("jurado_pkey");
-
-            entity.ToTable("jurado");
-
-            entity.Property(e => e.Correo)
-                .HasMaxLength(50)
-                .HasColumnName("correo");
-            entity.Property(e => e.Id).HasColumnName("id");
-
-            entity.HasOne(d => d.Rol).WithOne(p => p.Jurado)
-                .HasForeignKey<Jurado>(d => new { d.Correo, d.Id })
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("id_rolFK");
-        });
-
         modelBuilder.Entity<Notificacion>(entity =>
         {
             entity.HasKey(e => new { e.Id, e.Correo }).HasName("notificacion_pkey");
@@ -231,29 +255,6 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => d.Correo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("correoFK");
-        });
-
-        modelBuilder.Entity<Participante>(entity =>
-        {
-            entity.HasKey(e => new { e.Correo, e.Id, e.IdGrupo }).HasName("participante_pkey");
-
-            entity.ToTable("participante");
-
-            entity.Property(e => e.Correo)
-                .HasMaxLength(50)
-                .HasColumnName("correo");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
-
-            entity.HasOne(d => d.IdGrupoNavigation).WithMany(p => p.Participantes)
-                .HasForeignKey(d => d.IdGrupo)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("id_grupo");
-
-            entity.HasOne(d => d.Rol).WithMany(p => p.Participantes)
-                .HasForeignKey(d => new { d.Correo, d.Id })
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("id_rolFK");
         });
 
         modelBuilder.Entity<Proyecto>(entity =>
@@ -309,28 +310,6 @@ public partial class VotifyContext : DbContext
                 .HasConstraintName("id_rol");
         });
 
-        modelBuilder.Entity<Rol>(entity =>
-        {
-            entity.HasKey(e => new { e.CorreoUsuario, e.IdEvento }).HasName("rol_pkey");
-
-            entity.ToTable("rol");
-
-            entity.Property(e => e.CorreoUsuario)
-                .HasMaxLength(50)
-                .HasColumnName("correo_usuario");
-            entity.Property(e => e.IdEvento).HasColumnName("id_evento");
-
-            entity.HasOne(d => d.CorreoUsuarioNavigation).WithMany(p => p.Roles)
-                .HasForeignKey(d => d.CorreoUsuario)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("correo_usuarioFK");
-
-            entity.HasOne(d => d.IdEventoNavigation).WithMany(p => p.Roles)
-                .HasForeignKey(d => d.IdEvento)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("id_eventoFK");
-        });
-
         modelBuilder.Entity<Usuario>(entity =>
         {
             entity.HasKey(e => e.Correo).HasName("usuarios_pkey");
@@ -346,23 +325,6 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(50)
                 .HasColumnName("nombre");
-        });
-
-        modelBuilder.Entity<Votante>(entity =>
-        {
-            entity.HasKey(e => new { e.Correo, e.Id }).HasName("votante_pkey");
-
-            entity.ToTable("votante");
-
-            entity.Property(e => e.Correo)
-                .HasMaxLength(50)
-                .HasColumnName("correo");
-            entity.Property(e => e.Id).HasColumnName("id");
-
-            entity.HasOne(d => d.Rol).WithOne(p => p.Votante)
-                .HasForeignKey<Votante>(d => new { d.Correo, d.Id })
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("id_rolFK");
         });
 
         modelBuilder.Entity<Voto>(entity =>

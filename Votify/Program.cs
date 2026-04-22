@@ -16,9 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<AdministradorCreator>();
-builder.Services.AddScoped<ParticipanteCreator>();
 builder.Services.AddScoped<VotanteCreator>();
 builder.Services.AddScoped<JuradoCreator>();
+builder.Services.AddScoped<ParticipanteCreator>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IEventoAdministradorService, EventoAdministradorService>();

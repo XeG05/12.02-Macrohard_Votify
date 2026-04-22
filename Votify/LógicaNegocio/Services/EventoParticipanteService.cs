@@ -44,8 +44,8 @@ namespace Votify.LógicaNegocio.Services
         public async Task<Participante> ObtenerRegistroParticipante(string correo, long idEvento, long? grupoIdActivo = null)
         {
             var p = await _participanteRepo.FindAsync(x =>
-                x.Correo == correo &&
-                x.Id == idEvento);
+                x.CorreoUsuario == correo &&
+                x.IdEvento == idEvento);
 
             Participante? participante = null;
 
@@ -77,12 +77,12 @@ namespace Votify.LógicaNegocio.Services
 
             foreach (var miembro in participantesGrupo)
             {
-                var usuarioMiembro = (await _usuarioRepo.FindAsync(u => u.Correo == miembro.Correo))
+                var usuarioMiembro = (await _usuarioRepo.FindAsync(u => u.Correo == miembro.CorreoUsuario))
                     .FirstOrDefault();
 
                 resultado.Add((
-                    usuarioMiembro?.Nombre ?? miembro.Correo,
-                    miembro.Correo
+                    usuarioMiembro?.Nombre ?? miembro.CorreoUsuario,
+                    miembro.CorreoUsuario
                 ));
             }
 
@@ -245,7 +245,7 @@ namespace Votify.LógicaNegocio.Services
                 throw new Exception("Los resultados aún no están disponibles");
             }
 
-            var participaciones = await _participanteRepo.FindAsync(p => p.Correo == correo && p.Id == idEvento);
+            var participaciones = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo && p.IdEvento == idEvento);
             Participante? participante = null;
 
             foreach (var p in participaciones)

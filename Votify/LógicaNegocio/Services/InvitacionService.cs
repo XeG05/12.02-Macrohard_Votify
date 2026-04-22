@@ -57,7 +57,7 @@ namespace Votify.LógicaNegocio.Services
         }
 
         public async Task<string> AceptarInvitacionAsync(
-            string token, string contraseña, string? nombre, string? contraseña2)
+    string token, string contraseña, string? nombre, string? contraseña2)
         {
             var invitacion = await ObtenerInvitacionValida(token)
                 ?? throw new Exception("Invitación no válida o caducada.");
@@ -72,7 +72,7 @@ namespace Votify.LógicaNegocio.Services
             if (usuario == null)
                 throw new Exception("No se pudo autenticar.");
 
-            await _participanteCreator.AsignarAsync(
+            await _participanteCreator.CrearAsync(
                 usuario.Correo,
                 invitacion.IdEvento,
                 invitacion.IdGrupo);

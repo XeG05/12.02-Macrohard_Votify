@@ -41,7 +41,7 @@ namespace Votify.LógicaNegocio.Services
             List<Usuario> usuarios = new List<Usuario>();
             foreach (Participante par in participantes)
             {
-                List<Usuario> usuario = await _usuarioRepo.FindAsync(us => us.Correo == par.Correo);
+                List<Usuario> usuario = await _usuarioRepo.FindAsync(us => us.Correo == par.CorreoUsuario);
                 usuarios.AddRange(usuario);
             }
             return usuarios;
