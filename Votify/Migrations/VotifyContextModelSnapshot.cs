@@ -17,7 +17,7 @@ namespace Votify.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -159,6 +159,18 @@ namespace Votify.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("CalificarNumericamente")
+                        .HasColumnType("boolean")
+                        .HasColumnName("calificar_numericamente");
+
+                    b.Property<bool>("ComentariosObligatorios")
+                        .HasColumnType("boolean")
+                        .HasColumnName("comentario_obligatorio");
+
+                    b.Property<bool>("ComentariosOpcionales")
+                        .HasColumnType("boolean")
+                        .HasColumnName("comentario_opcional");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text")
@@ -167,6 +179,10 @@ namespace Votify.Migrations
                     b.Property<DateOnly>("FechaFinEntrega")
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_entrega");
+
+                    b.Property<DateOnly>("FechaFinEvaluacionExperta")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin_evaluacion_experta");
 
                     b.Property<DateOnly>("FechaFinInscripciones")
                         .HasColumnType("date")
@@ -190,9 +206,33 @@ namespace Votify.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("participantes_por_grupo");
 
+                    b.Property<bool>("ParticipantesVotan")
+                        .HasColumnType("boolean")
+                        .HasColumnName("participante_votan");
+
+                    b.Property<int>("PuntosARepartir")
+                        .HasColumnType("integer")
+                        .HasColumnName("puntos_a_repartir");
+
+                    b.Property<bool>("RepartirPuntos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("repartir_puntos");
+
+                    b.Property<bool>("SinComentarios")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sin_comentario");
+
                     b.Property<bool>("TieneGrupos")
                         .HasColumnType("boolean")
                         .HasColumnName("tiene_grupos");
+
+                    b.Property<int>("VotarProyectos")
+                        .HasColumnType("integer")
+                        .HasColumnName("votar_proyecto");
+
+                    b.Property<bool>("VotarXProyectos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("votar_x_proyecto");
 
                     b.HasKey("Id")
                         .HasName("evento_pkey");
