@@ -19,12 +19,7 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="ejp-alert ejp-alert-error">@error</div>
     </div>
 }
-else if (EventoPausado(evento))
-{
-    <div class="epp-alert epp-alert-error">
-        Este evento está en pausa. No se pueden realizar acciones temporalmente.
-    </div>
-}
+
 else if (evento is null)
 {
     <div class="ejp-wrapper">
@@ -52,36 +47,43 @@ else
                 <span class="ejp-badge ejp-badge-fase">@GetFaseLabel(evento)</span>
             </div>
         </div>
+        @if (EventoPausado(evento))
+        {
+        <div class="epp-alert epp-alert-error">
+            Este evento está en pausa. No se pueden realizar acciones temporalmente.
+        </div>
+        }
+        @if (!EventoPausado(evento))
+        {
+            <div class="ejp-categories-section">
+                <h2 class="ejp-section-title">Categorías en las que participas</h2>
+                <hr class="ejp-divider" />
 
-        <div class="ejp-categories-section">
-            <h2 class="ejp-section-title">Categorías en las que participas</h2>
-            <hr class="ejp-divider" />
-
-            @if (categorias == null || !categorias.Any())
-            {
-                <div class="ejp-alert ejp-alert-info">No tienes ninguna categoría asignada para evaluar en este evento.</div>
-            }
-            else
-            {
-                <div class="ejp-categories-list">
-                    @foreach (var categoria in categorias)
-                    {
-                        <div class="ejp-category-card" @onclick="() => IrACategoria(categoria.Id)">
-                            <div class="ejp-category-content">
-                                <h3 class="ejp-category-title">@categoria.Nombre</h3>
-                                <p class="ejp-category-desc">@categoria.Descripcion</p>
-                            </div>
-                            <div class="ejp-category-footer">
-                                <div class="ejp-progress-pill @(categoria.ProyectosRevisados == categoria.ProyectosTotales ? "completado" : "")">
-                                    Proyectos revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales
+                @if (categorias == null || !categorias.Any())
+                {
+                    <div class="ejp-alert ejp-alert-info">No tienes ninguna categoría asignada para evaluar en este evento.</div>
+                }
+                else
+                {
+                    <div class="ejp-categories-list">
+                        @foreach (var categoria in categorias)
+                        {
+                            <div class="ejp-category-card" @onclick="() => IrACategoria(categoria.Id)">
+                                <div class="ejp-category-content">
+                                    <h3 class="ejp-category-title">@categoria.Nombre</h3>
+                                    <p class="ejp-category-desc">@categoria.Descripcion</p>
+                                </div>
+                                <div class="ejp-category-footer">
+                                    <div class="ejp-progress-pill @(categoria.ProyectosRevisados == categoria.ProyectosTotales ? "completado" : "")">
+                                        Proyectos revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 

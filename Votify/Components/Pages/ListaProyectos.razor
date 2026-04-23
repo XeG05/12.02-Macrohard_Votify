@@ -9,12 +9,7 @@
 {
     <div class="evp-alert evp-alert-error">@error</div>
 }
-else if (EventoPausado(evento))
-{
-    <div class="epp-alert epp-alert-error">
-        Este evento está en pausa. No se pueden realizar acciones temporalmente.
-    </div>
-}
+
 else if (evento == null)
 {
     <div class="evp-loading-state">
@@ -43,60 +38,69 @@ else
                 </div>
             </div>
         </div>
+        @if (EventoPausado(evento))
+        {
+        <div class="epp-alert epp-alert-error">
+            Este evento está en pausa. No se pueden realizar acciones temporalmente.
+        </div>
+        }
 
-        @if (proyectos == null)
+        @if (!EventoPausado(evento))
         {
-            <div class="evp-loading-state">
-                <div class="evp-spinner"></div>
-                <p>Cargando proyectos...</p>
-            </div>
-        }
-        else if (GetFaseLabel(evento) == "En fase de inscripción" || GetFaseLabel(evento) == "En fase de entrega")
-        {
-            <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante las fases de inscripciones y entregas.</div>
-        }
-        else if (proyectos.Count == 0)
-        {
-            <div class="evp-alert evp-alert-info">No hay proyectos para mostrar en este evento.</div>
-        }
-        else
-        {
-            <div class="proyectos-lista">
-                @foreach (var cat in categorias.Values)
-                {
-                    var proyectosDeCat = proyectos.Where(p => proyectoCategoria.ContainsKey(p.Id) && proyectoCategoria[p.Id] == cat.Id).ToList();
-                    if (proyectosDeCat.Any())
+            @if (proyectos == null)
+            {
+                <div class="evp-loading-state">
+                    <div class="evp-spinner"></div>
+                    <p>Cargando proyectos...</p>
+                </div>
+            }
+            else if (GetFaseLabel(evento) == "En fase de inscripción" || GetFaseLabel(evento) == "En fase de entrega")
+            {
+                <div class="evp-alert evp-alert-info">Los proyectos aún no son visibles durante las fases de inscripciones y entregas.</div>
+            }
+            else if (proyectos.Count == 0)
+            {
+                <div class="evp-alert evp-alert-info">No hay proyectos para mostrar en este evento.</div>
+            }
+            else
+            {
+                <div class="proyectos-lista">
+                    @foreach (var cat in categorias.Values)
                     {
-                        <div class="categoria-seccion">
-                            <h2 class="categoria-titulo">Categoría: @cat.Nombre</h2>
-                            <div class="categoria-proyectos">
-                                @foreach (var p in proyectosDeCat)
-                                {
-                                    <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
-                                        <div class="nombreProyecto">
-                                            <p>@p.Nombre</p>
-                                        </div>
-                                        <div class="informacionProyecto">
-                                            <div class="participantesProyecto">
-                                                @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
-                                                {
-                                                    foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                        var proyectosDeCat = proyectos.Where(p => proyectoCategoria.ContainsKey(p.Id) && proyectoCategoria[p.Id] == cat.Id).ToList();
+                        if (proyectosDeCat.Any())
+                        {
+                            <div class="categoria-seccion">
+                                <h2 class="categoria-titulo">Categoría: @cat.Nombre</h2>
+                                <div class="categoria-proyectos">
+                                    @foreach (var p in proyectosDeCat)
+                                    {
+                                        <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
+                                            <div class="nombreProyecto">
+                                                <p>@p.Nombre</p>
+                                            </div>
+                                            <div class="informacionProyecto">
+                                                <div class="participantesProyecto">
+                                                    @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
                                                     {
-                                                        <p>@pa.Nombre</p>
+                                                        foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                                                        {
+                                                            <p>@pa.Nombre</p>
+                                                        }
                                                     }
-                                                }
-                                            </div>
-                                            <div class="descripcionProyecto">
-                                                <p>@p.DescripcionBreve</p>
+                                                </div>
+                                                <div class="descripcionProyecto">
+                                                    <p>@p.DescripcionBreve</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                }
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        }
                     }
-                }
-            </div>
+                </div>
+            }
         }
     </div>
 }

@@ -17,12 +17,7 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="epp-alert epp-alert-error">@error</div>
     </div>
 }
-else if (EventoPausado(evento))
-{
-    <div class="epp-alert epp-alert-error">
-         Este evento está en pausa. No se pueden realizar acciones temporalmente.
-    </div>
-}
+
 else if (evento is null)
 {
     <div class="epp-wrapper">
@@ -55,153 +50,171 @@ else
                 </div>
             </div>
         </div>
+        @if (EventoPausado(evento))
+        {
+         <div class="epp-alert epp-alert-error">
+                Este evento está en pausa. No se pueden realizar acciones temporalmente.
+         </div>
+        }
+   
 
         @if (!string.IsNullOrWhiteSpace(mensaje))
         {
             <div class="epp-alert epp-alert-ok">@mensaje</div>
         }
 
-        <div class="epp-main-grid">
-            <section class="epp-panel epp-group-panel">
-                <div class="epp-panel-header">
-                    <div>
-                        <span class="epp-panel-kicker">Tu equipo</span>
-                        <h2>@nombreGrupo</h2>
-                        <span style="font-size: 0.9em; color: var(--text-2); display: block; margin-top: 4px;">📂 Categoría: <strong>@nombreCategoria</strong></span>
+        @if (!EventoPausado(evento))
+        {
+            <div class="epp-main-grid">
+                <section class="epp-panel epp-group-panel">
+                    <div class="epp-panel-header">
+                        <div>
+                            <span class="epp-panel-kicker">Tu equipo</span>
+                            <h2>@nombreGrupo</h2>
+                            <span style="font-size: 0.9em; color: var(--text-2); display: block; margin-top: 4px;">📂 Categoría: <strong>@nombreCategoria</strong></span>
+                        </div>
+                        <span class="epp-count-badge">@miembrosGrupo.Count</span>
                     </div>
-                    <span class="epp-count-badge">@miembrosGrupo.Count</span>
-                </div>
 
-                @if (miembrosGrupo.Count == 0)
-                {
-                    <div class="epp-empty-state">
-                        <span class="epp-empty-icon">👥</span>
-                        <p>No hay participantes cargados en el grupo.</p>
-                    </div>
-                }
-                else
-                {
-                    <div class="epp-members-list">
-                        @foreach (var miembro in miembrosGrupo)
-                        {
-                            <div class="epp-member-card">
-                                <div class="epp-member-avatar">
-                                    @ObtenerIniciales(miembro.Nombre)
+                    @if (miembrosGrupo.Count == 0)
+                    {
+                        <div class="epp-empty-state">
+                            <span class="epp-empty-icon">👥</span>
+                            <p>No hay participantes cargados en el grupo.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="epp-members-list">
+                            @foreach (var miembro in miembrosGrupo)
+                            {
+                                <div class="epp-member-card">
+                                    <div class="epp-member-avatar">
+                                        @ObtenerIniciales(miembro.Nombre)
+                                    </div>
+                                    <div class="epp-member-info">
+                                        <strong>@miembro.Nombre</strong>
+                                        <span>@miembro.Correo</span>
+                                    </div>
                                 </div>
-                                <div class="epp-member-info">
-                                    <strong>@miembro.Nombre</strong>
-                                    <span>@miembro.Correo</span>
+                            }
+                        </div>
+                    }
+                </section>
+
+                <section class="epp-panel epp-status-panel">
+                    <div class="epp-panel-header">
+                        <div>
+                            <span class="epp-panel-kicker">Estado</span>
+                            <h2>Resumen rápido</h2>
+                        </div>
+                    </div>
+
+                    <div class="epp-status-card @(tieneProyecto ? "is-ok" : "is-pending")">
+                        <div class="epp-status-icon">@(tieneProyecto ? "✅" : "⏳")</div>
+                        <div>
+                            <strong>@(tieneProyecto ? "Entrega completada" : "Entrega pendiente")</strong>
+                            <p>
+                                @(
+                                                        tieneProyecto
+                                                                                                        ? "Tu grupo ya tiene un proyecto entregado para este evento."
+                                                                                                        : "Todavía no has entregado ningún proyecto."
+                                            )
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </section>
 
-            <section class="epp-panel epp-status-panel">
-                <div class="epp-panel-header">
-                    <div>
-                        <span class="epp-panel-kicker">Estado</span>
-                        <h2>Resumen rápido</h2>
-                    </div>
-                </div>
-
-                <div class="epp-status-card @(tieneProyecto ? "is-ok" : "is-pending")">
-                    <div class="epp-status-icon">@(tieneProyecto ? "✅" : "⏳")</div>
-                    <div>
-                        <strong>@(tieneProyecto ? "Entrega completada" : "Entrega pendiente")</strong>
-                        <p>
-                            @(tieneProyecto
-                                                    ? "Tu grupo ya tiene un proyecto entregado para este evento."
-                                                    : "Todavía no has entregado ningún proyecto.")
+                                <div class="epp-tip-box">
+                                    <strong>Siguiente paso</strong>
+                                    <p>
+                                        @if (EsFaseInscripcion())
+                            {
+                                <text>La fase de inscripciones está abierta. Espera a la fase de entregas para poder subir tu proyecto.</text>
+                            }
+                            else if (EsFaseEntrega())
+                            {
+                                @(
+                                                    tieneProyecto
+                                                                                        ? "Tu proyecto ha sido entregado. Puedes eliminar la entrega si necesitas volver a subir una nueva versión."
+                                                                                        : "Sube el proyecto para dejar registrada la propuesta de tu grupo antes de la fecha límite."
+                                            )
+                            }
+                            else if (EsFaseVotacion())
+                            {
+                                @(
+                                                    tieneProyecto
+                                                                                        ? "Tu proyecto ha sido entregado y está siendo evaluado por los votantes."
+                                                                                        : "El plazo de entrega se cerró y tu grupo no ha entregado ningún proyecto."
+                                            )
+                            }
+                            else
+                            {
+                                <text>El evento ha finalizado. Consulta los resultados finales desde tu dashboard.</text>
+                            }
                         </p>
                     </div>
-                </div>
-
-                <div class="epp-tip-box">
-                    <strong>Siguiente paso</strong>
-                    <p>
-                        @if (EsFaseInscripcion())
-                        {
-                            <text>La fase de inscripciones está abierta. Espera a la fase de entregas para poder subir tu proyecto.</text>
-                        }
-                        else if (EsFaseEntrega())
-                        {
-                            @(tieneProyecto
-                                ? "Tu proyecto ha sido entregado. Puedes eliminar la entrega si necesitas volver a subir una nueva versión."
-                                : "Sube el proyecto para dejar registrada la propuesta de tu grupo antes de la fecha límite.")
-                        }
-                        else if (EsFaseVotacion())
-                        {
-                            @(tieneProyecto
-                                ? "Tu proyecto ha sido entregado y está siendo evaluado por los votantes."
-                                : "El plazo de entrega se cerró y tu grupo no ha entregado ningún proyecto.")
-                        }
-                        else
-                        {
-                            <text>El evento ha finalizado. Consulta los resultados finales desde tu dashboard.</text>
-                        }
-                    </p>
-                </div>
-            </section>
-        </div>
-
-        <section class="epp-actions-section">
-            <div class="epp-section-header">
-                <div class="epp-section-indicator"></div>
-                <h2>Acciones del evento</h2>
+                </section>
             </div>
 
-            <div class="epp-actions-grid">
-                <button class="epp-action-card epp-action-primary"
-                        @onclick="IrAPresentarProyecto"
-                        disabled="@(tieneProyecto || !EsFaseEntrega())"
-                        title="@(tieneProyecto ? "Ya has entregado un proyecto" : (!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "Subir proyecto"))">
-                    <div class="epp-action-icon">📤</div>
-                    <div class="epp-action-text">
-                        <strong>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</strong>
-                        <span>
-                            @(tieneProyecto
-                                                    ? "Ya existe una entrega registrada para tu grupo."
-                                                    : "Completa el formulario y adjunta el material de tu proyecto.")
-                        </span>
-                    </div>
-                </button>
+            <section class="epp-actions-section">
+                <div class="epp-section-header">
+                    <div class="epp-section-indicator"></div>
+                    <h2>Acciones del evento</h2>
+                </div>
 
-                <button class="epp-action-card epp-action-danger"
-                        @onclick="EliminarProyecto"
-                        disabled="@(!tieneProyecto || !EsFaseEntrega())"
-                        title="@(!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "")">
-                    <div class="epp-action-icon">🗑️</div>
-                    <div class="epp-action-text">
-                        <strong>Eliminar proyecto</strong>
-                        <span>Quita la entrega actual para poder volver a presentarla.</span>
-                    </div>
-                </button>
+                <div class="epp-actions-grid">
+                    <button class="epp-action-card epp-action-primary"
+                    @onclick="IrAPresentarProyecto"
+                    disabled="@(tieneProyecto || !EsFaseEntrega())"
+                    title="@(tieneProyecto ? "Ya has entregado un proyecto" : (!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "Subir proyecto"))">
+                        <div class="epp-action-icon">📤</div>
+                        <div class="epp-action-text">
+                            <strong>@(tieneProyecto ? "Proyecto entregado" : "Subir proyecto")</strong>
+                            <span>
+                                @(
+                                                        tieneProyecto
+                                                                                                        ? "Ya existe una entrega registrada para tu grupo."
+                                                                                                        : "Completa el formulario y adjunta el material de tu proyecto."
+                                            )
+                                        </span>
+                                    </div>
+                                </button>
 
-                <button class="epp-action-card"
-                        @onclick="IrADashboard"
-                        disabled="@(!EsFaseFinalizada())"
-                        title="@(!EsFaseFinalizada() ? "El dashboard estará disponible al finalizar el evento" : "Ver dashboard")">
-                    <div class="epp-action-icon">📊</div>
-                    <div class="epp-action-text">
-                        <strong>Ver dashboard</strong>
-                        <span>Consulta métricas, evolución y resultados del evento.</span>
-                    </div>
-                </button>
+                                <button class="epp-action-card epp-action-danger"
+                                @onclick="EliminarProyecto"
+                                disabled="@(!tieneProyecto || !EsFaseEntrega())"
+                                title="@(!EsFaseEntrega() ? "El plazo de entrega de proyectos no está abierto" : "")">
+                                    <div class="epp-action-icon">🗑️</div>
+                                    <div class="epp-action-text">
+                                        <strong>Eliminar proyecto</strong>
+                                        <span>Quita la entrega actual para poder volver a presentarla.</span>
+                                    </div>
+                                </button>
 
-                <button class="epp-action-card"
-                        @onclick="IrAListaProyectos"
-                        disabled="@(EsFaseInscripcion() || EsFaseEntrega())"
-                        title="@((EsFaseInscripcion() || EsFaseEntrega()) ? "Los proyectos no están visibles hasta la fase de votación" : "Ver proyectos")">
-                    <div class="epp-action-icon">📋</div>
-                    <div class="epp-action-text">
-                        <strong>Lista de proyectos</strong>
-                        <span>Explora las propuestas presentadas dentro del evento.</span>
-                    </div>
-                </button>
-            </div>
-        </section>
+                                <button class="epp-action-card"
+                                @onclick="IrADashboard"
+                                disabled="@(!EsFaseFinalizada())"
+                                title="@(!EsFaseFinalizada() ? "El dashboard estará disponible al finalizar el evento" : "Ver dashboard")">
+                                    <div class="epp-action-icon">📊</div>
+                                    <div class="epp-action-text">
+                                        <strong>Ver dashboard</strong>
+                                        <span>Consulta métricas, evolución y resultados del evento.</span>
+                                    </div>
+                                </button>
+
+                                <button class="epp-action-card"
+                                @onclick="IrAListaProyectos"
+                                disabled="@(EsFaseInscripcion() || EsFaseEntrega())"
+                                title="@((EsFaseInscripcion() || EsFaseEntrega()) ? "Los proyectos no están visibles hasta la fase de votación" : "Ver proyectos")">
+                                    <div class="epp-action-icon">📋</div>
+                                    <div class="epp-action-text">
+                                        <strong>Lista de proyectos</strong>
+                                        <span>Explora las propuestas presentadas dentro del evento.</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </section>
+        }
     </div>
 }
 
