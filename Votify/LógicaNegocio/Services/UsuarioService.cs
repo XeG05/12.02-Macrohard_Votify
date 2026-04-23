@@ -7,15 +7,17 @@ namespace Votify.LógicaNegocio.Services
 {
     public class UsuarioService : Service<Usuario>, IUsuarioService
     {
-        private readonly IRepository<Usuario> repository;
-        public UsuarioService(IRepository<Usuario> repository) : base(repository)
+        private readonly IRepository<Usuario> _repository;
+        private readonly IUnitOfWork _uow;
+        public UsuarioService(IRepository<Usuario> repository, IUnitOfWork uow) : base(repository)
         {
-            this.repository = repository;
+            _repository = repository;
+            _uow = uow;
         }
 
         public async  Task<Usuario?> Login(string correo, string contraseña)
         {
-            var usuario = (await repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
+            var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
             if (usuario == null) { throw new Exception("Ese usuario no existe"); }
 
@@ -29,7 +31,7 @@ namespace Votify.LógicaNegocio.Services
         {
             if(contraseña != contraseñaRepetida) { throw new Exception("Las contraseñas no coinciden"); }
 
-            var usuarioExiste = (await repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
+            var usuarioExiste = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
             if (usuarioExiste != null) { throw new Exception("El correo ya está registrado"); }
 
@@ -40,7 +42,8 @@ namespace Votify.LógicaNegocio.Services
                 Contraseña = BCrypt.Net.BCrypt.HashPassword(contraseña)
             };
 
-            await repository.AddAsync(usuario);
+            await _repository.AddAsync(usuario);
+            await _uow.SaveChangesAsync();
 
             return usuario;
 

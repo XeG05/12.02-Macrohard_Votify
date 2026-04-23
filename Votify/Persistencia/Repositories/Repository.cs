@@ -19,13 +19,16 @@ namespace Votify.Persistencia.Repositories
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(T entity)
+        {
+            _dbSet.Update(entity);
         }
 
         public async Task<List<T>> GetAllAsync()
@@ -36,12 +39,6 @@ namespace Votify.Persistencia.Repositories
         public async Task<T?> GetByIdAsync(long id)
         {
             return await _dbSet.FindAsync(id);
-        }
-
-        public async Task UpdateAsync(T entity)
-        {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate)

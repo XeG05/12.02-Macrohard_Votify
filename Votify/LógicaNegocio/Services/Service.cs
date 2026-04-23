@@ -7,10 +7,12 @@ namespace Votify.LógicaNegocio.Services
     public class Service<T> : IService<T> where T : class
     {
         protected readonly IRepository<T> _repository;
+        protected readonly IUnitOfWork _uow;
 
-        public Service(IRepository<T> repository)
+        public Service(IRepository<T> repository, IUnitOfWork uow)
         {
             _repository = repository;
+            _uow = uow;
         }
 
         public async Task<T?> GetByIdAsync(long id)
@@ -31,12 +33,14 @@ namespace Votify.LógicaNegocio.Services
         public async Task<T> CreateAsync(T entity)
         {
             await _repository.AddAsync(entity);
+            await _uow.SaveChangesAsync();
             return entity;
         }
 
         public async Task UpdateAsync(T entity)
         {
             await _repository.UpdateAsync(entity);
+            await _uow.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(long id)
@@ -45,6 +49,7 @@ namespace Votify.LógicaNegocio.Services
             if (entity != null)
             {
                 await _repository.DeleteAsync(entity);
+                await _uow.SaveChangesAsync();
             }
 
         }

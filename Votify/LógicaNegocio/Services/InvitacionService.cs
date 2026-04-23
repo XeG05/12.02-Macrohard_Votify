@@ -14,18 +14,21 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly ParticipanteCreator _participanteCreator;
         private readonly IUsuarioService _usuarioService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly JwtService _jwtService;
 
         public InvitacionService(IRepository<InvitacionPendiente> invitacionRepo,
             IRepository<Usuario> usuarioRepo,
             ParticipanteCreator participanteCreator,
             IUsuarioService usuarioService,
+            IUnitOfWork unitOfWork,
             JwtService jwtService)
         {
             _invitacionRepo = invitacionRepo;
             _usuarioRepo = usuarioRepo;
             _participanteCreator = participanteCreator;
             _usuarioService = usuarioService;
+            _unitOfWork = unitOfWork;
             _jwtService = jwtService;
         }
 
@@ -79,7 +82,7 @@ namespace Votify.LógicaNegocio.Services
 
             invitacion.Aceptada = true;
             await _invitacionRepo.UpdateAsync(invitacion);
-
+            await _unitOfWork.SaveChangesAsync();
             return _jwtService.GenerateToken(usuario);
         }
     }

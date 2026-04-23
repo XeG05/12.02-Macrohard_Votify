@@ -16,6 +16,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly long? _grupoIdActivo;
 
         public EventoParticipanteService(
@@ -27,6 +28,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Usuario> usuarioRepo,
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
+            IUnitOfWork unitOfWork,
             long? grupoIdActivo = null
         )
         {
@@ -38,6 +40,7 @@ namespace Votify.LógicaNegocio.Services
             _usuarioRepo = usuarioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _unitOfWork = unitOfWork;
             _grupoIdActivo = grupoIdActivo;
         }
 
@@ -194,6 +197,7 @@ namespace Votify.LógicaNegocio.Services
             }
 
             await _proyectoRepo.AddAsync(nuevoProyecto);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo)
@@ -231,6 +235,7 @@ namespace Votify.LógicaNegocio.Services
                 throw new Exception("No hay ningún proyecto para este grupo.");
 
             await _proyectoRepo.DeleteAsync(proyecto);
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {

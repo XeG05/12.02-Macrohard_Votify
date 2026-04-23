@@ -25,6 +25,9 @@ builder.Services.AddScoped<AdministradorCreator>();
 builder.Services.AddScoped<VotanteCreator>();
 builder.Services.AddScoped<JuradoCreator>();
 builder.Services.AddScoped<ParticipanteCreator>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IEventoAdministradorService, EventoAdministradorService>();
@@ -32,8 +35,6 @@ builder.Services.AddScoped<IEventoParticipanteService, EventoParticipanteService
 builder.Services.AddScoped<IEventoVotanteService, EventoVotanteService>();
 builder.Services.AddScoped<IInvitacionService, InvitacionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
 
 builder.Services.AddScoped<JwtService>();
 

@@ -26,6 +26,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
+        private readonly IUnitOfWork _unitOfWork;
         public EventoService(AdministradorCreator adminC, 
             VotanteCreator votanteC,
             IRepository<Evento> eventoRepo,
@@ -42,7 +43,8 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
             IEmailService emailService,
-            IConfiguration config) : base(eventoRepo)
+            IConfiguration config,
+            IUnitOfWork unitOfWork) : base(eventoRepo, unitOfWork)
         {
             _adminCreator = adminC;
             _votanteCreator = votanteC;
@@ -60,6 +62,7 @@ namespace Votify.LógicaNegocio.Services
             _invitacionRepo = invitacionRepo;
             _emailService = emailService;
             _config = config;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<List<Evento>> GetEventosCreados(string correo)
@@ -108,7 +111,7 @@ namespace Votify.LógicaNegocio.Services
                 ?? throw new Exception("Evento no encontrado");
 
             var rol = await ObtenerRol(correo, eventoId);
-
+            await _unitOfWork.SaveChangesAsync();
             return new EntradaEventoDto(evento, rol);
         }
 
@@ -217,7 +220,7 @@ namespace Votify.LógicaNegocio.Services
                     }
                 }
             }
-
+            await _unitOfWork.SaveChangesAsync();
             return evento;
         }
 
@@ -325,6 +328,7 @@ namespace Votify.LógicaNegocio.Services
             await _comentarioRepo.AddAsync(comentario1);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo)
@@ -404,6 +408,7 @@ namespace Votify.LógicaNegocio.Services
             await _votoRepo.AddAsync(nuevoVoto);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

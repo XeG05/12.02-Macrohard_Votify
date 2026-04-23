@@ -14,13 +14,15 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Participante> _participanteRepo;
+        private readonly IUnitOfWork _unitOfWork;
         public EventoAdministradorService(
             IRepository<Evento> eventoRepo,
             IRepository<Categorium> categoriumRepo,
             IRepository<Grupo> grupoRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Voto> votoRepo,
-            IRepository<Participante> participanteRepo)
+            IRepository<Participante> participanteRepo,
+            IUnitOfWork unitOfWork)
         {
             _eventoRepo = eventoRepo;
             _categoriumRepo = categoriumRepo;
@@ -28,6 +30,7 @@ namespace Votify.LógicaNegocio.Services
             _proyectoRepo = proyectoRepo;
             _votoRepo = votoRepo;
             _participanteRepo = participanteRepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task CambiarNombre(long idEvento, string nuevoNombre)
@@ -36,6 +39,7 @@ namespace Votify.LógicaNegocio.Services
                 ?? throw new Exception("Evento no encontrado.");
             evento.Nombre = nuevoNombre;
             await _eventoRepo.UpdateAsync(evento);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task CambiarDescripcion(long idEvento, string nuevaDescripcion)
@@ -44,6 +48,7 @@ namespace Votify.LógicaNegocio.Services
                 ?? throw new Exception("Evento no encontrado.");
             evento.Descripcion = nuevaDescripcion;
             await _eventoRepo.UpdateAsync(evento);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<Categorium>> VerCategorias(long idEvento)
@@ -156,6 +161,7 @@ namespace Votify.LógicaNegocio.Services
             };
 
             await _proyectoRepo.AddAsync(proyecto);
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task EliminarGrupo(long idEvento,long idGrupo)
         {
@@ -181,6 +187,7 @@ namespace Votify.LógicaNegocio.Services
             }
 
             await _grupoRepo.DeleteAsync(grupo);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task ActualizarFechas(long eventoId,
@@ -243,6 +250,7 @@ namespace Votify.LógicaNegocio.Services
             evento.FechaFinVotaciones = finVotacionesOnly;
 
             await _eventoRepo.UpdateAsync(evento);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         /*
