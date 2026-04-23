@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class RolTPT : Migration
+    public partial class SupabaseEventoActivo : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -323,6 +323,31 @@ namespace Votify.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CategoriumJurado",
+                columns: table => new
+                {
+                    CategoriasId = table.Column<long>(type: "bigint", nullable: false),
+                    JuradosCorreoUsuario = table.Column<string>(type: "character varying(50)", nullable: false),
+                    JuradosIdEvento = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CategoriumJurado", x => new { x.CategoriasId, x.JuradosCorreoUsuario, x.JuradosIdEvento });
+                    table.ForeignKey(
+                        name: "FK_CategoriumJurado_categoria_CategoriasId",
+                        column: x => x.CategoriasId,
+                        principalTable: "categoria",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CategoriumJurado_jurado_JuradosCorreoUsuario_JuradosIdEvento",
+                        columns: x => new { x.JuradosCorreoUsuario, x.JuradosIdEvento },
+                        principalTable: "jurado",
+                        principalColumns: new[] { "correo_usuario", "id_evento" },
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "comentario",
                 columns: table => new
                 {
@@ -411,6 +436,11 @@ namespace Votify.Migrations
                 name: "IX_categoria_id_evento",
                 table: "categoria",
                 column: "id_evento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CategoriumJurado_JuradosCorreoUsuario_JuradosIdEvento",
+                table: "CategoriumJurado",
+                columns: new[] { "JuradosCorreoUsuario", "JuradosIdEvento" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_comentario_correo_rol_id_rol",
@@ -505,6 +535,9 @@ namespace Votify.Migrations
                 name: "administrador");
 
             migrationBuilder.DropTable(
+                name: "CategoriumJurado");
+
+            migrationBuilder.DropTable(
                 name: "comentario");
 
             migrationBuilder.DropTable(
@@ -512,9 +545,6 @@ namespace Votify.Migrations
 
             migrationBuilder.DropTable(
                 name: "invitacion_pendiente");
-
-            migrationBuilder.DropTable(
-                name: "jurado");
 
             migrationBuilder.DropTable(
                 name: "notificacion");
@@ -530,6 +560,9 @@ namespace Votify.Migrations
 
             migrationBuilder.DropTable(
                 name: "voto");
+
+            migrationBuilder.DropTable(
+                name: "jurado");
 
             migrationBuilder.DropTable(
                 name: "criterio");

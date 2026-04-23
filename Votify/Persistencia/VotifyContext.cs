@@ -172,6 +172,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.TieneGrupos).HasColumnName("tiene_grupos");
             entity.Property(e => e.GruposCompletos).HasColumnName("grupos_completos");
             entity.Property(e => e.ParticipantesPorGrupo).HasColumnName("participantes_por_grupo");
+            entity.Property(e => e.Estado).HasColumnName("estado").HasDefaultValue("Activo");
         });
 
         modelBuilder.Entity<Grupo>(entity =>
