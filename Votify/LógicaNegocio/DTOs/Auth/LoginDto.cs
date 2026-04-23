@@ -10,7 +10,7 @@ namespace Votify.LógicaNegocio.DTOs
         public string Correo { get; set; } = string.Empty;
 
          [Required(ErrorMessage = "La contraseña es requerida")]
-         [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
+
          [MaxLength(72)]
         public string Contraseña { get; set; } = string.Empty;
     }
