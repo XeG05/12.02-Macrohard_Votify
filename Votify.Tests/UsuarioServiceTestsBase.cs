@@ -41,7 +41,7 @@ namespace Votify.Tests
             {
                 Nombre = nombre,
                 Correo = correo,
-                Contraseña = contraseña
+                Contraseña = BCrypt.Net.BCrypt.HashPassword(contraseña)
             });
 
             await Context.SaveChangesAsync();

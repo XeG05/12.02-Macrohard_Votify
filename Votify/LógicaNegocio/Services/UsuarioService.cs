@@ -19,7 +19,7 @@ namespace Votify.LógicaNegocio.Services
 
             if (usuario == null) { throw new Exception("Ese usuario no existe"); }
 
-            if(usuario.Contraseña != contraseña){ throw new Exception("Contraseña incorrecta"); }
+            if (!BCrypt.Net.BCrypt.Verify(contraseña, usuario.Contraseña)) { throw new Exception("Contraseña incorrecta"); }
 
             return usuario;
 
@@ -37,7 +37,7 @@ namespace Votify.LógicaNegocio.Services
             {
                 Nombre = nombre,
                 Correo = correo,
-                Contraseña = contraseña
+                Contraseña = BCrypt.Net.BCrypt.HashPassword(contraseña)
             };
 
             await repository.AddAsync(usuario);

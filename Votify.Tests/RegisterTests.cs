@@ -21,13 +21,14 @@ namespace Votify.Tests
             Assert.IsNotNull(usuario);
             Assert.AreEqual("Pablo", usuario.Nombre);
             Assert.AreEqual("pablo@gmail.com", usuario.Correo);
-            Assert.AreEqual("abc123", usuario.Contraseña);
+            Assert.IsTrue(BCrypt.Net.BCrypt.Verify("abc123", usuario.Contraseña));
 
             var usuarioGuardado = await Context.Usuarios
                 .FirstOrDefaultAsync(u => u.Correo == "pablo@gmail.com");
 
             Assert.IsNotNull(usuarioGuardado);
             Assert.AreEqual("Pablo", usuarioGuardado.Nombre);
+            Assert.IsTrue(BCrypt.Net.BCrypt.Verify("abc123", usuarioGuardado.Contraseña));
         }
 
         [TestMethod]

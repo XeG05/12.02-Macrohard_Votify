@@ -73,20 +73,14 @@ namespace Votify.LógicaNegocio.Services
             var participantesGrupo = await _participanteRepo.FindAsync(p =>
                 p.IdGrupo == participante.IdGrupo);
 
-            var resultado = new List<(string Nombre, string Correo)>();
+            var correos = participantesGrupo.Select(p => p.CorreoUsuario).ToList();
+            var usuarios = await _usuarioRepo.FindAsync(u => correos.Contains(u.Correo));
+            var usuariosPorCorreo = usuarios.ToDictionary(u => u.Correo);
 
-            foreach (var miembro in participantesGrupo)
-            {
-                var usuarioMiembro = (await _usuarioRepo.FindAsync(u => u.Correo == miembro.CorreoUsuario))
-                    .FirstOrDefault();
-
-                resultado.Add((
-                    usuarioMiembro?.Nombre ?? miembro.CorreoUsuario,
-                    miembro.CorreoUsuario
-                ));
-            }
-
-            return resultado;
+            return participantesGrupo.Select(m => (
+                usuariosPorCorreo.TryGetValue(m.CorreoUsuario, out var u) ? u.Nombre : m.CorreoUsuario,
+                m.CorreoUsuario
+            )).ToList();
         }
 
         public async Task<Categorium?> ObtenerCategoriaGrupo(string correo, long idEvento, long? grupoIdActivo = null)
@@ -240,23 +234,18 @@ namespace Votify.LógicaNegocio.Services
         }
         public async Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {
-            if(ObtenerFaseActual(idEvento) != FasesEvento.Resultados)
-            {
+            if (ObtenerFaseActual(idEvento) != FasesEvento.Resultados)
                 throw new Exception("Los resultados aún no están disponibles");
-            }
 
-            var participaciones = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo && p.IdEvento == idEvento);
-            Participante? participante = null;
+            var participaciones = await _participanteRepo.FindAsync(p =>
+                p.CorreoUsuario == correo && p.IdEvento == idEvento);
 
-            foreach (var p in participaciones)
-            {
-                var g = await _grupoRepo.GetByIdAsync(p.IdGrupo);
-                if (g != null && g.IdCategoria == idCategoria)
-                {
-                    participante = p;
-                    break;
-                }
-            }
+            var idsGrupos = participaciones.Select(p => p.IdGrupo).ToList();
+            var grupos = await _grupoRepo.FindAsync(g => idsGrupos.Contains(g.Id));
+            var gruposPorId = grupos.ToDictionary(g => g.Id);
+
+            Participante? participante = participaciones
+                .FirstOrDefault(p => gruposPorId.TryGetValue(p.IdGrupo, out var g) && g.IdCategoria == idCategoria);
 
             if (participante == null)
             {
@@ -273,39 +262,28 @@ namespace Votify.LógicaNegocio.Services
             if (proyecto == null)
                 throw new Exception("El grupo no tiene proyecto");
 
-            var grupo = (await _grupoRepo.FindAsync(g => g.Id == proyecto.IdGrupo)).FirstOrDefault();
+            var grupo = gruposPorId.GetValueOrDefault(proyecto.IdGrupo);
 
             var gruposCategoria = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            var idsGruposCategoria = gruposCategoria.Select(g => g.Id).ToList();
 
-            var idsGruposCat = gruposCategoria.Select(g => g.Id).ToList();
+            var proyectos = await _proyectoRepo.FindAsync(p => idsGruposCategoria.Contains(p.IdGrupo));
 
-            var proyectos = (await _proyectoRepo.FindAsync(p => idsGruposCat.Contains(p.IdGrupo))).ToList();
+            var idsProyectos = proyectos.Select(p => p.Id).ToList();
+            var todosLosVotos = await _votoRepo.FindAsync(v => idsProyectos.Contains(v.IdProyectoGru));
+            var votosPorProyecto = todosLosVotos
+                .GroupBy(v => v.IdProyectoGru)
+                .ToDictionary(g => g.Key, g => g.Count());
 
-            var ranking = new List<(Proyecto proyecto, int votos)>();
+            var ranking = proyectos
+                .Select(p => (proyecto: p, votos: votosPorProyecto.GetValueOrDefault(p.Id, 0)))
+                .OrderByDescending(r => r.votos)
+                .ToList();
 
-            foreach (var p in proyectos)
-            {
-                var votos = await _votoRepo.FindAsync(v =>
-                    v.IdProyectoGru == p.Id);
-
-                ranking.Add((p, votos.Count));
-            }
-
-            var rankingOrdenado = ranking.OrderByDescending(r => r.votos).ToList();
-
-            var proyectoElegido = rankingOrdenado.FirstOrDefault(r => r.proyecto.IdGrupo == proyecto.IdGrupo);
-
-            if (proyectoElegido.proyecto == null)
-                throw new Exception("El proyecto no se encontró en el ranking");
-
-            var posicion = rankingOrdenado.FindIndex(r => r.proyecto.IdGrupo == proyecto.IdGrupo) + 1;
-
-            var totalVotos = proyectoElegido.votos;
+            var posicion = ranking.FindIndex(r => r.proyecto.IdGrupo == proyecto.IdGrupo) + 1;
+            var totalVotos = votosPorProyecto.GetValueOrDefault(proyecto.Id, 0);
 
             var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id);
-
-
-
 
             return new DashboardParticipanteDto
             {
@@ -314,7 +292,6 @@ namespace Votify.LógicaNegocio.Services
                 GrupoId = grupo?.Id ?? 0,
                 TotalVotos = totalVotos,
                 Posicion = posicion,
-
                 Comentarios = comentarios.Select(c => new ComentarioDto
                 {
                     Autor = c.CorreoRol ?? "Anónimo",

@@ -22,7 +22,7 @@ namespace Votify.Tests
             Assert.IsNotNull(usuario);
             Assert.AreEqual("Pablo", usuario.Nombre);
             Assert.AreEqual("pablo@gmail.com", usuario.Correo);
-            Assert.AreEqual("12345", usuario.Contraseña);
+            Assert.IsTrue(BCrypt.Net.BCrypt.Verify("12345", usuario.Contraseña));
         }
 
         [TestMethod]
