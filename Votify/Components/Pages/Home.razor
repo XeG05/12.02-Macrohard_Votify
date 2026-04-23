@@ -188,28 +188,29 @@
             else
             {
                 <div class="eventos-grid">
-                    @foreach (var ev in eventosJurado)
+                    @foreach (var jur in eventosJurado)
                     {
-                        var eventoId = ev.Id;
-                        var evento = ev;
+
+                        var eventoId = jur.Evento.Id;
+                        var ev = jur.Evento;
 
                         <div class="evento-card" @onclick="() => IrAEventoJurado(eventoId)">
                             <div class="evento-card-top">
-                                <div class="fase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</div>
+                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
                                 <span class="rol-badge jurado-badge">Jurado</span>
                             </div>
 
-                            <h3 class="evento-nombre">@evento.Nombre</h3>
-                            <p class="evento-desc">@TruncarTexto(evento.Descripcion, 90)</p>
+                            <h3 class="evento-nombre">@ev.Nombre</h3>
+                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
 
                             <div class="evento-fechas">
                                 <div class="fecha-item">
                                     <span class="fecha-label">Inscripciones</span>
-                                    <span class="fecha-valor">@evento.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
                                 </div>
                                 <div class="fecha-item">
                                     <span class="fecha-label">Votaciones</span>
-                                    <span class="fecha-valor">@evento.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
                                 </div>
                             </div>
 
@@ -230,7 +231,7 @@
     private List<EventoDto> eventosCreados = new();
     private List<EventoParticipanteDto> eventoParticipando = new();
     private List<EventoDto> eventosDisponibles = new();
-    private List<EventoDto> eventosJurado = new();
+    private List<EventoJuradoDto> eventosJurado = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -252,7 +253,7 @@
 
             eventosDisponibles = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/disponibles") ?? new();
 
-            eventosJurado = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/experto") ?? new();
+            eventosJurado = await ApiClient.GetFromJsonAsync<List<EventoJuradoDto>>("api/evento/experto") ?? new();
         }
         catch (Exception e)
         {

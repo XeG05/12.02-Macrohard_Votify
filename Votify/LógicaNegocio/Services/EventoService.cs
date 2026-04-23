@@ -75,10 +75,10 @@ namespace Votify.LógicaNegocio.Services
             var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
             var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
 
-            var participantes = await _participanteRepo.FindAsync(p => p.Correo == correo);
+            var participantes = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo);
 
             var participacionIds = participantes
-                .Select(p => p.Id)
+                .Select(p => p.IdEvento)
                 .Where(id => !adminEventIds.Contains(id))
                 .ToHashSet();
 
@@ -104,13 +104,13 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<List<Evento>> GetEventosJurados(string correo)
         {
-            var admins = await _adminRepo.FindAsync(a => a.Correo == correo);
-            var adminEventIds = admins.Select(a => a.Id).ToHashSet();
+            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
+            var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
 
-            var jurados = await _juradoRepo.FindAsync(j => j.Correo == correo);
+            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo);
 
             var juradoIds = jurados
-                .Select(j => j.Id)
+                .Select(j => j.IdEvento)
                 .Where(id => !adminEventIds.Contains(id))
                 .ToHashSet();
 
