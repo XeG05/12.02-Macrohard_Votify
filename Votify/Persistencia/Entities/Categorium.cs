@@ -22,10 +22,13 @@ public class Categorium
 
     public virtual ICollection<Grupo> Grupos { get; set; } = new List<Grupo>();
 
+    public virtual ICollection<Jurado> Jurados { get; set; } = new List<Jurado>();
+
     public Categorium()
     {
         Criterios = new List<Criterio>();
         Grupos = new List<Grupo>();
+        Jurados = new List<Jurado>();
     }
     public Categorium(string nombre, string descripcion, long idEvento, long ponderacionPopular, long ponderacionExperto, Evento idEventoNavigation, Criterio criterio1, bool criteriosSonPorcentaje = true)
     {
@@ -38,6 +41,7 @@ public class Categorium
         IdEventoNavigation = idEventoNavigation;
         Criterios = new List<Criterio>();
         Grupos = new List<Grupo>();
+        Jurados = new List<Jurado>();
 
         Criterios.Add(criterio1); //añadimos elemento a la lista por la cardinalidad minima 1
 
