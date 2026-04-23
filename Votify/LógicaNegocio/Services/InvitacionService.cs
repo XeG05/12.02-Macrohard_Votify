@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Votify.Auth;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
@@ -63,7 +64,7 @@ namespace Votify.LógicaNegocio.Services
     string token, string contraseña, string? nombre, string? contraseña2)
         {
             var invitacion = await ObtenerInvitacionValida(token)
-                ?? throw new Exception("Invitación no válida o caducada.");
+                ?? throw new UnauthorizedException("Invitación no válida o caducada.");
 
             var usuarios = await _usuarioRepo.FindAsync(u => u.Correo == invitacion.CorreoDestino);
             var existe = usuarios.Any();
@@ -73,7 +74,7 @@ namespace Votify.LógicaNegocio.Services
                 : await _usuarioService.Register(nombre!, invitacion.CorreoDestino, contraseña, contraseña2!);
 
             if (usuario == null)
-                throw new Exception("No se pudo autenticar.");
+                throw new UnauthorizedException("No se pudo autenticar.");
 
             await _participanteCreator.CrearAsync(
                 usuario.Correo,

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
@@ -26,7 +27,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _uow;
         public EventoService(AdministradorCreator adminC, 
             VotanteCreator votanteC,
             IRepository<Evento> eventoRepo,
@@ -44,7 +45,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<InvitacionPendiente> invitacionRepo,
             IEmailService emailService,
             IConfiguration config,
-            IUnitOfWork unitOfWork) : base(eventoRepo, unitOfWork)
+            IUnitOfWork uow) : base(eventoRepo, uow)
         {
             _adminCreator = adminC;
             _votanteCreator = votanteC;
@@ -62,7 +63,7 @@ namespace Votify.LógicaNegocio.Services
             _invitacionRepo = invitacionRepo;
             _emailService = emailService;
             _config = config;
-            _unitOfWork = unitOfWork;
+            _uow = uow;
         }
 
         public async Task<List<Evento>> GetEventosCreados(string correo)
@@ -128,13 +129,13 @@ namespace Votify.LógicaNegocio.Services
             var usuario = (await _usuarioRepo
                 .FindAsync(u => u.Correo == correo))
                 .FirstOrDefault()
-                ?? throw new Exception("Usuario no encontrado");
+                ?? throw new NotFoundException("Usuario no encontrado");
 
             var evento = await _eventoRepo.GetByIdAsync(eventoId)
-                ?? throw new Exception("Evento no encontrado");
+                ?? throw new NotFoundException("Evento no encontrado");
 
             var rol = await ObtenerRol(correo, eventoId);
-            await _unitOfWork.SaveChangesAsync();
+            await _uow.SaveChangesAsync();
             return new EntradaEventoDto(evento, rol);
         }
 
@@ -147,103 +148,104 @@ namespace Votify.LógicaNegocio.Services
             return rol ?? await _votanteCreator.CrearAsync(correo, idEvento);
         }
 
+        private void ValidarCorreosDuplicados(EventoCreacionDto dto)
+        {
+            if (!dto.TieneGrupos) return;
+
+            var duplicados = dto.Categorias
+                .SelectMany(c => c.Grupos)
+                .SelectMany(g => g.CorreosParticipantes)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicados.Any())
+                throw new ConflictException($"Correos duplicados entre grupos: {string.Join(", ", duplicados)}");
+        }
+
+        private Evento CrearEntidadEvento(EventoCreacionDto dto) => new Evento(
+            dto.Nombre,
+            dto.Descripcion,
+            dto.FechaFinInscripciones!.Value,
+            dto.FechaFinEntrega!.Value,
+            dto.FechaFinVotaciones!.Value,
+            dto.FechaFinEvaluacionExperta!.Value,
+            dto.SinComentarios,
+            dto.ComentariosOpcionales,
+            dto.ComentariosObligatorios,
+            dto.ParticipantesVotan,
+            dto.CalificarNumericamente,
+            dto.VotarXProyectos,
+            dto.VotarProyectos,
+            dto.RepartirPuntos,
+            dto.PuntosARepartir,
+            dto.TieneGrupos,
+            dto.GruposCompletos,
+            dto.NumParticipantes
+        );
+
+        private async Task CrearCategoriaConCriteriosYGrupos(CategoriaDto catDto, Evento evento, Usuario creador)
+        {
+            var categoria = new Categorium
+            {
+                Nombre = catDto.Nombre,
+                Descripcion = catDto.Descripcion,
+                IdEvento = evento.Id,
+                PonderacionPopular = catDto.PonderacionPopular,
+                PonderacionExperto = catDto.PonderacionExperto,
+                CriteriosSonPorcentaje = catDto.CriteriosSonPorcentaje
+            };
+            await _categoriumRepo.AddAsync(categoria);
+
+            foreach (var critDto in catDto.Criterios)
+                await _criterioRepo.AddAsync(new Criterio
+                {
+                    Nombre = critDto.Nombre,
+                    Descripcion = critDto.Descripcion,
+                    IdCategoria = categoria.Id,
+                    Ponderacion = critDto.Ponderacion
+                });
+
+            if (evento.TieneGrupos)
+                foreach (var grupoDto in catDto.Grupos)
+                    await CrearGrupoConParticipantes(grupoDto, categoria.Id, evento, creador);
+        }
+
+        private async Task CrearGrupoConParticipantes(GrupoDto grupoDto, long idCategoria, Evento evento, Usuario creador)
+        {
+            var grupo = new Grupo
+            {
+                Nombre = grupoDto.Nombre,
+                IdCategoria = idCategoria,
+                HojaRutaTexto = null
+            };
+            await _grupoRepo.AddAsync(grupo);
+
+            foreach (var correo in grupoDto.CorreosParticipantes.Where(c => !string.IsNullOrWhiteSpace(c)))
+                await ProcesarParticipante(correo, grupo.Id, evento, creador);
+        }
+
         public async Task<Evento> CrearEvento(string correoCreador, EventoCreacionDto dto)
         {
             var (esValido, error) = dto.Validar();
-            if (!esValido) throw new Exception(error);
+            if (!esValido) throw new ValidationException(error);
 
             var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correoCreador))
                 .FirstOrDefault()
-                ?? throw new Exception("Usuario no encontrado");
+                ?? throw new NotFoundException("Usuario no encontrado");
 
-            if (dto.TieneGrupos)
-            {
-                var todosLosCorreos = dto.Categorias
-                    .SelectMany(c => c.Grupos)
-                    .SelectMany(g => g.CorreosParticipantes)
-                    .Where(c => !string.IsNullOrWhiteSpace(c))
-                    .ToList();
+            ValidarCorreosDuplicados(dto);
 
-                var duplicados = todosLosCorreos
-                    .GroupBy(c => c)
-                    .Where(g => g.Count() > 1)
-                    .Select(g => g.Key)
-                    .ToList();
-
-                if (duplicados.Any())
-                    throw new Exception($"Correos duplicados entre grupos: {string.Join(", ", duplicados)}");
-            }
-
-            var evento = new Evento(
-                dto.Nombre,
-                dto.Descripcion,
-                dto.FechaFinInscripciones!.Value,
-                dto.FechaFinEntrega!.Value,
-                dto.FechaFinVotaciones!.Value,
-                dto.FechaFinEvaluacionExperta!.Value,
-                dto.SinComentarios,
-                dto.ComentariosOpcionales,
-                dto.ComentariosObligatorios,
-                dto.ParticipantesVotan,
-                dto.CalificarNumericamente,
-                dto.VotarXProyectos,
-                dto.VotarProyectos,
-                dto.RepartirPuntos,
-                dto.PuntosARepartir,
-                dto.TieneGrupos,
-                dto.GruposCompletos,
-                dto.NumParticipantes
-            );
-
+            var evento = CrearEntidadEvento(dto);
             await _eventoRepo.AddAsync(evento);
             await _adminCreator.CrearAsync(correoCreador, evento.Id);
 
             foreach (var catDto in dto.Categorias)
-            {
-                var categoria = new Categorium
-                {
-                    Nombre = catDto.Nombre,
-                    Descripcion = catDto.Descripcion,
-                    IdEvento = evento.Id,
-                    PonderacionPopular = catDto.PonderacionPopular,
-                    PonderacionExperto = catDto.PonderacionExperto,
-                    CriteriosSonPorcentaje = catDto.CriteriosSonPorcentaje
-                };
-                await _categoriumRepo.AddAsync(categoria);
+                await CrearCategoriaConCriteriosYGrupos(catDto, evento, usuario);
 
-                foreach (var critDto in catDto.Criterios)
-                {
-                    var criterio = new Criterio
-                    {
-                        Nombre = critDto.Nombre,
-                        Descripcion = critDto.Descripcion,
-                        IdCategoria = categoria.Id,
-                        Ponderacion = critDto.Ponderacion
-                    };
-                    await _criterioRepo.AddAsync(criterio);
-                }
-
-                if (dto.TieneGrupos)
-                {
-                    foreach (var grupoDto in catDto.Grupos)
-                    {
-                        var grupo = new Grupo
-                        {
-                            Nombre = grupoDto.Nombre,
-                            IdCategoria = categoria.Id,
-                            HojaRutaTexto = null
-                        };
-                        await _grupoRepo.AddAsync(grupo);
-
-                        foreach (var correo in grupoDto.CorreosParticipantes
-                                                       .Where(c => !string.IsNullOrWhiteSpace(c)))
-                        {
-                            await ProcesarParticipante(correo, grupo.Id, evento, usuario);
-                        }
-                    }
-                }
-            }
-            await _unitOfWork.SaveChangesAsync();
+            await _uow.SaveChangesAsync();
             return evento;
         }
 
@@ -327,10 +329,10 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
         {
-            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) ?? throw new Exception("Proyecto no encontrado.");
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) ?? throw new NotFoundException("Proyecto no encontrado.");
 
             Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault() ?? 
-                throw new Exception("Rol no encontrado para el usuario en este evento.");
+                throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
 
             Comentario comentario1 = new Comentario
             (
@@ -351,7 +353,7 @@ namespace Votify.LógicaNegocio.Services
             await _comentarioRepo.AddAsync(comentario1);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
-            await _unitOfWork.SaveChangesAsync();
+            await _uow.SaveChangesAsync();
         }
 
         public async Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo)
@@ -367,7 +369,7 @@ namespace Votify.LógicaNegocio.Services
         public async Task<(int VotosTotales, bool HaVotado)> ObtenerInfoVotoSimple(long idEvento, long idProyecto, string correo)
         {
             var proyectoActual = await _proyectoRepo.GetByIdAsync(idProyecto);
-            if (proyectoActual == null) throw new Exception("Proyecto no encontrado");
+            if (proyectoActual == null) throw new NotFoundException("Proyecto no encontrado");
             var grupoActual = await _grupoRepo.GetByIdAsync(proyectoActual.IdGrupo);
             if (grupoActual == null) throw new Exception("Grupo no encontrado");
             long idCategoriaActual = grupoActual.IdCategoria;
@@ -397,19 +399,19 @@ namespace Votify.LógicaNegocio.Services
         public async Task VotarProyectoSimple(long idEvento, long idProyecto, string correo)
         {
             var info = await ObtenerInfoVotoSimple(idEvento, idProyecto, correo);
-            if (info.HaVotado) throw new Exception("Ya has votado por este proyecto.");
-            if (info.VotosTotales >= 3) throw new Exception("Límite de votos alcanzado para esta categoría.");
+            if (info.HaVotado) throw new ConflictException("Ya has votado por este proyecto.");
+            if (info.VotosTotales >= 3) throw new ConflictException("Límite de votos alcanzado para esta categoría.");
 
-            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto);
-            if (pr == null) throw new Exception("Proyecto no encontrado.");
-
-            Grupo grupo = await _grupoRepo.GetByIdAsync(pr.IdGrupo);
+            Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) 
+                    ?? throw new NotFoundException("Proyecto no encontrado.");
+            Grupo grupo = await _grupoRepo.GetByIdAsync(pr.IdGrupo) 
+                    ?? throw new NotFoundException("Grupo no encontrado.");
             var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == grupo.IdCategoria);
-            Criterio criterioSeleccionado = criterios.FirstOrDefault();
-            if (criterioSeleccionado == null) throw new Exception("No existe criterio para emitir un voto en esta categoría.");
+            Criterio criterioSeleccionado = criterios.FirstOrDefault() 
+                    ?? throw new NotFoundException("No existe criterio para emitir un voto en esta categoría.");
 
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault();
-            if (rol == null) throw new Exception("Rol no encontrado para el usuario en este evento.");
+            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault()
+                    ?? throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
 
             Voto nuevoVoto = new Voto(
                 criterioSeleccionado.Id,
@@ -431,7 +433,7 @@ namespace Votify.LógicaNegocio.Services
             await _votoRepo.AddAsync(nuevoVoto);
             await _proyectoRepo.UpdateAsync(pr);
             await _rolRepo.UpdateAsync(rol);
-            await _unitOfWork.SaveChangesAsync();
+            await _uow.SaveChangesAsync();
         }
     }
 }

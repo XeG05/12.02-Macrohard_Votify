@@ -1,5 +1,6 @@
 ﻿using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
@@ -55,10 +56,8 @@ namespace Votify.LógicaNegocio.Services
             if (grupoIdActivo.HasValue)
                 participante = p.FirstOrDefault(x => x.IdGrupo == grupoIdActivo.Value);
 
-            participante ??= p.FirstOrDefault();
-
-            if (participante == null)
-                throw new Exception("El usuario no está registrado como participante en este evento.");
+            participante ??= p.FirstOrDefault()
+                ?? throw new NotFoundException("El usuario no está registrado como participante en este evento.");
 
             return participante;
         }
@@ -136,29 +135,21 @@ namespace Votify.LógicaNegocio.Services
             string correo, long idEvento, long? grupoIdActivo)
         {
             if (string.IsNullOrWhiteSpace(nombreProyecto))
-                throw new Exception("El nombre del proyecto es obligatorio.");
+                throw new ValidationException("El nombre del proyecto es obligatorio.");
 
             var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
-            var grupo = await _grupoRepo.GetByIdAsync(participante.IdGrupo);
-
-            if (grupo == null)
-                throw new Exception("No se ha encontrado el grupo del participante.");
+            var grupo = await _grupoRepo.GetByIdAsync(participante.IdGrupo)
+                ?? throw new NotFoundException("No se ha encontrado el grupo del participante.");
 
             var categoria = (await _categoriumRepo.FindAsync(c =>
                 c.Id == grupo.IdCategoria &&
                 c.IdEvento == idEvento))
-                .FirstOrDefault();
-
-            if (categoria == null)
-                throw new Exception("La categoría del grupo no pertenece al evento.");
+                .FirstOrDefault() ?? throw new ConflictException("La categoría del grupo no pertenece al evento.");
 
             var proyectoExistente = (await _proyectoRepo.FindAsync(p =>
                 p.IdGrupo == grupo.Id
                 ))
-                .FirstOrDefault();
-
-            if (proyectoExistente != null)
-                throw new Exception("Ya existe un proyecto entregado para este grupo. Elimínalo antes de volver a entregarlo.");
+                .FirstOrDefault() ?? throw new ConflictException("Ya existe un proyecto entregado para este grupo. Elimínalo antes de volver a entregarlo.");
 
 
             string descBreve;
@@ -229,10 +220,7 @@ namespace Votify.LógicaNegocio.Services
 
             var proyecto = (await _proyectoRepo
                 .FindAsync(p => p.IdGrupo == participante.IdGrupo))
-                .FirstOrDefault();
-
-            if (proyecto == null)
-                throw new Exception("No hay ningún proyecto para este grupo.");
+                .FirstOrDefault() ?? throw new NotFoundException("No hay ningún proyecto para este grupo.");
 
             await _proyectoRepo.DeleteAsync(proyecto);
             await _unitOfWork.SaveChangesAsync();
@@ -260,12 +248,10 @@ namespace Votify.LógicaNegocio.Services
             }
 
             if (participante == null)
-                throw new Exception("Participante no encontrado en este evento.");
+                throw new NotFoundException("Participante no encontrado en este evento.");
 
-            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo)).FirstOrDefault();
-
-            if (proyecto == null)
-                throw new Exception("El grupo no tiene proyecto");
+            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo)).FirstOrDefault()
+                    ?? throw new ConflictException("El grupo no tiene proyecto");
 
             var grupo = gruposPorId.GetValueOrDefault(proyecto.IdGrupo);
 
@@ -307,7 +293,7 @@ namespace Votify.LógicaNegocio.Services
         public FasesEvento ObtenerFaseActual(long idEvento)
         {
             var evento = _eventoRepo.GetByIdAsync(idEvento).Result
-                ?? throw new Exception("Evento no encontrado");
+                ?? throw new NotFoundException("Evento no encontrado");
 
             var hoy = DateOnly.FromDateTime(DateTime.Now);
             if (hoy <= evento.FechaFinInscripciones) return FasesEvento.Inscripciones;

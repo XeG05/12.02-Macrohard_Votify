@@ -1,5 +1,6 @@
 ﻿using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
@@ -36,7 +37,7 @@ namespace Votify.LógicaNegocio.Services
         public async Task CambiarNombre(long idEvento, string nuevoNombre)
         {
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
-                ?? throw new Exception("Evento no encontrado.");
+                ?? throw new NotFoundException("Evento no encontrado.");
             evento.Nombre = nuevoNombre;
             await _eventoRepo.UpdateAsync(evento);
             await _unitOfWork.SaveChangesAsync();
@@ -45,7 +46,7 @@ namespace Votify.LógicaNegocio.Services
         public async Task CambiarDescripcion(long idEvento, string nuevaDescripcion)
         {
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
-                ?? throw new Exception("Evento no encontrado.");
+                ?? throw new NotFoundException("Evento no encontrado.");
             evento.Descripcion = nuevaDescripcion;
             await _eventoRepo.UpdateAsync(evento);
             await _unitOfWork.SaveChangesAsync();
@@ -143,7 +144,7 @@ namespace Votify.LógicaNegocio.Services
         {
 
             if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
-                throw new Exception("No se pueden añadir grupos fuera de la fase de inscripción");
+                throw new ValidationException("No se pueden añadir grupos fuera de la fase de inscripción");
 
             var grupo = new Grupo
             {
@@ -167,10 +168,10 @@ namespace Votify.LógicaNegocio.Services
         {
 
             if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
-                throw new Exception("No se pueden eliminar grupos fuera de la fase de inscripción");
+                throw new ValidationException("No se pueden eliminar grupos fuera de la fase de inscripción");
 
             var grupo = await _grupoRepo.GetByIdAsync(idGrupo) ??
-                throw new Exception("Grupo no encontrado");
+                throw new NotFoundException("Grupo no encontrado");
 
             var proyectos = await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
 
@@ -202,18 +203,17 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(eventoId);
 
             if (evento == null)
-                throw new Exception("Evento no encontrado");
+                throw new NotFoundException("Evento no encontrado");
 
             var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
 
             //  Validar orden
             if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly))
-                throw new Exception("Las fechas deben estar en orden lógico");
+                throw new ValidationException("Las fechas deben estar en orden lógico");
 
             /*//  No fechas pasadas
             if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy)
-        throw new Exception("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
-
+        throw new ValidationException("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
             //  Restricción por fase
             var faseActual = ObtenerFaseActual(eventoId);
 
@@ -227,7 +227,7 @@ namespace Votify.LógicaNegocio.Services
             else if (faseActual == FasesEvento.Entregas)
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones)
-                    throw new Exception("No puedes modificar la fase de inscripciones");
+                    throw new ValidationException("No puedes modificar la fase de inscripciones");
             }
 
             // 🔹 VOTACIONES → solo puedes tocar votaciones
@@ -235,13 +235,13 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones ||
                     finEntregaOnly != evento.FechaFinEntrega)
-                    throw new Exception("Solo puedes modificar la fase de votaciones");
+                    throw new ValidationException("Solo puedes modificar la fase de votaciones");
             }
 
             // 🔹 FINALIZADO → nada
             else
             {
-                throw new Exception("El evento ya ha finalizado");
+                throw new ValidationException("El evento ya ha finalizado");
             }
 
             //  actualizar
@@ -288,7 +288,7 @@ namespace Votify.LógicaNegocio.Services
         public FasesEvento ObtenerFaseActual(long idEvento)
         {
             var evento = _eventoRepo.GetByIdAsync(idEvento).Result
-                ?? throw new Exception("Evento no encontrado");
+                ?? throw new NotFoundException("Evento no encontrado");
 
             var hoy = DateOnly.FromDateTime(DateTime.Now);
             if (hoy <= evento.FechaFinInscripciones) return FasesEvento.Inscripciones;

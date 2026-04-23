@@ -1,4 +1,5 @@
 ﻿using System.Security.Principal;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
@@ -19,9 +20,9 @@ namespace Votify.LógicaNegocio.Services
         {
             var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
-            if (usuario == null) { throw new Exception("Ese usuario no existe"); }
+            if (usuario == null) { throw new NotFoundException("Ese usuario no existe"); }
 
-            if (!BCrypt.Net.BCrypt.Verify(contraseña, usuario.Contraseña)) { throw new Exception("Contraseña incorrecta"); }
+            if (!BCrypt.Net.BCrypt.Verify(contraseña, usuario.Contraseña)) { throw new UnauthorizedException("Contraseña incorrecta"); }
 
             return usuario;
 
@@ -29,12 +30,11 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<Usuario?> Register(string nombre, string correo, string contraseña, string contraseñaRepetida)
         {
-            if(contraseña != contraseñaRepetida) { throw new Exception("Las contraseñas no coinciden"); }
+            if(contraseña != contraseñaRepetida) { throw new ValidationException("Las contraseñas no coinciden"); }
 
             var usuarioExiste = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
 
-            if (usuarioExiste != null) { throw new Exception("El correo ya está registrado"); }
-
+            if (usuarioExiste != null) { throw new ConflictException("El correo ya está registrado"); }
             var usuario = new Usuario
             {
                 Nombre = nombre,

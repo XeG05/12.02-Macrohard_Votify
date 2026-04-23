@@ -1,11 +1,13 @@
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Votify.Auth;
 using Votify.Components;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
@@ -91,6 +93,21 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+{
+    var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+    context.Response.ContentType = "application/json";
+    context.Response.StatusCode = ex switch
+    {
+        NotFoundException        => StatusCodes.Status404NotFound,
+        UnauthorizedException    => StatusCodes.Status401Unauthorized,
+        ConflictException        => StatusCodes.Status409Conflict,
+        ValidationException      => StatusCodes.Status422UnprocessableEntity,
+        _                        => StatusCodes.Status500InternalServerError
+     };
+    await context.Response.WriteAsJsonAsync(new { error = ex?.Message ?? "Error interno" }); 
+}));
 
 app.UseAuthentication();
 app.UseAuthorization();
