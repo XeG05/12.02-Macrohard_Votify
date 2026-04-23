@@ -9,6 +9,12 @@
 {
     <div class="evp-alert evp-alert-error">@error</div>
 }
+else if (EventoPausado(evento))
+{
+    <div class="epp-alert epp-alert-error">
+        Este evento está en pausa. No se pueden realizar acciones temporalmente.
+    </div>
+}
 else if (evento == null)
 {
     <div class="evp-loading-state">
@@ -177,7 +183,10 @@ else
             StateHasChanged();
         }
     }
-
+    private bool EventoPausado(EventoDto evento)
+    {
+        return evento?.Estado == "Pausado";
+    }
     protected async Task IrAProyecto( long id)
     {
         Nav.NavigateTo($"/{idEvento}/proyecto/{id}");
