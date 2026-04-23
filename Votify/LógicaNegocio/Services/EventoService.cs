@@ -71,7 +71,7 @@ namespace Votify.LógicaNegocio.Services
             var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
             var eventIds = admins.Select(a => a.IdEvento).ToHashSet();
             var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => eventIds.Contains(e.Id)).ToList();
+            return todos.Where(e => eventIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
         }
 
         public async Task<List<Evento>> GetEventosParticipacion(string correo)
@@ -87,7 +87,7 @@ namespace Votify.LógicaNegocio.Services
                 .ToHashSet();
 
             var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => participacionIds.Contains(e.Id)).ToList();
+            return todos.Where(e => participacionIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
         }
 
         public async Task<List<Evento>> GetEventosDisponibles(string correo)
@@ -103,7 +103,7 @@ namespace Votify.LógicaNegocio.Services
             );
 
             var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
+            return todos.Where(e => !eventosExcluidos.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
         }
 
         public async Task<List<Evento>> GetEventosJurados(string correo)
@@ -119,7 +119,7 @@ namespace Votify.LógicaNegocio.Services
                 .ToHashSet();
 
             var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => juradoIds.Contains(e.Id)).ToList();
+            return todos.Where(e => juradoIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
         }
 
 

@@ -12,5 +12,7 @@
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
         public int ParticipantesPorGrupo { get; set; }
+
+        public string Estado { get; set; } = "Activo";
     }
 }

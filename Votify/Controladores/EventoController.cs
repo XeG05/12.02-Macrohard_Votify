@@ -35,7 +35,8 @@ namespace Votify.Controladores
             FechaFinVotaciones = e.FechaFinVotaciones,
             TieneGrupos = e.TieneGrupos,
             GruposCompletos = e.GruposCompletos,
-            ParticipantesPorGrupo = e.ParticipantesPorGrupo
+            ParticipantesPorGrupo = e.ParticipantesPorGrupo,
+            Estado = e.Estado,
         };
 
         private static GrupoDto MapGrupo(Grupo g) => new()

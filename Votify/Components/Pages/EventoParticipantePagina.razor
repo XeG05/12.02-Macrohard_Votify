@@ -17,6 +17,12 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="epp-alert epp-alert-error">@error</div>
     </div>
 }
+else if (EventoPausado(evento))
+{
+    <div class="epp-alert epp-alert-error">
+         Este evento está en pausa. No se pueden realizar acciones temporalmente.
+    </div>
+}
 else if (evento is null)
 {
     <div class="epp-wrapper">
@@ -203,6 +209,9 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long? GrupoId { get; set; }
 
+   
+    
+
     private string? correo = "";
     private EventoDto? evento;
     private GrupoDto? grupoActual;
@@ -211,11 +220,15 @@ else
     private string? mensaje;
     private bool tieneProyecto;
 
+
+
     private string nombreGrupo = "Grupo";
     private string nombreCategoria = "Sin categoría";
     private List<MiembroGrupoDto> miembrosGrupo = new();
 
     private record TieneProyectoResponse(bool TieneProyecto);
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -304,6 +317,12 @@ else
     private void VolverHome()
     {
         Nav.NavigateTo("/home");
+    }
+
+    //AUN NO VA, PARA DESPUÉS
+    private bool EventoPausado(EventoDto evento)
+    {
+        return evento?.Estado == "Pausado";
     }
 
     private void IrAPresentarProyecto()
