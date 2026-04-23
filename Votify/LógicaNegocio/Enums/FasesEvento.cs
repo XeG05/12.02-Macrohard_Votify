@@ -5,6 +5,7 @@
         Inscripciones,
         Entregas,
         Votaciones,
+        EvaluacionExperta,
         Resultados
     }
 }

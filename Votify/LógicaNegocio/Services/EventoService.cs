@@ -79,9 +79,9 @@ namespace Votify.LógicaNegocio.Services
             var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
 
             var participantes = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo);
-            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo);
-            var participacionIds = participantes.Select(p => p.IdEvento)
-                .Concat(jurados.Select(j => j.IdEvento))
+
+            var participacionIds = participantes
+                .Select(p => p.IdEvento)
                 .Where(id => !adminEventIds.Contains(id))
                 .ToHashSet();
 
@@ -93,12 +93,35 @@ namespace Votify.LógicaNegocio.Services
         {
             var eventosCreados = await GetEventosCreados(correo);
             var eventosParticipacion = await GetEventosParticipacion(correo);
+            var eventosJurado = await GetEventosJurados(correo);
+
             var eventosExcluidos = new HashSet<long>(
                 eventosCreados.Select(e => e.Id)
-                .Concat(eventosParticipacion.Select(e => e.Id)));
+                .Concat(eventosParticipacion.Select(e => e.Id))
+                .Concat(eventosJurado.Select(e => e.Id))
+            );
+
             var todos = await _eventoRepo.GetAllAsync();
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).ToList();
         }
+
+        public async Task<List<Evento>> GetEventosJurados(string correo)
+        {
+            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
+            var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
+
+            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo);
+
+            var juradoIds = jurados
+                .Select(j => j.IdEvento)
+                .Where(id => !adminEventIds.Contains(id))
+                .ToHashSet();
+
+            var todos = await _eventoRepo.GetAllAsync();
+            return todos.Where(e => juradoIds.Contains(e.Id)).ToList();
+        }
+
+
 
         public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null)
         {

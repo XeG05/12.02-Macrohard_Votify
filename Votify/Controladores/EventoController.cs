@@ -32,6 +32,7 @@ namespace Votify.Controladores
             FechaFinInscripciones = e.FechaFinInscripciones,
             FechaFinEntrega = e.FechaFinEntrega,
             FechaFinVotaciones = e.FechaFinVotaciones,
+            FechaFinEvaluacionExperta = e.FechaFinEvaluacionExperta,
             TieneGrupos = e.TieneGrupos,
             GruposCompletos = e.GruposCompletos,
             ParticipantesPorGrupo = e.ParticipantesPorGrupo
@@ -116,6 +117,19 @@ namespace Votify.Controladores
             return Ok(eventos.Select(MapEvento));
         }
 
+        [HttpGet("experto")]
+        public async Task<IActionResult> GetEventosJurado()
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            var eventos = await _eventoService.GetEventosJurados(correo);
+            return Ok(eventos.Select(e => new EventoJuradoDto
+            {
+                Evento = MapEvento(e),
+                Rol = "Jurado"
+            }));
+        }
         /// Entra a un evento concreto
         [HttpGet("{eventoId:long}")]
         public async Task<IActionResult> EntrarEvento(long eventoId)

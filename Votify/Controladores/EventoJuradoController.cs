@@ -20,13 +20,24 @@ namespace Votify.Controladores
         }
 
         private string? ObtenerCorreo()
-            => User.FindFirst(ClaimTypes.Name)?.Value;
+    => User.FindFirst(ClaimTypes.Name)?.Value;
 
         [HttpGet("{eventoId}/mis-categorias")]
-        public IActionResult GetMisCategorias(long eventoId)
+        public async Task<IActionResult> GetMisCategorias(long eventoId)
         {
-            // Lógica para obtener las categorías del jurado para el evento especificado
-            return Ok();
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var categorias = await _eventoJuradoService.ObtenerCategoriasJurado(correo, eventoId);
+                return Ok(categorias);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
+
     }
 }
