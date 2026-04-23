@@ -18,9 +18,8 @@ namespace Votify.LógicaNegocio.Services
 
         public async  Task<Usuario?> Login(string correo, string contraseña)
         {
-            var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault();
-
-            if (usuario == null) { throw new NotFoundException("Ese usuario no existe"); }
+            var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault()
+                ?? throw new NotFoundException("Ese usuario no existe");
 
             if (!BCrypt.Net.BCrypt.Verify(contraseña, usuario.Contraseña)) { throw new UnauthorizedException("Contraseña incorrecta"); }
 

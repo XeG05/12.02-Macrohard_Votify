@@ -24,7 +24,7 @@
     </div>
     @if (!string.IsNullOrEmpty(mensaje))
     {
-        <p class="@(error ? "error" : "ok")">@mensaje</p>
+        <p class="@(error ? "error" : "ok")" style="color:red; padding:20px;">@mensaje</p>
     }
     <div class="options">
         <NavLink href="/register">¿Tu primera vez en Votify? Crea tu cuenta</NavLink>
@@ -44,25 +44,25 @@
     async Task SignIn()
     {
         cargando = true;
-        mensaje = "";
- 
+        error = false;
+        bool navegarAHome = false;
+  
         try
         {
             var response = await ApiClient.PostAnonymousAsync("api/usuario/login", new { correo, contraseña });
-
+  
             if (response.IsSuccessStatusCode)
             {
                 var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
                 if (auth != null)
                 {
                     await AuthProvider.MarcarAutenticado(auth.Token);
-                    Nav.NavigateTo("/home");
+                    navegarAHome = true;
                 }
             }
             else
             {
-                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
-                mensaje = err?.Error ?? "Credenciales incorrectas";
+                mensaje = await ApiClient.LeerError(response);
                 error = true;
             }
         }
@@ -74,7 +74,11 @@
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
+        
+        if (navegarAHome)
+            Nav.NavigateTo("/home");
     }
  
     async Task OnKeyDown(KeyboardEventArgs e)

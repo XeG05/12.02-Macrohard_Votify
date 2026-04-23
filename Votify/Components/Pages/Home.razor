@@ -24,6 +24,10 @@
             <p>Cargando eventos...</p>
         </div>
     }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div style="color:red; padding:20px;">@error</div>
+    }
     else
     {
         <section class="seccion">
@@ -227,6 +231,7 @@
 
 @code {
     private string nombre = "";
+    private string error = "";
     private bool cargando = true;
     private List<EventoDto> eventosCreados = new();
     private List<EventoParticipanteDto> eventoParticipando = new();
@@ -252,12 +257,10 @@
             eventoParticipando = await ApiClient.GetFromJsonAsync<List<EventoParticipanteDto>>("api/evento/participacion") ?? new();
 
             eventosDisponibles = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/disponibles") ?? new();
-
-            eventosJurado = await ApiClient.GetFromJsonAsync<List<EventoJuradoDto>>("api/evento/experto") ?? new();
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            error = e.Message;
         }
         finally
         {

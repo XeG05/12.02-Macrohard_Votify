@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 
@@ -32,7 +33,6 @@ namespace Votify.Controladores
             FechaFinInscripciones = e.FechaFinInscripciones,
             FechaFinEntrega = e.FechaFinEntrega,
             FechaFinVotaciones = e.FechaFinVotaciones,
-            FechaFinEvaluacionExperta = e.FechaFinEvaluacionExperta,
             TieneGrupos = e.TieneGrupos,
             GruposCompletos = e.GruposCompletos,
             ParticipantesPorGrupo = e.ParticipantesPorGrupo
@@ -87,8 +87,13 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var eventos = await _eventoService.GetEventosCreados(correo);
-            return Ok(eventos.Select(MapEvento));
+            try
+            {
+                var eventos = await _eventoService.GetEventosCreados(correo);
+                return Ok(eventos.Select(MapEvento));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Eventos en los que el usuario autenticado participa (no como admin).
@@ -98,12 +103,17 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var eventos = await _eventoService.GetEventosParticipacion(correo);
-            return Ok(eventos.Select(e => new EventoParticipanteDto
+            try
             {
-                Evento = MapEvento(e),
-                Rol = "Participante"
-            }));
+                var eventos = await _eventoService.GetEventosParticipacion(correo);
+                return Ok(eventos.Select(e => new EventoParticipanteDto
+                {
+                    Evento = MapEvento(e),
+                    Rol = "Participante"
+                }));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Eventos disponibles que el usuario puede votar.
@@ -113,23 +123,15 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var eventos = await _eventoService.GetEventosDisponibles(correo);
-            return Ok(eventos.Select(MapEvento));
-        }
-
-        [HttpGet("experto")]
-        public async Task<IActionResult> GetEventosJurado()
-        {
-            var correo = ObtenerCorreo();
-            if (correo is null) return Unauthorized();
-
-            var eventos = await _eventoService.GetEventosJurados(correo);
-            return Ok(eventos.Select(e => new EventoJuradoDto
+            try
             {
-                Evento = MapEvento(e),
-                Rol = "Jurado"
-            }));
+                var eventos = await _eventoService.GetEventosDisponibles(correo);
+                return Ok(eventos.Select(MapEvento));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
+
         /// Entra a un evento concreto
         [HttpGet("{eventoId:long}")]
         public async Task<IActionResult> EntrarEvento(long eventoId)
@@ -152,10 +154,9 @@ namespace Votify.Controladores
                     }
                 });
             }
-            catch (Exception ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (UnauthorizedException ex) { return Unauthorized(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Crea un nuevo evento. El creador se extrae del JWT.
@@ -168,13 +169,11 @@ namespace Votify.Controladores
             try
             {
                 var evento = await _eventoService.CrearEvento(correo, dto);
-                // 201 Created con la ruta al nuevo recurso
                 return CreatedAtAction(nameof(EntrarEvento), new { eventoId = evento.Id }, MapEvento(evento));
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
+            catch (ConflictException ex) { return Conflict(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         [HttpGet("{eventoId:long}/proyectos")]
@@ -183,8 +182,13 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var proyectos = await _eventoService.ListaProyectos(eventoId);
-            return Ok(proyectos.Select(MapProyecto));
+            try
+            {
+                var proyectos = await _eventoService.ListaProyectos(eventoId);
+                return Ok(proyectos.Select(MapProyecto));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Categorías de un evento (con criterios incluidos).
@@ -194,8 +198,13 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var categorias = await _eventoService.CategoriasDelEvento(eventoId);
-            return Ok(categorias.Select(MapCategoria));
+            try
+            {
+                var categorias = await _eventoService.CategoriasDelEvento(eventoId);
+                return Ok(categorias.Select(MapCategoria));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Datos de un grupo concreto.
@@ -205,9 +214,14 @@ namespace Votify.Controladores
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
-            var grupo = await _eventoService.GrupoProyecto(grupoId);
-            if (grupo is null) return NotFound(new { error = "Grupo no encontrado" });
-            return Ok(MapGrupo(grupo));
+            try
+            {
+                var grupo = await _eventoService.GrupoProyecto(grupoId);
+                if (grupo is null) return NotFound(new ErrorDto { Error = "Grupo no encontrado" });
+                return Ok(MapGrupo(grupo));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Recupera un proyecto por su Id.
@@ -220,13 +234,11 @@ namespace Votify.Controladores
             try
             {
                 var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
-                if (proyecto is null) return NotFound(new { error = "Proyecto no encontrado" });
+                if (proyecto is null) return NotFound(new ErrorDto { Error = "Proyecto no encontrado" });
                 return Ok(MapProyecto(proyecto));
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         [HttpGet("proyecto/{proyectoId:long}/descargar")]
@@ -234,13 +246,17 @@ namespace Votify.Controladores
         {
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
-            var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
-            if (proyecto is null || proyecto.Archivo is null || proyecto.Archivo.Length == 0)
+
+            try
             {
-                return NotFound(new { error = "Archivo del proyecto no encontrado" });
+                var proyecto = await _eventoService.RecuperarProyecto(proyectoId);
+                if (proyecto is null || proyecto.Archivo is null || proyecto.Archivo.Length == 0)
+                    return NotFound(new ErrorDto { Error = "Archivo del proyecto no encontrado" });
+                var nombreArchivo = $"{proyecto.Nombre}.zip";
+                return File(proyecto.Archivo, "application/zip", nombreArchivo);
             }
-            var nombreArchivo = $"{proyecto.Nombre}.zip";
-            return File(proyecto.Archivo, "application/zip", nombreArchivo);
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         [HttpGet("proyecto/{proyectoId:long}/grupo/{grupoId:long}/participantes")]
@@ -252,13 +268,11 @@ namespace Votify.Controladores
             try
             {
                 var participantes = await _eventoService.ParticipantesGrupo(grupoId);
-                if (participantes is null) return NotFound(new { error = "Grupo o participantes no encontrado/s" });
+                if (participantes is null) return NotFound(new ErrorDto { Error = "Grupo o participantes no encontrado/s" });
                 return Ok(participantes.Select(MapMiembro));
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Guarda un comentario en un proyecto
@@ -270,14 +284,12 @@ namespace Votify.Controladores
 
             try
             {
-                // Usamos el 'correo' extraído del JWT por seguridad
                 await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdProyecto, request.Comentario);
                 return Ok(new { mensaje = "Comentario agregado exitosamente" });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Obtiene el comentario de un usuario en un proyecto (si existe)
@@ -291,15 +303,10 @@ namespace Votify.Controladores
             {
                 var comentario = await _eventoService.ObtenerComentarioUsuario(proyectoId, correo);
                 if (comentario is null) return NoContent();
-
-                // IMPORTANTE: Devolvemos sólo las propiedades necesarias como objeto anónimo para evitar un problema de
-                // referencia circular (el Comentario llama al Proyecto que llama a los Comentarios por la base de datos).
                 return Ok(new { Contenido = comentario.Contenido });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Obtiene el informacion basica del voto en un proyecto concreto
@@ -312,14 +319,10 @@ namespace Votify.Controladores
             try
             {
                 var info = await _eventoService.ObtenerInfoVotoSimple(eventoId, proyectoId, correo);
-                int votosRestantes = Math.Max(0, 3 - info.VotosTotales);
-
                 return Ok(new { HaVotado = info.HaVotado, VotosRestantes = Math.Max(0, 3 - info.VotosTotales) });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
         /// Emite un voto estandar al proyecto
@@ -334,10 +337,9 @@ namespace Votify.Controladores
                 await _eventoService.VotarProyectoSimple(request.IdEvento, request.IdProyecto, correo);
                 return Ok(new { mensaje = "Voto emitido exitosamente" });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            catch (ConflictException ex) { return Conflict(new ErrorDto { Error = ex.Message }); }
+            catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.Auth;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 
 namespace Votify.Controladores
@@ -24,9 +25,20 @@ namespace Votify.Controladores
         [HttpGet("validar/{token}")]
         public async Task<IActionResult> ValidarToken(string token)
         {
-            var dto = await _invitacionService.ObtenerInvitacionInfoAsync(token);
-            if (dto is not null) return Ok(dto);
-            return NotFound(new { mensaje = "Token inválido o expirado." });
+            try
+            {
+                var dto = await _invitacionService.ObtenerInvitacionInfoAsync(token);
+                if (dto is not null) return Ok(dto);
+                return NotFound(new ErrorDto { Error = "Invitación no encontrada" });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ErrorDto { Error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
         }
 
         [HttpPost("aceptar")]
@@ -49,9 +61,21 @@ namespace Votify.Controladores
                     Nombre = nombre
                 });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
+            catch (NotFoundException ex) 
+            { 
+                return NotFound(new ErrorDto { Error = ex.Message }); 
+            }
+            catch (ValidationException ex) 
+            { 
+                return UnprocessableEntity(new ErrorDto { Error = ex.Message }); 
+            }
+            catch (ConflictException ex)
+            { 
+                return Conflict(new ErrorDto { Error = ex.Message }); 
+            }
+            catch (Exception ex) 
+            { 
+                return BadRequest(new ErrorDto { Error = ex.Message }); 
             }
         }
     }

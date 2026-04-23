@@ -49,7 +49,7 @@
 
     async Task register()
     {
-
+        bool navegarAHome = false;
         mensaje = "Intentando registrar";
         try
         {
@@ -60,16 +60,14 @@
                 if(auth != null)
                 {
                     await AuthProvider.MarcarAutenticado(auth.Token);
-                    Nav.NavigateTo("/home");
+                    navegarAHome = true;
                 }
             }
             else
             {
-                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
-                mensaje = err?.Error ?? "Formato de datos incorrecto";
+                mensaje = await ApiClient.LeerError(response);
                 error = true;
             }
-        mensaje = "Usuario creado";
         }
         catch (Exception ex)
         {
@@ -79,6 +77,9 @@
         finally
         {
             cargando = false;
+            StateHasChanged();
         }
+        if (navegarAHome)
+            Nav.NavigateTo("/home");
     }
 }

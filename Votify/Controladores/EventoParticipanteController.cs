@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.DTOs;
+using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 
@@ -59,9 +60,13 @@ namespace Votify.Controladores
 
             try
             {
-                var grupo = await _participanteService.ObtenerMiGrupo(correo, eventoId, grupoId);
-                if (grupo is null) return NotFound(new { error = "Grupo no encontrado" });
+                var grupo = await _participanteService.ObtenerMiGrupo(correo, eventoId, grupoId)
+                    ?? throw new NotFoundException("Grupo no encontrado");
                 return Ok(MapGrupo(grupo));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ErrorDto { Error = ex.Message });
             }
             catch (Exception ex)
             {
@@ -100,9 +105,13 @@ namespace Votify.Controladores
 
             try
             {
-                var categoria = await _participanteService.ObtenerCategoriaGrupo(correo, eventoId, grupoId);
-                if (categoria is null) return NotFound(new { error = "Categoría no encontrada" });
+                var categoria = await _participanteService.ObtenerCategoriaGrupo(correo, eventoId, grupoId)
+                    ?? throw new NotFoundException("Categoría no encontrada");
                 return Ok(MapCategoria(categoria));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
             }
             catch (Exception ex)
             {

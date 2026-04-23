@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using System.Net.Http.Headers;
+using Votify.LógicaNegocio.DTOs;
 
 namespace Votify.Auth
 {
@@ -13,6 +14,19 @@ namespace Votify.Auth
             _stateProvider = stateProvider;
             _httpClient = httpClient;
             _httpClient.BaseAddress ??= new Uri(nav.BaseUri);
+        }
+
+        public async Task<string> LeerError(HttpResponseMessage response)
+        {
+            try
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                return err?.Error;
+            }
+            catch
+            {
+                return "Error inesperado";
+            }
         }
 
         private async Task SetAuthHeaderAsync()
@@ -56,7 +70,8 @@ namespace Votify.Auth
         public async Task<T?> GetFromJsonAsync<T>(string url)
         {
             var response = await GetAsync(url);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(await LeerError(response));
             return await response.Content.ReadFromJsonAsync<T>();
         }
 

@@ -52,3 +52,27 @@ button:hover {
     flex-direction: column;
     gap: 15px;
 }
+
+.error {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 8px 12px;
+    width: 350px;
+    text-align: center;
+    margin: 0;
+    
+}
+
+.ok {
+    color: #16a34a;
+    background-color: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 6px;
+    padding: 8px 12px;
+    width: 350px;
+    text-align: center;
+    margin: 0;
+
+}

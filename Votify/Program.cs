@@ -84,30 +84,29 @@ builder.Services.AddDbContext<VotifyContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
-
 app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 {
     var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
     context.Response.ContentType = "application/json";
     context.Response.StatusCode = ex switch
     {
-        NotFoundException        => StatusCodes.Status404NotFound,
-        UnauthorizedException    => StatusCodes.Status401Unauthorized,
-        ConflictException        => StatusCodes.Status409Conflict,
-        ValidationException      => StatusCodes.Status422UnprocessableEntity,
-        _                        => StatusCodes.Status500InternalServerError
-     };
-    await context.Response.WriteAsJsonAsync(new { error = ex?.Message ?? "Error interno" }); 
+        NotFoundException => StatusCodes.Status404NotFound,
+        UnauthorizedException => StatusCodes.Status401Unauthorized,
+        ConflictException => StatusCodes.Status409Conflict,
+        ValidationException => StatusCodes.Status422UnprocessableEntity,
+        _ => StatusCodes.Status500InternalServerError
+    };
+    await context.Response.WriteAsJsonAsync(new { error = ex?.Message ?? "Error interno" });
 }));
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
