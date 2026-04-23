@@ -133,6 +133,25 @@ namespace Votify.Controladores
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
+        [HttpGet("experto")]
+        public async Task<IActionResult> GetEventosJurados()
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var eventos = await _eventoService.GetEventosJurados(correo);
+                return Ok(eventos.Select(e => new EventoJuradoDto
+                {
+                    Evento = MapEvento(e),
+                    Rol = "Jurado"
+                }));
+            }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
+        }
+
         /// Entra a un evento concreto
         [HttpGet("{eventoId:long}")]
         public async Task<IActionResult> EntrarEvento(long eventoId)

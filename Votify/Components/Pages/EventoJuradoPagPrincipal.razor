@@ -19,6 +19,12 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="ejp-alert ejp-alert-error">@error</div>
     </div>
 }
+else if (EventoPausado(evento))
+{
+    <div class="epp-alert epp-alert-error">
+        Este evento está en pausa. No se pueden realizar acciones temporalmente.
+    </div>
+}
 else if (evento is null)
 {
     <div class="ejp-wrapper">
@@ -134,6 +140,10 @@ else
     private void VolverHome()
     {
         Nav.NavigateTo("/home");
+    }
+    private bool EventoPausado(EventoDto evento)
+    {
+        return evento?.Estado == "Pausado";
     }
 
     private void IrACategoria(long idCategoria)

@@ -257,6 +257,8 @@
             eventoParticipando = await ApiClient.GetFromJsonAsync<List<EventoParticipanteDto>>("api/evento/participacion") ?? new();
 
             eventosDisponibles = await ApiClient.GetFromJsonAsync<List<EventoDto>>("api/evento/disponibles") ?? new();
+
+            eventosJurado = await ApiClient.GetFromJsonAsync<List<EventoJuradoDto>>("api/evento/experto") ?? new();
         }
         catch (Exception e)
         {
