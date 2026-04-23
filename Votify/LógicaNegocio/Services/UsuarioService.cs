@@ -9,7 +9,7 @@ namespace Votify.LógicaNegocio.Services
     {
         private readonly IRepository<Usuario> _repository;
         private readonly IUnitOfWork _uow;
-        public UsuarioService(IRepository<Usuario> repository, IUnitOfWork uow) : base(repository)
+        public UsuarioService(IRepository<Usuario> repository, IUnitOfWork uow) : base(repository, uow)
         {
             _repository = repository;
             _uow = uow;
