@@ -24,6 +24,14 @@ else if (evento is null)
         <div class="epp-alert epp-alert-error">No se ha podido cargar el evento del participante.</div>
     </div>
 }
+else if (EventoCerrado(evento))
+{
+    <div class="epp-wrapper">
+        <div class="epp-alert epp-alert-error">
+            Este evento ha sido cerrado y ya no está disponible.
+        </div>
+    </div>
+}
 else
 {
     <div class="epp-wrapper">
@@ -222,9 +230,6 @@ else
     [Parameter] public long EventoId { get; set; }
     [Parameter] public long? GrupoId { get; set; }
 
-   
-    
-
     private string? correo = "";
     private EventoDto? evento;
     private GrupoDto? grupoActual;
@@ -232,8 +237,6 @@ else
     private string? error;
     private string? mensaje;
     private bool tieneProyecto;
-
-
 
     private string nombreGrupo = "Grupo";
     private string nombreCategoria = "Sin categoría";
@@ -336,6 +339,10 @@ else
     private bool EventoPausado(EventoDto evento)
     {
         return evento?.Estado == "Pausado";
+    }
+    private bool EventoCerrado(EventoDto evento)
+    {
+        return evento?.Estado == "Cerrado";
     }
 
     private void IrAPresentarProyecto()
