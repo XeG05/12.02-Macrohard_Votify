@@ -227,6 +227,7 @@ else
     private DateTime? fechaFinEntrega;
     private DateTime? fechaFinVotaciones;
     private DateTime? fechaFinExperta;
+
     private string mensaje = "";
     private bool error = false;
     private bool cargando = false;
@@ -300,6 +301,9 @@ else
 
         dto.FechaFinVotaciones = fechaFinVotaciones.HasValue
             ? DateOnly.FromDateTime(fechaFinVotaciones.Value) : null;
+
+        dto.FechaFinExperta = fechaFinExperta.HasValue
+            ? DateOnly.FromDateTime(fechaFinExperta.Value) : null;
     }
 
     private async Task Guardar()

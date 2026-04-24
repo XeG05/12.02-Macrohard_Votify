@@ -8,7 +8,7 @@ namespace Votify.LógicaNegocio.DTOs
         public DateOnly? FechaFinInscripciones { get; set; }
         public DateOnly? FechaFinEntrega { get; set; }
         public DateOnly? FechaFinVotaciones { get; set; }
-        public DateOnly? FechaFinEvaluacionExperta { get; set; }
+        public DateOnly? FechaFinExperta { get; set; }
 
         public bool SinComentarios { get; set; }
         public bool ComentariosOpcionales { get; set; }
@@ -42,7 +42,7 @@ namespace Votify.LógicaNegocio.DTOs
             if (Descripcion.Length > 120)
                 return (false, "La descripción no puede superar los 120 caracteres");
 
-            if (FechaFinInscripciones == null || FechaFinEntrega == null || FechaFinVotaciones == null || FechaFinEvaluacionExperta == null)
+            if (FechaFinInscripciones == null || FechaFinEntrega == null || FechaFinVotaciones == null || FechaFinExperta == null)
                 return (false, "Todas las fechas son obligatorias");
 
             if (FechaFinInscripciones >= FechaFinEntrega)
@@ -51,7 +51,7 @@ namespace Votify.LógicaNegocio.DTOs
             if (FechaFinEntrega >= FechaFinVotaciones)
                 return (false, "La fecha de fin de entrega debe ser anterior al fin de votaciones (votación popular)");
 
-            if (FechaFinVotaciones >= FechaFinEvaluacionExperta)
+            if (FechaFinVotaciones >= FechaFinExperta)
                 return (false, "La fecha de fin de votaciones debe ser anterior al final de la evaluación experta");
 
             if (FechaFinInscripciones < DateOnly.FromDateTime(DateTime.Today))
