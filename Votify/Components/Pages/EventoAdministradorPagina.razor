@@ -121,6 +121,7 @@ else
             <li>Fin inscripciones: @evento.FechaFinInscripciones.ToString("dd/MM/yyyy")</li>
             <li>Fin entrega proyectos: @evento.FechaFinEntrega.ToString("dd/MM/yyyy")</li>
             <li>Fin votaciones: @evento.FechaFinVotaciones.ToString("dd/MM/yyyy")</li>
+            <li>Fin evaluación experta: @evento.FechaFinEvaluacionExperta.ToString("dd/MM/yyyy")</li>
         </ul>
 
         <h3>Editar fechas</h3>
@@ -148,6 +149,14 @@ else
                 <input type="date"
                        @bind="finVotaciones"
                        disabled="@(!puedeEditarVotaciones)"
+                       style="padding:6px; border-radius:8px; border:1px solid #ccc; width:100%;" />
+            </div>
+
+            <div>
+                <label style="font-weight:bold;">Fin de evaluación experta</label><br />
+                <input type="date"
+                       @bind="finExperta"
+                       disabled="@(!puedeEditarExperta)"
                        style="padding:6px; border-radius:8px; border:1px solid #ccc; width:100%;" />
             </div>
 
@@ -231,7 +240,7 @@ else
     DateTime _finInscripciones;
     DateTime _finEntrega;
     DateTime _finVotaciones;
-    DateTime _finEvaluacionExperta;
+    DateTime _finExperta;
 
     bool puedeEditarInscripciones;
     bool puedeEditarEntrega;
@@ -276,6 +285,16 @@ else
         }
     }
 
+    DateTime finExperta
+    {
+        get => _finExperta;
+        set
+        {
+            _finExperta = value;
+            DetectarCambios();
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -303,6 +322,7 @@ else
                 finInscripciones = evento.FechaFinInscripciones.ToDateTime(TimeOnly.MinValue);
                 finEntrega = evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue);
                 finVotaciones = evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue);
+                finExperta = evento.FechaFinEvaluacionExperta.ToDateTime(TimeOnly.MinValue);
 
                 categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/evento/{EventoId}/categorias");
                 faseActual = await ApiClient.GetFromJsonAsync<FaseDto>($"api/administrador/{EventoId}/fase");
@@ -313,7 +333,8 @@ else
 
                     puedeEditarInscripciones = fase == "Inscripciones";
                     puedeEditarEntrega = fase == "Inscripciones" || fase == "Entregas";
-                    puedeEditarVotaciones = fase != "Resultados";
+                    puedeEditarVotaciones = fase == "Inscripciones" || fase == "Entregas" ||fase == "Votaciones";
+                    puedeEditarExperta = fase != "Resultados";
                 }
             }
             else
@@ -394,7 +415,8 @@ else
             {
                 FechaFinInscripciones = finInscripciones,
                 FechaFinEntrega = finEntrega,
-                FechaFinVotaciones = finVotaciones
+                FechaFinVotaciones = finVotaciones,
+                FechaFinExperta = finExperta
             };
 
             var response = await ApiClient.PutAsJsonAsync(
@@ -409,6 +431,7 @@ else
                 evento.FechaFinInscripciones = DateOnly.FromDateTime(finInscripciones); 
                 evento.FechaFinEntrega = DateOnly.FromDateTime(finEntrega);
                 evento.FechaFinVotaciones = DateOnly.FromDateTime(finVotaciones);
+                evento.FechaFinEvaluacionExperta = DateOnly.FromDateTime(finExperta);
 
                 hayCambiosFechas = false;
             }
@@ -437,7 +460,8 @@ else
         hayCambiosFechas =
             finInscripciones != evento.FechaFinInscripciones.ToDateTime(TimeOnly.MinValue) ||
             finEntrega != evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue) ||
-            finVotaciones != evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue); 
+            finVotaciones != evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue) ||
+            finExperta != evento.FechaFinEvaluacionExperta.ToDateTime(TimeOnly.MinValue);
     }
 
 

@@ -41,6 +41,10 @@ else
                 <h6>Fin de votaciones:</h6>
                 <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
             </div>
+            <div>
+                <h6>Fin de evaluación experta:</h6>
+                <input type="date" @bind="fechaFinExperta" @bind:format="yyyy-MM-dd" />
+            </div>
         </div>
         <div class="opcionesVotacion">
             <h4>Votaciones</h4>
@@ -222,6 +226,7 @@ else
     private DateTime? fechaFinInscripciones;
     private DateTime? fechaFinEntrega;
     private DateTime? fechaFinVotaciones;
+    private DateTime? fechaFinExperta;
     private string mensaje = "";
     private bool error = false;
     private bool cargando = false;

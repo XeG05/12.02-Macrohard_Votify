@@ -160,7 +160,8 @@ namespace Votify.Controladores
                     eventoId,
                     dto.FechaFinInscripciones,
                     dto.FechaFinEntrega,
-                    dto.FechaFinVotaciones);
+                    dto.FechaFinVotaciones,
+                    dto.FechaFinExperta);
                 return NoContent();
             }
             catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }

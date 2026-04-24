@@ -194,11 +194,13 @@ namespace Votify.LógicaNegocio.Services
         public async Task ActualizarFechas(long eventoId,
         DateTime finInscripciones,
         DateTime finEntrega,
-        DateTime finVotaciones)
+        DateTime finVotaciones,
+        DateTime finExperta)
         {
             DateOnly finInscripcionesOnly = DateOnly.FromDateTime(finInscripciones);
             DateOnly finEntregaOnly = DateOnly.FromDateTime(finEntrega);
             DateOnly finVotacionesOnly = DateOnly.FromDateTime(finVotaciones);
+            DateOnly finExpertaOnly = DateOnly.FromDateTime(finExperta);
 
             var evento = await _eventoRepo.GetByIdAsync(eventoId);
 
@@ -208,11 +210,11 @@ namespace Votify.LógicaNegocio.Services
             var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
 
             //  Validar orden
-            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly))
+            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly && finVotacionesOnly < finExpertaOnly))
                 throw new ValidationException("Las fechas deben estar en orden lógico");
 
             /*//  No fechas pasadas
-            if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy)
+            if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy || finExpertaOnly < hoy)
         throw new ValidationException("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
             //  Restricción por fase
             var faseActual = ObtenerFaseActual(eventoId);
@@ -235,7 +237,16 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones ||
                     finEntregaOnly != evento.FechaFinEntrega)
-                    throw new ValidationException("Solo puedes modificar la fase de votaciones");
+                    throw new ValidationException("No puedes modificar la fase de votaciones ni de entregas");
+            }
+
+            // 🔹 Evaluacion Experta → solo puedes tocar votaciones
+            else if (faseActual == FasesEvento.EvaluacionExperta)
+            {
+                if (finInscripcionesOnly != evento.FechaFinInscripciones ||
+                    finEntregaOnly != evento.FechaFinEntrega ||
+                    finVotacionesOnly != evento.FechaFinVotaciones)
+                    throw new ValidationException("Solo puedes modificar la fase de evaluación experta");
             }
 
             // 🔹 FINALIZADO → nada
@@ -248,6 +259,7 @@ namespace Votify.LógicaNegocio.Services
             evento.FechaFinInscripciones = finInscripcionesOnly;
             evento.FechaFinEntrega = finEntregaOnly;
             evento.FechaFinVotaciones = finVotacionesOnly;
+            evento.FechaFinEvaluacionExperta = finExpertaOnly;
 
             await _eventoRepo.UpdateAsync(evento);
             await _unitOfWork.SaveChangesAsync();
