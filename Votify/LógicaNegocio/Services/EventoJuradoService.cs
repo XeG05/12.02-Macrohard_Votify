@@ -27,7 +27,7 @@ namespace Votify.LógicaNegocio.Services
 
             var categorias = await _categoriaRepo.AsQueryable()
                                             .Where(c => c.IdEvento == eventoId)
-                                            // .Include(c => c.Jurados) // Comentado temporalmente para evitar el error 42P01 de la tabla CategoriumJurado inexistente
+                                            .Include(c => c.Jurados) // Comentado temporalmente para evitar el error 42P01 de la tabla CategoriumJurado inexistente
                                             .ToListAsync();
 
             var categoriasAsignadas = categorias.Where(c => c.Jurados != null && c.Jurados.Any(j => j.CorreoUsuario == correo)).ToList();

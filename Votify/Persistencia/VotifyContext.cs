@@ -111,6 +111,19 @@ public partial class VotifyContext : DbContext
                 .HasForeignKey(d => d.IdCategoria)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_categoriaFK");
+
+            // Configuración de la tabla intermedia para la relación N a M entre Categorium y Jurado
+            entity.HasMany(d => d.Jurados)
+                .WithMany(p => p.Categorias)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CategoriaJurado",
+                    j => j.HasOne<Jurado>().WithMany().HasForeignKey("correo_jurado", "id_evento_jurado"),
+                    c => c.HasOne<Categorium>().WithMany().HasForeignKey("id_categoria"),
+                    j =>
+                    {
+                        j.HasKey("id_categoria", "correo_jurado", "id_evento_jurado");
+                        j.ToTable("categoria_jurado");
+                    });
         });
 
         modelBuilder.Entity<Comentario>(entity =>

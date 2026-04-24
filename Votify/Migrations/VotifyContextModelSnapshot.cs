@@ -22,22 +22,22 @@ namespace Votify.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CategoriumJurado", b =>
+            modelBuilder.Entity("CategoriaJurado", b =>
                 {
-                    b.Property<long>("CategoriasId")
+                    b.Property<long>("id_categoria")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("JuradosCorreoUsuario")
+                    b.Property<string>("correo_jurado")
                         .HasColumnType("character varying(50)");
 
-                    b.Property<long>("JuradosIdEvento")
+                    b.Property<long>("id_evento_jurado")
                         .HasColumnType("bigint");
 
-                    b.HasKey("CategoriasId", "JuradosCorreoUsuario", "JuradosIdEvento");
+                    b.HasKey("id_categoria", "correo_jurado", "id_evento_jurado");
 
-                    b.HasIndex("JuradosCorreoUsuario", "JuradosIdEvento");
+                    b.HasIndex("correo_jurado", "id_evento_jurado");
 
-                    b.ToTable("CategoriumJurado");
+                    b.ToTable("categoria_jurado", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Categorium", b =>
@@ -568,17 +568,17 @@ namespace Votify.Migrations
                     b.ToTable("votante", (string)null);
                 });
 
-            modelBuilder.Entity("CategoriumJurado", b =>
+            modelBuilder.Entity("CategoriaJurado", b =>
                 {
                     b.HasOne("Votify.Persistencia.Entities.Categorium", null)
                         .WithMany()
-                        .HasForeignKey("CategoriasId")
+                        .HasForeignKey("id_categoria")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Votify.Persistencia.Entities.Jurado", null)
                         .WithMany()
-                        .HasForeignKey("JuradosCorreoUsuario", "JuradosIdEvento")
+                        .HasForeignKey("correo_jurado", "id_evento_jurado")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
