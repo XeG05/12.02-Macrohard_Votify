@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 @if (cargando)
 {
@@ -187,6 +188,30 @@ else
             <li>Grupos completos: @(evento.GruposCompletos ? "Sí" : "No")</li>
             <li>Participantes por grupo: @evento.ParticipantesPorGrupo</li>
         </ul>
+        <div class="admin-actions">
+
+            @if (evento?.Estado == "Activo")
+            {
+                <button class="btn-warning" @onclick="PausarEvento">
+                    ⏸️ Pausar evento
+                </button>
+            }
+
+            @if (evento?.Estado == "Pausado")
+            {
+                <button class="btn-success" @onclick="ReanudarEvento">
+                    ▶️ Reanudar evento
+                </button>
+            }
+
+            @if (evento?.Estado != "Cerrado")
+            {
+                <button class="btn-danger" @onclick="CerrarEvento">
+                    ❌ Cerrar evento
+                </button>
+            }
+
+        </div>
     }
 }
 
@@ -434,7 +459,28 @@ else
             grupos = null;
         }
     }
-    
+    private async Task PausarEvento()
+    {
+        await ApiClient.PutAsync($"api/administrador/{evento.Id}/pausar", null);
+        evento.Estado = "Pausado";
+    }
+
+    private async Task ReanudarEvento()
+    {
+        await ApiClient.PutAsync($"api/administrador/{evento.Id}/reanudar", null);
+        evento.Estado = "Activo";
+    }
+
+    private async Task CerrarEvento()
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "¿Seguro que quieres cerrar el evento? Esta acción es irreversible");
+        if (!confirm) return;
+
+        await ApiClient.PutAsync($"api/administrador/{evento.Id}/cerrar", null);
+
+        // Redirigir porque ya no debería existir
+        Nav.NavigateTo("/home");
+    }
     /*
     async Task AñadirParticipanteUI(long idGrupo)
     {

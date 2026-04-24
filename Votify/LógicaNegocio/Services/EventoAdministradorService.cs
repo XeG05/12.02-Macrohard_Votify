@@ -297,5 +297,37 @@ namespace Votify.LógicaNegocio.Services
             if (hoy <= evento.FechaFinEvaluacionExperta) return FasesEvento.EvaluacionExperta;
             return FasesEvento.Resultados;
         }
+        public async Task PausarEvento(long eventoId)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+            if (evento == null) throw new Exception("Evento no encontrado");
+
+            if (evento.Estado == "Cerrado")
+                throw new Exception("No se puede pausar un evento cerrado");
+
+            evento.Estado = "Pausado";
+            await _eventoRepo.UpdateAsync(evento);
+        }
+
+        public async Task ReanudarEvento(long eventoId)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+            if (evento == null) throw new Exception("Evento no encontrado");
+
+            if (evento.Estado == "Cerrado")
+                throw new Exception("No se puede reanudar un evento cerrado");
+
+            evento.Estado = "Activo";
+            await _eventoRepo.UpdateAsync(evento);
+        }
+
+        public async Task CerrarEvento(long eventoId)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+            if (evento == null) throw new Exception("Evento no encontrado");
+
+            evento.Estado = "Cerrado";
+            await _eventoRepo.UpdateAsync(evento);
+        }
     }
 }

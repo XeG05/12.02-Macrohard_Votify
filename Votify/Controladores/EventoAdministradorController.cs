@@ -167,5 +167,26 @@ namespace Votify.Controladores
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
+
+        [HttpPut("{eventoId:long}/pausar")]
+        public async Task<IActionResult> PausarEvento(long eventoId)
+        {
+            await _eventoAdministradorService.PausarEvento(eventoId);
+            return NoContent();
+        }
+
+        [HttpPut("{eventoId:long}/reanudar")]
+        public async Task<IActionResult> ReanudarEvento(long eventoId)
+        {
+            await _eventoAdministradorService.ReanudarEvento(eventoId);
+            return NoContent();
+        }
+
+        [HttpPut("{eventoId:long}/cerrar")]
+        public async Task<IActionResult> CerrarEvento(long eventoId)
+        {
+            await _eventoAdministradorService.CerrarEvento(eventoId);
+            return NoContent();
+        }
     }
 }
