@@ -3,6 +3,7 @@ using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Votify.LógicaNegocio.Services
 {
@@ -18,10 +19,34 @@ namespace Votify.LógicaNegocio.Services
             _categoriaRepo = categoriaRepo;
             _juradoRepo = juradoRepo;
         }
-        public async Task<List<CategoriaDto>> ObtenerCategoriasJurado(string correo, long eventoId)
+        
+        public async Task<List<CategoriaJuradoDto>> ObtenerCategoriasJurado(string correo, long eventoId)
         {
-            // Lógica para obtener las categorías del jurado para el evento especificado
-            return await Task.FromResult(new List<CategoriaDto>());
+            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo && j.IdEvento == eventoId);
+            if (!jurados.Any()) return new List<CategoriaJuradoDto>();
+
+            var categorias = await _categoriaRepo.AsQueryable()
+                                            .Where(c => c.IdEvento == eventoId)
+                                            // .Include(c => c.Jurados) // Comentado temporalmente para evitar el error 42P01 de la tabla CategoriumJurado inexistente
+                                            .ToListAsync();
+
+            var categoriasAsignadas = categorias.Where(c => c.Jurados != null && c.Jurados.Any(j => j.CorreoUsuario == correo)).ToList();
+            
+            // Si el mapeo de Jurados (N a M) todavia falla a novel base de datos, temporalmente daremos todas las categorias 
+            // del evento como workaround hasta que se arreglen las DB Migrations y la tabla CategoriumJurado se cree con exito:
+            if (!categoriasAsignadas.Any())
+            {
+               categoriasAsignadas = categorias.ToList();
+            }
+            
+            return categoriasAsignadas.Select(c => new CategoriaJuradoDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Descripcion = c.Descripcion,
+                ProyectosRevisados = 0,
+                ProyectosTotales = 0
+            }).ToList();
         }
     }
 }

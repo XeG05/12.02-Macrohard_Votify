@@ -2,14 +2,25 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+}
+
+.layout {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
 }
 
 main {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents overflow issues */
 }
 
 .sidebar {
     background-image: linear-gradient(180deg, #4b5057,#303236);
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
 }
 
 .top-row {
@@ -66,14 +77,15 @@ main {
         .top-row ::deep a, .top-row ::deep .btn-link {
             margin-left: 0;
         }
+        
+    .top-row, article {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 
 /* Ordenador --> */ 
 @media (min-width: 641px) {
-    .layout {
-        display: flex;
-    }
-
     .sidebar {
         width: 250px;
         height: calc(100vh - 5rem);
@@ -105,7 +117,6 @@ main {
         height: calc(100vh - 5rem);
         position: sticky;
         top: 5rem;
-
     }
 }
 

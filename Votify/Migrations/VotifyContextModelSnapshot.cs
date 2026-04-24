@@ -177,6 +177,13 @@ namespace Votify.Migrations
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
 
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Activo")
+                        .HasColumnName("estado");
+
                     b.Property<DateOnly>("FechaFinEntrega")
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_entrega");

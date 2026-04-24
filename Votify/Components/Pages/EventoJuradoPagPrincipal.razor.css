@@ -10,73 +10,157 @@
    SECCIÓN HERO (La cabecera del evento)
 ======================================================== */
 .ejp-hero {
-    display: flex;
-    justify-content: space-between; /* Lanza texto a la izq y botones a la derecha */
-    align-items: flex-start;
-    border: 1px solid #ccc; /* Borde fino gris como en el mockup */
-    border-radius: 12px;    /* Bordes redondeados */
-    padding: 2rem;
-    background-color: #ffffff;
-    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 35%, #1f2937 100%);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
 }
 
-.ejp-hero-left {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+.ejp-hero::before {
+    content: "";
+    position: absolute;
+    top: -80px;
+    right: -60px;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
+    pointer-events: none;
 }
 
-.ejp-btn-volver {
-    background: none;
-    border: none;
+.ejp-hero::after {
+    content: "";
+    position: absolute;
+    bottom: -70px;
+    left: -40px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
+    pointer-events: none;
+}
+
+.ejp-hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.6rem 1.75rem 1.8rem;
+    color: white;
+}
+
+.ejp-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
-    color: #333;
-    padding: 0.2rem;
-    margin-top: 0.4rem; /* Alinea ópticamente con el H1 */
-    transition: transform 0.2s ease;
-}
-.ejp-btn-volver:hover {
-    transform: translateX(-4px); /* Animación suave al pasar el ratón */
-    color: #000;
+    transition: color 0.15s ease, transform 0.15s ease;
 }
 
-.ejp-hero-text h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #111;
+.ejp-breadcrumb:hover {
+    color: white;
+    transform: translateX(-2px);
 }
 
-.ejp-hero-text p {
+.ejp-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.25rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.ejp-eyebrow {
+    display: inline-block;
+    margin-bottom: 0.55rem;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ejp-hero h1 {
+    margin: 0 0 0.45rem;
+    font-size: clamp(1.9rem, 3vw, 2.5rem);
+    line-height: 1.08;
+    font-weight: 800;
+}
+
+.ejp-hero p {
+    max-width: 700px;
     margin: 0;
-    color: #555;
+    color: rgba(255,255,255,0.78);
     font-size: 1rem;
+    line-height: 1.6;
 }
 
-.ejp-hero-right {
+.ejp-hero-side {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    min-width: 160px; /* Asegura que ambos botones midan parecido */
+    align-items: flex-end;
+    gap: 0.7rem;
 }
 
-/* Las pastillas fijas de rol y fase */
-.ejp-badge {
-    display: inline-block;
-    padding: 0.6rem 1.5rem;
-    border: 1px solid #333;
-    border-radius: 50px; /* Bordes totalmente curvos tipo píldora */
-    text-align: center;
-    font-weight: 500;
-    color: #333;
-    background-color: #fff;
-    font-size: 0.95rem;
+.ejp-role-badge,
+.ejp-phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
-.ejp-badge-fase {
-    /* Puedes cambiar el color si quieres diferenciarlo visualmente  */
-    color: #555;
-    border-color: #999;
+.ejp-role-badge {
+    color: white;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+}
+
+.ejp-phase-pill {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    opacity: 0.95;
+}
+
+.fase-inscripciones {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.fase-entregas {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.fase-votaciones {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.fase-evaluacion-experta {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.fase-finalizado {
+    background: rgba(107, 114, 128, 0.2);
+    color: #d1d5db;
+    border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
 /* ========================================================

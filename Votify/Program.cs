@@ -35,6 +35,7 @@ builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<IEventoAdministradorService, EventoAdministradorService>();
 builder.Services.AddScoped<IEventoParticipanteService, EventoParticipanteService>();
 builder.Services.AddScoped<IEventoVotanteService, EventoVotanteService>();
+builder.Services.AddScoped<IEventoJuradoService, EventoJuradoService>();
 builder.Services.AddScoped<IInvitacionService, InvitacionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
