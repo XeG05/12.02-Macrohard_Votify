@@ -4,6 +4,7 @@ using Votify.Auth;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
+using System.Security.Claims;
 
 namespace Votify.Controladores
 {
@@ -66,6 +67,71 @@ namespace Votify.Controladores
             catch (ConflictException ex)
             {
                 return Conflict(new ErrorDto { Error = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpGet("perfil")]
+        public async Task<IActionResult> ObtenerPerfil()
+        {
+            try
+            {
+                var correo = User.FindFirstValue(ClaimTypes.Name);
+
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    return Unauthorized(new ErrorDto { Error = "Usuario no autenticado" });
+                }
+
+                var usuario = await _usuarioService.ObtenerPorCorreo(correo);
+
+                return Ok(new PerfilUsuarioDto
+                {
+                    Nombre = usuario!.Nombre,
+                    Correo = usuario.Correo
+                });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ErrorDto { Error = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("perfil")]
+        public async Task<IActionResult> ActualizarPerfil([FromBody] ActualizarPerfilUsuarioDto dto)
+        {
+            try
+            {
+                var correo = User.FindFirstValue(ClaimTypes.Name);
+
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    return Unauthorized(new ErrorDto { Error = "Usuario no autenticado" });
+                }
+
+                var usuario = await _usuarioService.ActualizarPerfil(
+                    correo,
+                    dto.Nombre,
+                    dto.NuevaContraseña,
+                    dto.RepetirContraseña
+                );
+
+                var token = _jwtService.GenerateToken(usuario!);
+
+                return Ok(new AuthDto
+                {
+                    Token = token,
+                    Correo = usuario!.Correo,
+                    Nombre = usuario.Nombre
+                });
+            }
+            catch (ValidationException ex)
+            {
+                return UnprocessableEntity(new ErrorDto { Error = ex.Message });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ErrorDto { Error = ex.Message });
             }
         }
     }

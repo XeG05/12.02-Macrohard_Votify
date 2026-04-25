@@ -47,6 +47,59 @@ namespace Votify.LógicaNegocio.Services
             return usuario;
 
         }
+        public async Task<Usuario?> ObtenerPorCorreo(string correo)
+        {
+            return (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault()
+                ?? throw new NotFoundException("Usuario no encontrado");
+        }
+
+        public async Task<Usuario?> ActualizarPerfil(
+            string correo,
+            string nombre,
+            string? nuevaContraseña,
+            string? repetirContraseña
+        )
+        {
+            var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault()
+                ?? throw new NotFoundException("Usuario no encontrado");
+
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                throw new ValidationException("El nombre no puede estar vacío");
+            }
+
+            usuario.Nombre = nombre.Trim();
+
+            bool quiereCambiarContraseña =
+                !string.IsNullOrWhiteSpace(nuevaContraseña) ||
+                !string.IsNullOrWhiteSpace(repetirContraseña);
+
+            if (quiereCambiarContraseña)
+            {
+                if (string.IsNullOrWhiteSpace(nuevaContraseña) ||
+                    string.IsNullOrWhiteSpace(repetirContraseña))
+                {
+                    throw new ValidationException("Debes rellenar los dos campos de contraseña");
+                }
+
+                if (nuevaContraseña != repetirContraseña)
+                {
+                    throw new ValidationException("Las contraseñas no coinciden");
+                }
+
+                if (BCrypt.Net.BCrypt.Verify(nuevaContraseña, usuario.Contraseña))
+                {
+                    throw new ValidationException("La nueva contraseña no puede ser igual a la anterior");
+                }
+
+                usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(nuevaContraseña);
+            }
+
+            await _repository.UpdateAsync(usuario);
+            await _uow.SaveChangesAsync();
+
+            return usuario;
+        }
 
     }
 }

@@ -1,3 +1,229 @@
 ﻿@page "/perfilusuario"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
 
-<!-- A desarrollar para el Sprint2 -->
+<link rel="stylesheet" href="css/perfil-usuario.css" />
+
+<div class="perfil-contenedor">
+
+    <div class="perfil-imagen">
+        <div class="placeholder-imagen">
+            <svg class="icono-imagen" width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#9a9a9a" />
+                <path d="M19.2101 15.74C17.6534 14.3725 15.5492 13.5 12.0001 13.5C8.45095 13.5 6.34673 14.3725 4.79007 15.74C3.21447 17.124 2.45508 19.068 2.47352 21.05C2.47648 21.365 2.70997 21.611 3.01834 21.611H20.9818C21.2902 21.611 21.5236 21.365 21.5266 21.05C21.545 19.068 20.7857 17.124 19.2101 15.74Z" fill="#9a9a9a" />
+            </svg>
+        </div>
+    </div>
+
+    <div class="perfil-formulario">
+
+        <div class="campo">
+            <label>Nombre de usuario:</label>
+            <input @bind="nombre"
+                   @bind:event="oninput"
+                   disabled="@(!editando)"
+                   class="input-perfil" />
+        </div>
+
+        <div class="campo">
+            <label>Correo electrónico:</label>
+            <input value="@correo"
+                   disabled
+                   class="input-perfil input-bloqueado" />
+        </div>
+
+        @if (editando)
+        {
+            <div class="campo">
+                <label>Nueva contraseña:</label>
+                <input @bind="nuevaContraseña"
+                       @bind:event="oninput"
+                       type="password"
+                       class="input-perfil" />
+            </div>
+
+            <div class="campo">
+                <label>Repetir contraseña:</label>
+                <input @bind="repetirContraseña"
+                       @bind:event="oninput"
+                       type="password"
+                       class="input-perfil" />
+            </div>
+
+            <div class="botones-edicion">
+                <button class="btn-primario" @onclick="GuardarCambios" disabled="@cargando">
+                    @(cargando ? "Guardando..." : "Confirmar cambios")
+                </button>
+
+                <button class="btn-secundario" @onclick="CancelarEdicion" disabled="@cargando">
+                    Cancelar
+                </button>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(mensaje))
+        {
+            <p class="@(error ? "mensaje-error" : "mensaje-ok")">@mensaje</p>
+        }
+
+    </div>
+
+    @if (!editando)
+    {
+        <div class="perfil-boton-editar">
+            <button class="btn-primario" @onclick="ActivarEdicion">Editar perfil</button>
+        </div>
+    }
+
+</div>
+
+@code {
+    private string nombre = "";
+    private string nombreOriginal = "";
+    private string correo = "";
+
+    private string nuevaContraseña = "";
+    private string repetirContraseña = "";
+
+    private string mensaje = "";
+    private bool error = false;
+    private bool editando = false;
+    private bool cargando = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPerfil();
+    }
+
+    private async Task CargarPerfil()
+    {
+        try
+        {
+            var perfil = await ApiClient.GetFromJsonAsync<PerfilUsuarioDto>("api/usuario/perfil");
+
+            if (perfil != null)
+            {
+                nombre = perfil.Nombre;
+                nombreOriginal = perfil.Nombre;
+                correo = perfil.Correo;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = true;
+            mensaje = ex.Message;
+        }
+    }
+
+    private void ActivarEdicion()
+    {
+        editando = true;
+        mensaje = "";
+        error = false;
+        nuevaContraseña = "";
+        repetirContraseña = "";
+    }
+
+    private void CancelarEdicion()
+    {
+        editando = false;
+        nombre = nombreOriginal;
+        nuevaContraseña = "";
+        repetirContraseña = "";
+        mensaje = "";
+        error = false;
+    }
+
+    private async Task GuardarCambios()
+    {
+        mensaje = "";
+        error = false;
+
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            error = true;
+            mensaje = "El nombre no puede estar vacío";
+            return;
+        }
+
+        bool quiereCambiarContraseña =
+            !string.IsNullOrWhiteSpace(nuevaContraseña) ||
+            !string.IsNullOrWhiteSpace(repetirContraseña);
+
+        if (quiereCambiarContraseña)
+        {
+            if (string.IsNullOrWhiteSpace(nuevaContraseña) ||
+                string.IsNullOrWhiteSpace(repetirContraseña))
+            {
+                error = true;
+                mensaje = "Debes rellenar los dos campos de contraseña";
+                return;
+            }
+
+            if (nuevaContraseña != repetirContraseña)
+            {
+                error = true;
+                mensaje = "Las contraseñas no coinciden";
+                return;
+            }
+        }
+
+        cargando = true;
+
+        try
+        {
+            var response = await ApiClient.PutAsJsonAsync("api/usuario/perfil", new
+            {
+                Nombre = nombre,
+                NuevaContraseña = nuevaContraseña,
+                RepetirContraseña = repetirContraseña
+            });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
+
+                if (auth != null)
+                {
+                    await AuthProvider.MarcarAutenticado(auth.Token);
+                }
+
+                nombreOriginal = nombre;
+                nuevaContraseña = "";
+                repetirContraseña = "";
+                editando = false;
+
+                error = false;
+                mensaje = "Perfil actualizado correctamente";
+            }
+            else
+            {
+                error = true;
+                mensaje = await ApiClient.LeerError(response);
+            }
+        }
+        catch (Exception ex)
+        {
+            error = true;
+            mensaje = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    public class PerfilUsuarioDto
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Correo { get; set; } = string.Empty;
+    }
+
+    public class AuthDto
+    {
+        public string Token { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Correo { get; set; } = string.Empty;
+    }
+}
