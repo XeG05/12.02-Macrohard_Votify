@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260423092343_SupabaseEventoActivo")]
-    partial class SupabaseEventoActivo
+    [Migration("20260426124154_ProyectoDescripcionMapping")]
+    partial class ProyectoDescripcionMapping
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,22 +25,22 @@ namespace Votify.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CategoriumJurado", b =>
+            modelBuilder.Entity("CategoriaJurado", b =>
                 {
-                    b.Property<long>("CategoriasId")
+                    b.Property<long>("id_categoria")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("JuradosCorreoUsuario")
+                    b.Property<string>("correo_jurado")
                         .HasColumnType("character varying(50)");
 
-                    b.Property<long>("JuradosIdEvento")
+                    b.Property<long>("id_evento_jurado")
                         .HasColumnType("bigint");
 
-                    b.HasKey("CategoriasId", "JuradosCorreoUsuario", "JuradosIdEvento");
+                    b.HasKey("id_categoria", "correo_jurado", "id_evento_jurado");
 
-                    b.HasIndex("JuradosCorreoUsuario", "JuradosIdEvento");
+                    b.HasIndex("correo_jurado", "id_evento_jurado");
 
-                    b.ToTable("CategoriumJurado");
+                    b.ToTable("categoria_jurado", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Categorium", b =>
@@ -179,6 +179,13 @@ namespace Votify.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Activo")
+                        .HasColumnName("estado");
 
                     b.Property<DateOnly>("FechaFinEntrega")
                         .HasColumnType("date")
@@ -393,11 +400,13 @@ namespace Votify.Migrations
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("DescripcionBreve")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion_breve");
 
                     b.Property<long>("IdGrupo")
                         .HasColumnType("bigint")
@@ -472,9 +481,13 @@ namespace Votify.Migrations
 
                     b.Property<string>("Contraseña")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("contraseña");
+
+                    b.Property<byte[]>("Imagen")
+                        .HasColumnType("bytea")
+                        .HasColumnName("imagen");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -564,17 +577,17 @@ namespace Votify.Migrations
                     b.ToTable("votante", (string)null);
                 });
 
-            modelBuilder.Entity("CategoriumJurado", b =>
+            modelBuilder.Entity("CategoriaJurado", b =>
                 {
                     b.HasOne("Votify.Persistencia.Entities.Categorium", null)
                         .WithMany()
-                        .HasForeignKey("CategoriasId")
+                        .HasForeignKey("id_categoria")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Votify.Persistencia.Entities.Jurado", null)
                         .WithMany()
-                        .HasForeignKey("JuradosCorreoUsuario", "JuradosIdEvento")
+                        .HasForeignKey("correo_jurado", "id_evento_jurado")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

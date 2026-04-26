@@ -8,6 +8,8 @@ public class Usuario
 
     public string Correo { get; set; } = null!;
 
+    public byte[]? Imagen { get; set; }
+
     public virtual ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
 
     public virtual ICollection<Rol> Roles { get; set; } = new List<Rol>();

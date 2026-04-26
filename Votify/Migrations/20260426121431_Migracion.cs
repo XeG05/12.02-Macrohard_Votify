@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class SupabaseEventoActivo : Migration
+    public partial class Migracion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,8 @@ namespace Votify.Migrations
                     puntos_a_repartir = table.Column<int>(type: "integer", nullable: false),
                     tiene_grupos = table.Column<bool>(type: "boolean", nullable: false),
                     grupos_completos = table.Column<bool>(type: "boolean", nullable: false),
-                    participantes_por_grupo = table.Column<int>(type: "integer", nullable: false)
+                    participantes_por_grupo = table.Column<int>(type: "integer", nullable: false),
+                    estado = table.Column<string>(type: "text", nullable: false, defaultValue: "Activo")
                 },
                 constraints: table =>
                 {
@@ -48,7 +49,8 @@ namespace Votify.Migrations
                 {
                     correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     nombre = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    contraseña = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    contraseña = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    imagen = table.Column<byte[]>(type: "bytea", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -323,25 +325,25 @@ namespace Votify.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CategoriumJurado",
+                name: "categoria_jurado",
                 columns: table => new
                 {
-                    CategoriasId = table.Column<long>(type: "bigint", nullable: false),
-                    JuradosCorreoUsuario = table.Column<string>(type: "character varying(50)", nullable: false),
-                    JuradosIdEvento = table.Column<long>(type: "bigint", nullable: false)
+                    id_categoria = table.Column<long>(type: "bigint", nullable: false),
+                    correo_jurado = table.Column<string>(type: "character varying(50)", nullable: false),
+                    id_evento_jurado = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CategoriumJurado", x => new { x.CategoriasId, x.JuradosCorreoUsuario, x.JuradosIdEvento });
+                    table.PrimaryKey("PK_categoria_jurado", x => new { x.id_categoria, x.correo_jurado, x.id_evento_jurado });
                     table.ForeignKey(
-                        name: "FK_CategoriumJurado_categoria_CategoriasId",
-                        column: x => x.CategoriasId,
+                        name: "FK_categoria_jurado_categoria_id_categoria",
+                        column: x => x.id_categoria,
                         principalTable: "categoria",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CategoriumJurado_jurado_JuradosCorreoUsuario_JuradosIdEvento",
-                        columns: x => new { x.JuradosCorreoUsuario, x.JuradosIdEvento },
+                        name: "FK_categoria_jurado_jurado_correo_jurado_id_evento_jurado",
+                        columns: x => new { x.correo_jurado, x.id_evento_jurado },
                         principalTable: "jurado",
                         principalColumns: new[] { "correo_usuario", "id_evento" },
                         onDelete: ReferentialAction.Cascade);
@@ -438,9 +440,9 @@ namespace Votify.Migrations
                 column: "id_evento");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CategoriumJurado_JuradosCorreoUsuario_JuradosIdEvento",
-                table: "CategoriumJurado",
-                columns: new[] { "JuradosCorreoUsuario", "JuradosIdEvento" });
+                name: "IX_categoria_jurado_correo_jurado_id_evento_jurado",
+                table: "categoria_jurado",
+                columns: new[] { "correo_jurado", "id_evento_jurado" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_comentario_correo_rol_id_rol",
@@ -535,7 +537,7 @@ namespace Votify.Migrations
                 name: "administrador");
 
             migrationBuilder.DropTable(
-                name: "CategoriumJurado");
+                name: "categoria_jurado");
 
             migrationBuilder.DropTable(
                 name: "comentario");

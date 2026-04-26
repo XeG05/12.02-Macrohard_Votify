@@ -15,7 +15,8 @@ namespace Votify.LógicaNegocio.Interfaces
             string correo,
             string nombre,
             string? nuevaContraseña,
-            string? repetirContraseña
+            string? repetirContraseña,
+            Microsoft.AspNetCore.Http.IFormFile? imagen
         );
     }
 }

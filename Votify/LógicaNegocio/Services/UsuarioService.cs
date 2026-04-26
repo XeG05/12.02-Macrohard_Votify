@@ -57,7 +57,8 @@ namespace Votify.LógicaNegocio.Services
             string correo,
             string nombre,
             string? nuevaContraseña,
-            string? repetirContraseña
+            string? repetirContraseña,
+            Microsoft.AspNetCore.Http.IFormFile? imagen
         )
         {
             var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault()
@@ -93,6 +94,19 @@ namespace Votify.LógicaNegocio.Services
                 }
 
                 usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(nuevaContraseña);
+            }
+
+            if (imagen != null)
+            {
+                var maxSize = 10 * 1024 * 1024; // 10MB limit
+                if (imagen.Length > maxSize)
+                {
+                    throw new ValidationException("La imagen de perfil no puede pesar más de 10MB");
+                }
+
+                using var ms = new MemoryStream();
+                await imagen.CopyToAsync(ms);
+                usuario.Imagen = ms.ToArray();
             }
 
             await _repository.UpdateAsync(usuario);

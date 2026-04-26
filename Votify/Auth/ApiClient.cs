@@ -67,6 +67,12 @@ namespace Votify.Auth
             return await _httpClient.PostAsync(url, dataContent);
         }
 
+        public async Task<HttpResponseMessage> PutMultipartAsync(string url, MultipartFormDataContent dataContent)
+        {
+            await SetAuthHeaderAsync();
+            return await _httpClient.PutAsync(url, dataContent);
+        }
+
         public async Task<T?> GetFromJsonAsync<T>(string url)
         {
             var response = await GetAsync(url);

@@ -219,6 +219,8 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
             entity.Property(e => e.IdGrupo).HasColumnName("id_grupo");
             entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.DescripcionBreve).HasColumnName("descripcion_breve");
             entity.Property(e => e.Archivo).IsRequired().HasColumnType("bytea").HasColumnName("archivo");
 
             entity.HasOne(d => d.IdGrupoNavigation).WithOne(p => p.Proyecto)
@@ -252,8 +254,9 @@ public partial class VotifyContext : DbContext
             entity.HasKey(e => e.Correo).HasName("usuarios_pkey");
             entity.ToTable("usuario");
             entity.Property(e => e.Correo).HasMaxLength(50).HasColumnName("correo");
-            entity.Property(e => e.Contraseña).HasMaxLength(50).HasColumnName("contraseña");
+            entity.Property(e => e.Contraseña).HasMaxLength(100).HasColumnName("contraseña");
             entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
+            entity.Property(e => e.Imagen).HasColumnName("imagen");
         });
 
         modelBuilder.Entity<Voto>(entity =>

@@ -87,7 +87,8 @@ namespace Votify.Controladores
                 return Ok(new PerfilUsuarioDto
                 {
                     Nombre = usuario!.Nombre,
-                    Correo = usuario.Correo
+                    Correo = usuario.Correo,
+                    ImagenBase64 = usuario.Imagen != null ? Convert.ToBase64String(usuario.Imagen) : null
                 });
             }
             catch (NotFoundException ex)
@@ -98,7 +99,7 @@ namespace Votify.Controladores
 
         [Authorize]
         [HttpPut("perfil")]
-        public async Task<IActionResult> ActualizarPerfil([FromBody] ActualizarPerfilUsuarioDto dto)
+        public async Task<IActionResult> ActualizarPerfil([FromForm] ActualizarPerfilUsuarioDto dto)
         {
             try
             {
@@ -113,7 +114,8 @@ namespace Votify.Controladores
                     correo,
                     dto.Nombre,
                     dto.NuevaContraseña,
-                    dto.RepetirContraseña
+                    dto.RepetirContraseña,
+                    dto.Imagen
                 );
 
                 var token = _jwtService.GenerateToken(usuario!);
@@ -122,7 +124,8 @@ namespace Votify.Controladores
                 {
                     Token = token,
                     Correo = usuario!.Correo,
-                    Nombre = usuario.Nombre
+                    Nombre = usuario.Nombre,
+                    ImagenBase64 = usuario.Imagen != null ? Convert.ToBase64String(usuario.Imagen) : null
                 });
             }
             catch (ValidationException ex)

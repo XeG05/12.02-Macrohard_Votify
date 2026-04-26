@@ -397,11 +397,13 @@ namespace Votify.Migrations
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("DescripcionBreve")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion_breve");
 
                     b.Property<long>("IdGrupo")
                         .HasColumnType("bigint")
@@ -476,9 +478,13 @@ namespace Votify.Migrations
 
                     b.Property<string>("Contraseña")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("contraseña");
+
+                    b.Property<byte[]>("Imagen")
+                        .HasColumnType("bytea")
+                        .HasColumnName("imagen");
 
                     b.Property<string>("Nombre")
                         .IsRequired()

@@ -9,11 +9,29 @@
 
     <div class="perfil-imagen">
         <div class="placeholder-imagen">
-            <svg class="icono-imagen" width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#9a9a9a" />
-                <path d="M19.2101 15.74C17.6534 14.3725 15.5492 13.5 12.0001 13.5C8.45095 13.5 6.34673 14.3725 4.79007 15.74C3.21447 17.124 2.45508 19.068 2.47352 21.05C2.47648 21.365 2.70997 21.611 3.01834 21.611H20.9818C21.2902 21.611 21.5236 21.365 21.5266 21.05C21.545 19.068 20.7857 17.124 19.2101 15.74Z" fill="#9a9a9a" />
-            </svg>
+            @if (!string.IsNullOrEmpty(imagenPerfilBase64))
+            {
+                <img src="data:image/jpeg;base64,@imagenPerfilBase64" class="perfil-img-elemento" alt="Imagen de perfil" />
+            }
+            else
+            {
+                <svg class="icono-imagen" width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#9a9a9a" />
+                    <path d="M19.2101 15.74C17.6534 14.3725 15.5492 13.5 12.0001 13.5C8.45095 13.5 6.34673 14.3725 4.79007 15.74C3.21447 17.124 2.45508 19.068 2.47352 21.05C2.47648 21.365 2.70997 21.611 3.01834 21.611H20.9818C21.2902 21.611 21.5236 21.365 21.5266 21.05C21.545 19.068 20.7857 17.124 19.2101 15.74Z" fill="#9a9a9a" />
+                </svg>
+            }
         </div>
+        @if (editando)
+        {
+            <div class="btn-cambiar-imagen">
+                <label for="upload-imagen" class="btn-secundario" style="cursor: pointer; padding: 6px 12px; font-size: 13px; border-radius: 4px;">Cambiar Imagen</label>
+                <InputFile id="upload-imagen" OnChange="OnImagenSeleccionada" accept="image/jpeg, image/png" style="display: none;" />
+            </div>
+            @if (nombreImagenSeleccionada != null)
+            {
+                <span style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">@nombreImagenSeleccionada</span>
+            }
+        }
     </div>
 
     <div class="perfil-formulario">
@@ -53,7 +71,7 @@
 
             <div class="botones-edicion">
                 <button class="btn-primario" @onclick="GuardarCambios" 
-                        disabled="@(cargando || (nombre == nombreOriginal && string.IsNullOrWhiteSpace(nuevaContraseña)))">
+                        disabled="@(cargando || (nombre == nombreOriginal && string.IsNullOrWhiteSpace(nuevaContraseña) && archivoImagen == null))">
                     @(cargando ? "Guardando..." : "Confirmar cambios")
                 </button>
 
@@ -83,6 +101,9 @@
     private string nombre = "";
     private string nombreOriginal = "";
     private string correo = "";
+    private string? imagenPerfilBase64 = null;
+    private IBrowserFile? archivoImagen = null;
+    private string? nombreImagenSeleccionada = null;
 
     private string nuevaContraseña = "";
     private string repetirContraseña = "";
@@ -108,6 +129,7 @@
                 nombre = perfil.Nombre;
                 nombreOriginal = perfil.Nombre;
                 correo = perfil.Correo;
+                imagenPerfilBase64 = perfil.ImagenBase64;
             }
         }
         catch (Exception ex)
@@ -132,8 +154,16 @@
         nombre = nombreOriginal;
         nuevaContraseña = "";
         repetirContraseña = "";
+        archivoImagen = null;
+        nombreImagenSeleccionada = null;
         mensaje = "";
         error = false;
+    }
+
+    private void OnImagenSeleccionada(InputFileChangeEventArgs e)
+    {
+        archivoImagen = e.File;
+        nombreImagenSeleccionada = e.File.Name;
     }
 
     private async Task GuardarCambios()
@@ -174,12 +204,28 @@
 
         try
         {
-            var response = await ApiClient.PutAsJsonAsync("api/usuario/perfil", new
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(nombre), "Nombre");
+
+            if (!string.IsNullOrWhiteSpace(nuevaContraseña))
             {
-                Nombre = nombre,
-                NuevaContraseña = nuevaContraseña,
-                RepetirContraseña = repetirContraseña
-            });
+                content.Add(new StringContent(nuevaContraseña), "NuevaContraseña");
+                content.Add(new StringContent(repetirContraseña), "RepetirContraseña");
+            }
+
+            if (archivoImagen != null)
+            {
+                var maxFileSize = 10 * 1024 * 1024;
+                var ms = new MemoryStream();
+                using var stream = archivoImagen.OpenReadStream(maxFileSize);
+                await stream.CopyToAsync(ms);
+                ms.Position = 0;
+                content.Add(new StreamContent(ms), "Imagen", archivoImagen.Name);
+            }
+
+            // IMPORTANTE Cambiar a ApiClient o Http normal, según la implementación, pero `PutAsync` con form data.
+            // Para simplicidad usamos PostMultipartAsync si existe, o httpClient directamente.
+            var response = await ApiClient.PutMultipartAsync("api/usuario/perfil", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -188,11 +234,14 @@
                 if (auth != null)
                 {
                     await AuthProvider.MarcarAutenticado(auth.Token);
+                    imagenPerfilBase64 = auth.ImagenBase64;
                 }
 
                 nombreOriginal = nombre;
                 nuevaContraseña = "";
                 repetirContraseña = "";
+                archivoImagen = null;
+                nombreImagenSeleccionada = null;
                 editando = false;
 
                 error = false;
@@ -219,6 +268,7 @@
     {
         public string Nombre { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;
+        public string? ImagenBase64 { get; set; }
     }
 
     public class AuthDto
@@ -226,5 +276,6 @@
         public string Token { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;
+        public string? ImagenBase64 { get; set; }
     }
 }
