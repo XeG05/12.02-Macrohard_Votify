@@ -14,6 +14,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Grupo> _grupoRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
         private readonly IRepository<Voto> _votoRepo;
+        private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Participante> _participanteRepo;
         private readonly IUnitOfWork _unitOfWork;
         public EventoAdministradorService(
@@ -22,6 +23,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Grupo> grupoRepo,
             IRepository<Proyecto> proyectoRepo,
             IRepository<Voto> votoRepo,
+            IRepository<Criterio> criterioRepo,
             IRepository<Participante> participanteRepo,
             IUnitOfWork unitOfWork)
         {
@@ -30,6 +32,7 @@ namespace Votify.LógicaNegocio.Services
             _grupoRepo = grupoRepo;
             _proyectoRepo = proyectoRepo;
             _votoRepo = votoRepo;
+            _criterioRepo = criterioRepo;
             _participanteRepo = participanteRepo;
             _unitOfWork = unitOfWork;
         }
@@ -106,8 +109,10 @@ namespace Votify.LógicaNegocio.Services
         public async Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria)
         {
             var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == idCategoria);
 
             var resultado = new List<ProyectoResultadosDto>();
+
             foreach (var g in grupos)
             {
                 var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == g.Id)).FirstOrDefault();
@@ -115,17 +120,39 @@ namespace Votify.LógicaNegocio.Services
                 if (proyecto == null)
                     continue;
 
-                var votos = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
+                var votosProyecto = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
+
+                double puntuacion = 0;
+
+                var resultadosCriterios = new List<ResultadoCriterioDto>();
+
+                foreach (var criterio in criterios)
+                {
+                    int votosCriterio = votosProyecto.Count(v => v.IdCriterio == criterio.Id);
+
+                    puntuacion += (criterio.Ponderacion / 100.0) * votosCriterio;
+
+                    resultadosCriterios.Add(new ResultadoCriterioDto
+                    {
+                        NombreCriterio = criterio.Nombre,
+                        Ponderacion = criterio.Ponderacion,
+                        CantidadVotos = votosCriterio
+                    });
+                }
 
                 resultado.Add(new ProyectoResultadosDto
                 {
                     NombreProyecto = proyecto.Nombre,
                     NombreGrupo = g.Nombre,
-                    CantidadVotos = votos.Count
+                    CantidadVotos = votosProyecto.Count,
+                    PuntuacionMedia = Math.Round(puntuacion, 2),
+                    ResultadosPorCriterio = resultadosCriterios
                 });
             }
 
-            return resultado;
+            return resultado
+                .OrderByDescending(r => r.PuntuacionMedia)
+                .ToList();
         }
 
         public async Task<int> TotalVotosCategoria(long idCategoria)

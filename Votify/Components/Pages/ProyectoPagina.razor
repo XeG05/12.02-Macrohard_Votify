@@ -75,18 +75,53 @@
         {
             @if (GetFaseClass(evento) == "votaciones")
             {
-                <div class="seccion-comentarios">
-                    <textarea placeholder="Escribe aquí comentarios sobre el proyecto" @bind="nuevoComentario" disabled="@comentarioEnviado"></textarea>
-                    <div class="enviar-btn-container">
-                        <button class="btn-secundario" @onclick="EnviarComentario" disabled="@comentarioEnviado">Enviar comentario</button>
-                    </div>
-                </div>
+                <div class="votacion-criterios">
+                    <h3>Votación</h3>
 
-                <div class="seccion-votar">
-                    <label class="checkbox-votar">
-                        <input type="checkbox" checked="@haVotado" disabled="@(haVotado || votosTotalesEvento >= 3)" @onchange="EmitirVoto" /> Votar por el proyecto
-                    </label>
-                    <span class="votos-restantes">@(Math.Max(0, 3 - votosTotalesEvento))/3 votos restantes (por categoría)</span>
+                    @foreach (var criterio in criteriosCategoria)
+                    {
+                        var abierto = criteriosAbiertos.Contains(criterio.Id);
+                        var info = votoInfoPorCriterio.ContainsKey(criterio.Id)
+                            ? votoInfoPorCriterio[criterio.Id]
+                            : new CriterioVotoInfoDto { IdCriterio = criterio.Id, VotosRestantes = 3, HaVotado = false };
+
+                        <div class="criterio-voto-card">
+                            <button type="button"
+                                    class="criterio-voto-header"
+                                    @onclick="() => ToggleCriterio(criterio.Id)">
+                                <span>@criterio.Nombre</span>
+                                <span>@(abierto ? "▲" : "▼")</span>
+                            </button>
+
+                            @if (abierto)
+                            {
+                                <div class="criterio-voto-body">
+                                    <textarea placeholder="Escribe aquí el comentario sobre el criterio"
+                                              disabled></textarea>
+
+                                    <div class="criterio-voto-actions">
+                                        <button class="btn-secundario" disabled>
+                                            Enviar comentario
+                                        </button>
+                                    </div>
+
+                                    <div class="criterio-voto-footer">
+                                        <label class="checkbox-votar">
+                                            <input type="checkbox"
+                                                   checked="@info.HaVotado"
+                                                   disabled="@(info.HaVotado || info.VotosRestantes <= 0)"
+                                                   @onchange="e => EmitirVotoCriterio(e, criterio.Id)" />
+                                            Votar por el proyecto
+                                        </label>
+
+                                        <span class="votos-restantes">
+                                            @info.VotosRestantes/3 votos restantes
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             }
             else
@@ -111,6 +146,9 @@ else {
     ProyectoDto? proyecto;
     EventoDto? evento;
     List<MiembroGrupoDto>? participantes;
+    List<CriterioDto> criteriosCategoria = new();
+    Dictionary<long, CriterioVotoInfoDto> votoInfoPorCriterio = new();
+    HashSet<long> criteriosAbiertos = new();
 
     string nuevoComentario = "";
     int imagenActual = 0;
@@ -122,46 +160,56 @@ else {
     private long _ultimoIdCargado = 0;
     bool esVotante = false;
 
-    private async Task EmitirVoto(ChangeEventArgs e)
+    private async Task EmitirVotoCriterio(ChangeEventArgs e, long idCriterio)
     {
-        if (GetFaseClass(evento) != "votaciones") return;
+        if (evento == null || GetFaseClass(evento) != "votaciones") return;
 
         bool isChecked = (bool)(e.Value ?? false);
-        if (!isChecked)
+        if (!isChecked) return;
+
+        if (!votoInfoPorCriterio.ContainsKey(idCriterio))
         {
-            if (haVotado)
+            votoInfoPorCriterio[idCriterio] = new CriterioVotoInfoDto
             {
-                haVotado = true;
-                StateHasChanged();
-            }
-            return;
+                IdCriterio = idCriterio,
+                VotosRestantes = 3,
+                HaVotado = false
+            };
         }
 
-        if (haVotado || votosTotalesEvento >= 3) return;
+        var info = votoInfoPorCriterio[idCriterio];
 
-        var peticion = new 
+        if (info.HaVotado || info.VotosRestantes <= 0)
+            return;
+
+        var peticion = new
         {
             IdEvento = idEvento,
-            IdProyecto = idProyecto
+            IdProyecto = idProyecto,
+            IdCriterio = idCriterio
         };
 
         var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/votar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
-            haVotado = true;
-            votosTotalesEvento++;
+            info.HaVotado = true;
+            info.VotosRestantes = Math.Max(0, info.VotosRestantes - 1);
             errorMessage = "";
         }
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Error al emitir el voto: {errorContent}");
             errorMessage = "Error al emitir el voto: " + errorContent;
-            // Si hay error desmarcamos visualmente
-            haVotado = false;
-            StateHasChanged();
         }
+
+        StateHasChanged();
+    }
+
+    private void ToggleCriterio(long idCriterio)
+    {
+        if (!criteriosAbiertos.Add(idCriterio))
+            criteriosAbiertos.Remove(idCriterio);
     }
 
     private async Task EnviarComentario()
@@ -233,6 +281,9 @@ else {
         votosTotalesEvento = 0;
         imagenActual = 0;
         errorMessage = "";
+        criteriosCategoria = new();
+        votoInfoPorCriterio = new();
+        criteriosAbiertos = new();
         StateHasChanged();
 
         var correo = AuthProvider.ObtenerCorreo();
@@ -262,7 +313,19 @@ else {
                 return;
             }
             participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/evento/proyecto/{idProyecto}/grupo/{proyecto.IdGrupo}/participantes");
+            var categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>($"api/evento/{idEvento}/categorias") ?? new();
+            var grupoProyecto = await ApiClient.GetFromJsonAsync<GrupoDto>($"api/evento/grupo/{proyecto.IdGrupo}");
 
+            if (grupoProyecto != null)
+            {
+                var categoriaProyecto = categorias.FirstOrDefault(c => c.Id == grupoProyecto.IdCategoria);
+                criteriosCategoria = categoriaProyecto?.Criterios ?? new();
+
+                if (criteriosCategoria.Any())
+                {
+                    criteriosAbiertos.Add(criteriosCategoria.First().Id);
+                }
+            }
             // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
             try
             {
@@ -283,17 +346,18 @@ else {
                 Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
             }
 
-            if (esVotante) {
+            if (esVotante)
+            {
                 try
                 {
                     var responseVoto = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/evento/{idEvento}/voto-info");
                     if (responseVoto.IsSuccessStatusCode)
                     {
-                        var votoInfo = await responseVoto.Content.ReadFromJsonAsync<VotoInfoDto>();
-                        if (votoInfo != null)
+                        var infoCriterios = await responseVoto.Content.ReadFromJsonAsync<List<CriterioVotoInfoDto>>();
+
+                        if (infoCriterios != null)
                         {
-                            haVotado = votoInfo.HaVotado;
-                            votosTotalesEvento = 3 - votoInfo.VotosRestantes;
+                            votoInfoPorCriterio = infoCriterios.ToDictionary(v => v.IdCriterio, v => v);
                         }
                     }
                 }

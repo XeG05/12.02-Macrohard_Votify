@@ -65,16 +65,17 @@ namespace Votify.LógicaNegocio.DTOs
                 if (cat.PonderacionPopular + cat.PonderacionExperto != 100)
                     return (false, $"La suma de voto popular y experto en la categoría '{cat.Nombre}' debe ser exactamente 100.");
 
-                if (cat.Criterios.Count > 0 && cat.CriteriosSonPorcentaje)
+                if (cat.Criterios.Count > 0)
                 {
+                    cat.CriteriosSonPorcentaje = true;
+
                     var sumCriterios = cat.Criterios.Sum(c => c.Ponderacion);
+
                     if (sumCriterios != 100)
-                        return (false, $"Los criterios de la categoría '{cat.Nombre}' están configurados como porcentaje, por lo que deben sumar exactamente 100 y actualmente suman {sumCriterios}.");
-                }
-                else if (cat.Criterios.Count > 0 && !cat.CriteriosSonPorcentaje)
-                {
-                    if (cat.Criterios.Any(c => c.Ponderacion <= 0))
-                        return (false, $"En la categoría '{cat.Nombre}', la evaluación por puntos requiere que todos los criterios valgan más de 0 puntos.");
+                        return (false, $"Los criterios de la categoría '{cat.Nombre}' deben sumar exactamente 100% y actualmente suman {sumCriterios}%.");
+
+                    if (cat.Criterios.Any(c => c.Ponderacion < 0 || c.Ponderacion > 100))
+                        return (false, $"Los criterios de la categoría '{cat.Nombre}' deben tener valores entre 0 y 100.");
                 }
             }
 

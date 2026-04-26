@@ -339,8 +339,8 @@ namespace Votify.Controladores
 
             try
             {
-                var info = await _eventoService.ObtenerInfoVotoSimple(eventoId, proyectoId, correo);
-                return Ok(new { HaVotado = info.HaVotado, VotosRestantes = Math.Max(0, 3 - info.VotosTotales) });
+                var info = await _eventoService.ObtenerInfoVotoPorCriterios(eventoId, proyectoId, correo);
+                return Ok(info);
             }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
@@ -355,7 +355,7 @@ namespace Votify.Controladores
 
             try
             {
-                await _eventoService.VotarProyectoSimple(request.IdEvento, request.IdProyecto, correo);
+                await _eventoService.VotarProyectoSimple(request.IdEvento, request.IdProyecto, request.IdCriterio, correo);
                 return Ok(new { mensaje = "Voto emitido exitosamente" });
             }
             catch (ConflictException ex) { return Conflict(new ErrorDto { Error = ex.Message }); }

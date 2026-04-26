@@ -182,3 +182,71 @@
     color: #888;
     font-size: 1.2rem;
 }
+.votacion-criterios {
+    border-top: 1px solid #111;
+    padding-top: 1rem;
+}
+
+    .votacion-criterios h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        text-decoration: underline;
+    }
+
+.criterio-voto-card {
+    border: 1px solid #888;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    background: white;
+}
+
+.criterio-voto-header {
+    width: 100%;
+    border: none;
+    background: white;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: left;
+}
+
+.criterio-voto-body {
+    padding: 0.5rem;
+}
+
+    .criterio-voto-body textarea {
+        width: 100%;
+        min-height: 85px;
+        border: 1px solid #999;
+        resize: vertical;
+        padding: 0.5rem;
+        font-family: inherit;
+    }
+
+.criterio-voto-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.criterio-voto-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #999;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.5rem;
+}
+
+    .criterio-voto-footer .checkbox-votar {
+        font-size: 0.95rem;
+    }
+
+    .criterio-voto-footer .votos-restantes {
+        font-size: 0.95rem;
+        color: #777;
+    }

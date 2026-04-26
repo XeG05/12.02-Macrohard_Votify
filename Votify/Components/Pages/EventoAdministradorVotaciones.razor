@@ -53,15 +53,28 @@ else
 
         @foreach (var r in resumen!)
         {
-            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+            <div style="padding:12px 0; border-bottom:1px solid #eee;">
 
-                <div>
-                    <b>@r.NombreProyecto</b>
-                    <p style="margin:0; color:gray;">@r.NombreGrupo</p>
+                <div style="display:flex; justify-content:space-between; gap:20px;">
+                    <div>
+                        <b>@r.NombreProyecto</b>
+                        <p style="margin:0; color:gray;">@r.NombreGrupo</p>
+                    </div>
+
+                    <div style="text-align:right;">
+                        <b>@r.PuntuacionMedia.ToString("0.##") puntos</b>
+                        <p style="margin:0; color:gray;">@r.CantidadVotos votos totales</p>
+                    </div>
                 </div>
 
-                <div style="text-align:right;">
-                    <b>@r.CantidadVotos votos</b>
+                <div style="margin-top:8px; padding-left:10px;">
+                    @foreach (var c in r.ResultadosPorCriterio)
+                    {
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#555;">
+                            <span>@c.NombreCriterio - @c.Ponderacion%</span>
+                            <span>@c.CantidadVotos votos</span>
+                        </div>
+                    }
                 </div>
 
             </div>
