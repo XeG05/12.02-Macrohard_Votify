@@ -24,7 +24,7 @@
         @if (editando)
         {
             <div class="btn-cambiar-imagen">
-                <label for="upload-imagen" class="btn-secundario" style="cursor: pointer; padding: 6px 12px; font-size: 13px; border-radius: 4px;">Cambiar Imagen</label>
+                <label for="upload-imagen" class="btn-cambiar-imagen-label">Cambiar Imagen</label>
                 <InputFile id="upload-imagen" OnChange="OnImagenSeleccionada" accept="image/jpeg, image/png" style="display: none;" />
             </div>
             @if (nombreImagenSeleccionada != null)
