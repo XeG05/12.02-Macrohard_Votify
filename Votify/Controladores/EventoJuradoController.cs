@@ -39,5 +39,38 @@ namespace Votify.Controladores
             }
         }
 
+        [HttpGet("{eventoId}/get-nombre")]
+        public async Task<IActionResult> GetEventoNombre(long eventoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var nombreEvento = await _eventoJuradoService.ObtenerNombreEvento(eventoId);
+                return Ok(nombreEvento);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}")]
+        public async Task<IActionResult> GetCategoria(long eventoId, long categoriaId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var categoria = await _eventoJuradoService.ObtenerCategoria(eventoId, categoriaId, correo);
+                return Ok(categoria);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

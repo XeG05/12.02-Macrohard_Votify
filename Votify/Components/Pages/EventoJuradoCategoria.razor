@@ -18,7 +18,7 @@ else if (!string.IsNullOrWhiteSpace(error))
         <div class="ejc-alert ejc-alert-error">@error</div>
     </div>
 }
-else if (evento != null && categoria != null)
+else if (eventoNombre != "" && categoria != null)
 {
     <div class="ejc-wrapper">
 
@@ -31,7 +31,7 @@ else if (evento != null && categoria != null)
                     </svg>
                 </button>
                 <div class="ejc-hero-text">
-                    <span class="ejc-eyebrow">@evento.Nombre</span>
+                    <div class="ejc-eyebrow">@eventoNombre</div>
                     <h1>@categoria.Nombre</h1>
                     <p>@categoria.Descripcion</p>
                 </div>
@@ -131,7 +131,7 @@ else if (evento != null && categoria != null)
         public bool Revisado { get; set; }
     }
 
-    private EventoDto? evento;
+    private String eventoNombre;
     private CategoriaJuradoDto? categoria;
     private List<ProyectoJuradoViewDto>? proyectos;
     private Dictionary<long, List<string>> participantesPorProyecto = new();
@@ -147,17 +147,9 @@ else if (evento != null && categoria != null)
 
         try
         {
-            // SIMULACION temporal para levantar el mockup, en un futuro rellenaremos haciendo peticiones a API reales.
-            await Task.Delay(500); // UI simulando carga
 
-            evento = new EventoDto { Id = EventoId, Nombre = "Nombre del evento" };
-            categoria = new CategoriaJuradoDto { 
-                Id = CategoriaId, 
-                Nombre = "Nombre de la categoría", 
-                Descripcion = "Pequeña descripción de la categoria",
-                ProyectosRevisados = 16,
-                ProyectosTotales = 16
-            };
+            eventoNombre = await ApiClient.GetFromJsonAsync<String>($"api/Evento/{EventoId}/get-nombre");
+            categoria = await ApiClient.GetFromJsonAsync<CategoriaJuradoDto>($"api/jurado/{EventoId}/categoria/{CategoriaId}");
 
             proyectos = new List<ProyectoJuradoViewDto>
             {

@@ -12,12 +12,14 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Categorium> _categoriaRepo;
         private readonly IRepository<Jurado> _juradoRepo;
+        private readonly IRepository<Comentario> _comentarioRepo;
 
-        public EventoJuradoService(IRepository<Evento> eventoRepo, IRepository<Categorium> categoriaRepo, IRepository<Jurado> juradoRepo)
+        public EventoJuradoService(IRepository<Evento> eventoRepo, IRepository<Categorium> categoriaRepo, IRepository<Jurado> juradoRepo, IRepository<Comentario> comentarioRepo)
         {
             _eventoRepo = eventoRepo;
             _categoriaRepo = categoriaRepo;
             _juradoRepo = juradoRepo;
+            _comentarioRepo = comentarioRepo;
         }
         
         public async Task<List<CategoriaJuradoDto>> ObtenerCategoriasJurado(string correo, long eventoId)
@@ -27,17 +29,10 @@ namespace Votify.LógicaNegocio.Services
 
             var categorias = await _categoriaRepo.AsQueryable()
                                             .Where(c => c.IdEvento == eventoId)
-                                            .Include(c => c.Jurados) // Comentado temporalmente para evitar el error 42P01 de la tabla CategoriumJurado inexistente
+                                            .Include(c => c.Jurados)
                                             .ToListAsync();
 
             var categoriasAsignadas = categorias.Where(c => c.Jurados != null && c.Jurados.Any(j => j.CorreoUsuario == correo)).ToList();
-            
-            // Si el mapeo de Jurados (N a M) todavia falla a novel base de datos, temporalmente daremos todas las categorias 
-            // del evento como workaround hasta que se arreglen las DB Migrations y la tabla CategoriumJurado se cree con exito:
-            if (!categoriasAsignadas.Any())
-            {
-               categoriasAsignadas = categorias.ToList();
-            }
             
             return categoriasAsignadas.Select(c => new CategoriaJuradoDto
             {
@@ -48,5 +43,39 @@ namespace Votify.LógicaNegocio.Services
                 ProyectosTotales = 0
             }).ToList();
         }
+
+        public async Task<String> ObtenerNombreEvento(long eventoId)
+        {
+            var evento = await _eventoRepo.FindAsync(e => e.Id == eventoId);
+            if (!evento.Any()) return "";
+            return evento.First().Nombre;
+        }
+
+        public async Task<CategoriaJuradoDto> ObtenerCategoria(long eventoId, long categoriaId, string correo)
+        {
+            var categoria = await _categoriaRepo.FindAsync(c => c.Id == categoriaId && c.IdEvento == eventoId);
+            if (!categoria.Any()) return null;
+            var c = categoria.First();
+            var proyectosCategoria = await _categoriaRepo.AsQueryable()
+                                        .Where(x => x.Id == categoriaId && x.IdEvento == eventoId)
+                                        .Include(x => x.Grupos)
+                                        .ThenInclude(g => g.Proyecto)
+                                        .SelectMany(x => x.Grupos.Select(g => g.Proyecto))
+                                        .Where(p => p != null)
+                                        .ToListAsync();
+
+        var comentariosJurado = await _comentarioRepo.AsQueryable()
+                                        .Where(cm => cm.CorreoRol == correo && cm.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
+                                        .ToListAsync(); 
+            return new CategoriaJuradoDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Descripcion = c.Descripcion,
+                ProyectosRevisados = comentariosJurado.Count(),
+                ProyectosTotales = proyectosCategoria.Count
+            };
+        }
+
     }
 }

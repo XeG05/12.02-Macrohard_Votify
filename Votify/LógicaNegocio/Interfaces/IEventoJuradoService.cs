@@ -8,6 +8,8 @@ namespace Votify.LógicaNegocio.Interfaces
     {
         Task<List<CategoriaJuradoDto>> ObtenerCategoriasJurado(string correo, long eventoId);
 
+        Task<String> ObtenerNombreEvento(long eventoId);
 
+        Task<CategoriaJuradoDto> ObtenerCategoria(long eventoId, long categoriaId, string correo);
     }
 }
