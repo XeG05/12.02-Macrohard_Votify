@@ -2,6 +2,8 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <link rel="stylesheet" href="css/perfil-usuario.css" />
 
@@ -90,12 +92,27 @@
 
     @if (!editando)
     {
-        <div class="perfil-boton-editar">
+        <div class="perfil-botones-acciones">
             <button class="btn-primario" @onclick="ActivarEdicion">Editar perfil</button>
+            <button class="btn-peligro" @onclick="ConfirmarCerrarSesion">Cerrar sesión</button>
         </div>
     }
 
 </div>
+
+@if (mostrarModalLogout)
+{
+    <div class="modal-overlay">
+        <div class="modal-contenido">
+            <h3>Cerrar sesión</h3>
+            <p>¿Estás seguro de que deseas salir de tu cuenta?</p>
+            <div class="modal-botones">
+                <button class="btn-secundario" @onclick="CancelarCerrarSesion">Cancelar</button>
+                <button class="btn-peligro" @onclick="EjecutarCerrarSesion">Sí, cerrar sesión</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private string nombre = "";
@@ -112,6 +129,24 @@
     private bool error = false;
     private bool editando = false;
     private bool cargando = false;
+    private bool mostrarModalLogout = false;
+
+    private void ConfirmarCerrarSesion()
+    {
+        mostrarModalLogout = true;
+    }
+
+    private void CancelarCerrarSesion()
+    {
+        mostrarModalLogout = false;
+    }
+
+    private async Task EjecutarCerrarSesion()
+    {
+        mostrarModalLogout = false;
+        await AuthProvider.MarcarDesconectado();
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
 
     protected override async Task OnInitializedAsync()
     {

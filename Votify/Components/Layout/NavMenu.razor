@@ -1,4 +1,7 @@
-﻿
+﻿@inject Votify.Auth.ApiClient ApiClient
+@inject Votify.Auth.BlazorAuthStateProvider AuthProvider
+@implements IDisposable
+
 <div class="nav-scrollable" >
     <nav class="nav flex-column">
         <div class="events">
@@ -10,7 +13,7 @@
             </div>
         </div>
 
-        <div class="utils">
+        <div class="user-section">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="notificacion">
                     <span class="bi bi-bell-nav-menu" aria-hidden="true"></span>
@@ -18,22 +21,18 @@
                 </NavLink>
             </div>
 
-            <div class="nav-item px-3">
+            <div class="divider-user"></div>
+            <div class="nav-item px-3 mb-2">
                 <NavLink class="nav-link" href="perfilusuario">
-                    <span class="bi bi-user-nav-menu" aria-hidden="true"></span>
-                    <span class="menu-text">Usuario</span>
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="ajustes">
-                    <span class="bi bi-gear-nav-menu" aria-hidden="true"></span>
-                    <span class="menu-text">Ajustes</span>
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link text-danger" href="cerrarsesion" style="cursor: pointer;">
-                    <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span>
-                    <span class="menu-text">Cerrar sesión</span>
+                    @if (!string.IsNullOrEmpty(imagenPerfilBase64))
+                    {
+                        <img src="data:image/jpeg;base64,@imagenPerfilBase64" class="nav-profile-img" alt="Perfil" />
+                    }
+                    else
+                    {
+                        <span class="bi bi-user-nav-menu" aria-hidden="true"></span>
+                    }
+                    <span class="menu-text">@nombreUsuario</span>
                 </NavLink>
             </div>
         </div>     
@@ -41,5 +40,66 @@
 </div>
 
 @code {
+    private string? imagenPerfilBase64 = null;
+    private string nombreUsuario = "Usuario";
+
+    protected override void OnInitialized()
+    {
+        AuthProvider.AuthenticationStateChanged += OnAuthStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CargarPerfil();
+        }
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        _ = await task;
+        await CargarPerfil();
+    }
+
+    private async Task CargarPerfil()
+    {
+        if (AuthProvider.EstaAutenticado)
+        {
+            try
+            {
+                var perfil = await ApiClient.GetFromJsonAsync<NavMenuPerfilDto>("api/usuario/perfil");
+                if (perfil != null)
+                {
+                    imagenPerfilBase64 = perfil.ImagenBase64;
+                    nombreUsuario = !string.IsNullOrWhiteSpace(perfil.Nombre) ? perfil.Nombre : "Usuario";
+                    StateHasHasChanged();
+                }
+            }
+            catch
+            {
+                // Ignorar error si no se puede cargar la imagen.
+            }
+        }
+        else
+        {
+            imagenPerfilBase64 = null;
+            nombreUsuario = "Usuario";
+            StateHasHasChanged();
+        }
+    }
+
+    private void StateHasHasChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        AuthProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
+
+    private class NavMenuPerfilDto
+    {
+        public string? Nombre { get; set; }
+        public string? ImagenBase64 { get; set; }
+    }
 }
 
