@@ -52,7 +52,8 @@
             </div>
 
             <div class="botones-edicion">
-                <button class="btn-primario" @onclick="GuardarCambios" disabled="@cargando">
+                <button class="btn-primario" @onclick="GuardarCambios" 
+                        disabled="@(cargando || (nombre == nombreOriginal && string.IsNullOrWhiteSpace(nuevaContraseña)))">
                     @(cargando ? "Guardando..." : "Confirmar cambios")
                 </button>
 
