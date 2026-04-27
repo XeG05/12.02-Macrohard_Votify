@@ -56,26 +56,88 @@ namespace Votify.LógicaNegocio.Services
             var categoria = await _categoriaRepo.FindAsync(c => c.Id == categoriaId && c.IdEvento == eventoId);
             if (!categoria.Any()) return null;
             var c = categoria.First();
-            var proyectosCategoria = await _categoriaRepo.AsQueryable()
-                                        .Where(x => x.Id == categoriaId && x.IdEvento == eventoId)
-                                        .Include(x => x.Grupos)
-                                        .ThenInclude(g => g.Proyecto)
-                                        .SelectMany(x => x.Grupos.Select(g => g.Proyecto))
-                                        .Where(p => p != null)
-                                        .ToListAsync();
 
-        var comentariosJurado = await _comentarioRepo.AsQueryable()
-                                        .Where(cm => cm.CorreoRol == correo && cm.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
-                                        .ToListAsync(); 
+        var datosProyectos = await ObtenerProyectosRevisadosPorJurado(correo, eventoId, categoriaId);
             return new CategoriaJuradoDto
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
                 Descripcion = c.Descripcion,
-                ProyectosRevisados = comentariosJurado.Count(),
-                ProyectosTotales = proyectosCategoria.Count
+                ProyectosRevisados = datosProyectos[0],
+                ProyectosTotales = datosProyectos[1]
             };
         }
 
+        public async Task<int[]> ObtenerProyectosRevisadosPorJurado(string correoJurado, long eventoId, long categoriaId)
+        {
+            var jurado = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correoJurado && j.IdEvento == eventoId);
+            var juradoEncontrado = jurado.FirstOrDefault();
+
+            if (juradoEncontrado == null) return new int[] { 0, 0 };
+
+            var comentarios = await _comentarioRepo.AsQueryable()
+                                            .Where(c => c.IdRol == eventoId && 
+                                                        c.CorreoRol == correoJurado &&
+                                                        c.Proyecto != null && 
+                                                        c.Proyecto.IdGrupoNavigation != null &&
+                                                        c.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
+                                            .Select(c => c.IdProyectoGru)
+                                            .Distinct()
+                                            .ToListAsync();
+
+            var proyectosTotales = await _categoriaRepo.AsQueryable()
+                                            .Where(x => x.Id == categoriaId && x.IdEvento == eventoId)
+                                            .SelectMany(x => x.Grupos)
+                                            .Where(g => g.Proyecto != null)
+                                            .CountAsync();
+
+            return new int[] { comentarios.Count, proyectosTotales };
+        }
+
+        public async Task<List<ProyectoJuradoViewDto>> ObtenerProyectosCategoriaParaJurado(string correoJurado, long eventoId, long categoriaId)
+        {
+            var jurado = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correoJurado && j.IdEvento == eventoId);
+            var juradoEncontrado = jurado.FirstOrDefault();
+
+            if (juradoEncontrado == null) return new List<ProyectoJuradoViewDto>();
+
+            var grupos = await _categoriaRepo.AsQueryable()
+                                            .Where(c => c.Id == categoriaId && c.IdEvento == eventoId)
+                                            .Include(c => c.Grupos)
+                                                .ThenInclude(g => g.Proyecto)
+                                            .Include(c => c.Grupos)
+                                                .ThenInclude(g => g.Participantes)
+                                                    .ThenInclude(p => p.CorreoUsuarioNavigation)
+                                            .SelectMany(c => c.Grupos)
+                                            .Where(g => g.Proyecto != null)
+                                            .ToListAsync();
+
+            var comentariosJuradoIdsProyectos = await _comentarioRepo.AsQueryable()
+                                            .Where(c => c.IdRol == eventoId && 
+                                                        c.CorreoRol == correoJurado &&
+                                                        c.Proyecto != null && 
+                                                        c.Proyecto.IdGrupoNavigation != null &&
+                                                        c.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
+                                            .Select(c => c.IdProyectoGru)
+                                            .Distinct()
+                                            .ToListAsync();
+
+            var resultado = new List<ProyectoJuradoViewDto>();
+            foreach (var g in grupos)
+            {
+                var p = g.Proyecto;
+                resultado.Add(new ProyectoJuradoViewDto
+                {
+                    Id = p!.Id,
+                    Nombre = p.Nombre,
+                    DescripcionBreve = p.DescripcionBreve,
+                    IdGrupo = p.IdGrupo,
+                    Revisado = comentariosJuradoIdsProyectos.Contains(p.Id),
+                    ParticipantesNombres = g.Participantes.Select(part => part.CorreoUsuarioNavigation.Nombre).ToList()
+                });
+            }
+
+            return resultado;
+        }
     }
 }

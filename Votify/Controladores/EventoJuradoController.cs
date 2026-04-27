@@ -48,7 +48,7 @@ namespace Votify.Controladores
             try
             {
                 var nombreEvento = await _eventoJuradoService.ObtenerNombreEvento(eventoId);
-                return Ok(nombreEvento);
+                return Ok(new { Nombre = nombreEvento });
             }
             catch (Exception ex)
             {
@@ -66,6 +66,23 @@ namespace Votify.Controladores
             {
                 var categoria = await _eventoJuradoService.ObtenerCategoria(eventoId, categoriaId, correo);
                 return Ok(categoria);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}/proyectos")]
+        public async Task<IActionResult> GetProyectosCategoria(long eventoId, long categoriaId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var proyectos = await _eventoJuradoService.ObtenerProyectosCategoriaParaJurado(correo, eventoId, categoriaId);
+                return Ok(proyectos);
             }
             catch (Exception ex)
             {

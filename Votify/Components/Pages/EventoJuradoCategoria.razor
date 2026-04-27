@@ -45,6 +45,7 @@ else if (eventoNombre != "" && categoria != null)
         </div>
 
         <h2 class="ejc-section-title">Proyectos</h2>
+        <hr class="ejc-divider" />
 
         <div class="ejc-proyectos-list">
             @if (proyectos != null && proyectos.Any())
@@ -71,19 +72,16 @@ else if (eventoNombre != "" && categoria != null)
                         </div>
 
                         <!-- 3 Columnas principales de info del proyecto -->
-                        <div class="ejc-proyecto-cols">
+                        <div class="ejc-proyecto-cols" style="cursor: pointer;" @onclick="() => IrAProyecto(p.IdGrupo)">
 
                             <!-- Izquierda: Titulo + Participantes -->
                             <div class="ejc-col-left">
                                 <h3 class="ejc-proyecto-title">@p.Nombre</h3>
                                 <div class="ejc-participantes-list">
-                                    @if(participantesPorProyecto.ContainsKey(p.Id))
-                                    {
-                                        foreach(var participante in participantesPorProyecto[p.Id])
+                                        @foreach(var participante in p.ParticipantesNombres)
                                         {
                                             <p>@participante</p>
                                         }
-                                    }
                                 </div>
                             </div>
 
@@ -95,9 +93,9 @@ else if (eventoNombre != "" && categoria != null)
                             </div>
 
                             <!-- Derecha: Botones -->
-                            <div class="ejc-col-right">
-                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.Id)">Resultado de la votación popular</button>
-                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.Id)">Comentarios del jurado</button>
+                            <div class="ejc-col-right" @onclick:stopPropagation="true">
+                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.IdGrupo)">Resultado de la votación popular</button>
+                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.IdGrupo)">Comentarios del jurado</button>
                             </div>
 
                         </div>
@@ -126,15 +124,10 @@ else if (eventoNombre != "" && categoria != null)
     private bool cargando = true;
     private string error = "";
 
-    // DTO ampliado localmente para simulacion de la maquetación (Revisado)
-    private class ProyectoJuradoViewDto : ProyectoDto {
-        public bool Revisado { get; set; }
-    }
-
-    private String eventoNombre;
+    private class EventoNombreResponse { public string Nombre { get; set; } = string.Empty; }
+    private String eventoNombre = "";
     private CategoriaJuradoDto? categoria;
     private List<ProyectoJuradoViewDto>? proyectos;
-    private Dictionary<long, List<string>> participantesPorProyecto = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,25 +140,11 @@ else if (eventoNombre != "" && categoria != null)
 
         try
         {
-
-            eventoNombre = await ApiClient.GetFromJsonAsync<String>($"api/Evento/{EventoId}/get-nombre");
+            var evtResp = await ApiClient.GetFromJsonAsync<EventoNombreResponse>($"api/jurado/{EventoId}/get-nombre");
+            eventoNombre = evtResp?.Nombre ?? "";
             categoria = await ApiClient.GetFromJsonAsync<CategoriaJuradoDto>($"api/jurado/{EventoId}/categoria/{CategoriaId}");
+            proyectos = await ApiClient.GetFromJsonAsync<List<ProyectoJuradoViewDto>>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyectos");
 
-            proyectos = new List<ProyectoJuradoViewDto>
-            {
-                new ProyectoJuradoViewDto { 
-                    Id = 1, Nombre = "Nombre del proyecto", DescripcionBreve = "Descripción breve del Proyecto", Revisado = true 
-                },
-                new ProyectoJuradoViewDto { 
-                    Id = 2, Nombre = "Nombre del proyecto", DescripcionBreve = "Descripción breve del Proyecto", Revisado = false 
-                }
-            };
-
-            participantesPorProyecto = new Dictionary<long, List<string>>
-            {
-                { 1, new List<string> { "Participante 1", "Participante 2", "Participante 3", "Participante 4" } },
-                { 2, new List<string> { "Participante 1", "Participante 2", "Participante 3", "Participante 4" } }
-            };
         }
         catch (Exception ex)
         {
@@ -183,13 +162,18 @@ else if (eventoNombre != "" && categoria != null)
         Nav.NavigateTo($"/eventojurado/{EventoId}");
     }
 
-    private void IrAResultadoPopular(long idProyecto)
+    private void IrAProyecto(long idGrupo)
     {
-        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idProyecto}/resultados");
+        Nav.NavigateTo($"/proyectopagina/{idGrupo}");
     }
 
-    private void IrAComentariosJurado(long idProyecto)
+    private void IrAResultadoPopular(long idGrupo)
     {
-        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idProyecto}/comentarios");
+        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idGrupo}/resultados");
+    }
+
+    private void IrAComentariosJurado(long idGrupo)
+    {
+        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idGrupo}/comentarios");
     }
 }
