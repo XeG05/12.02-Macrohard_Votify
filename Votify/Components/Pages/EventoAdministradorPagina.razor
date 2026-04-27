@@ -66,49 +66,108 @@ else
     {
         <h3>Grupos</h3>
 
-        /*@if (eventoAdmin?.ObtenerFaseActual() == FasesEvento.Inscripciones)
-        {
-            <div style="margin-bottom:15px;">
-                <input @bind="nombreGrupoNuevo" placeholder="Nombre del grupo" />
-                <button @onclick="CrearGrupo">Añadir grupo</button>
-            </div>
-        }*/ //BOTÓN DE AÑADIR GRUPOS, PARA EL SPRINT 2
+    @if (faseActual?.Fase == "Inscripciones")
+    {
+        <button @onclick="CrearGrupo"
+                style="margin-bottom:15px; background:#16a34a; color:white; padding:6px 12px; border-radius:8px;">
+            + Añadir grupo
+        </button>
 
-        @foreach (var g in grupos)
-        {
-            <div style="border:1px solid gray; padding:10px; margin:10px;">
-                <b>@g.Nombre</b>
 
-                <button @onclick="() => CargarParticipantes(g.Id)">Ver participantes</button>
+    }
 
-                @if (faseActual != null && faseActual?.Fase == nameof(LógicaNegocio.Enums.FasesEvento.Inscripciones))
-                {
-                    <button @onclick="() => EliminarGrupoUI(g.Id)">Eliminar grupo</button>
-                }
 
-                @*  PARTICIPANTES *@
-                @if (participantesPorGrupo.ContainsKey(g.Id))
-                {
-                    var lista = participantesPorGrupo[g.Id];
+    @foreach (var g in grupos)
+    {
+            <div @key="g.Id" style="border:1px solid #e5e7eb; border-radius:12px; padding:15px; margin-bottom:15px;">
 
-                    if (lista == null || lista.Count == 0)
+            <!-- Nombre grupo -->
+                <div style="display:flex; align-items:center; gap:10px;">
+                <input type="text"
+                       @bind="g.Nombre"
+                       disabled="@(faseActual?.Fase != "Inscripciones")"
+                           style="font-weight:bold; font-size:16px;" />
+
+
+                @if (faseActual?.Fase == "Inscripciones")
                     {
-                        <p style="color:#9ca3af; font-style:italic;">
-                             En espera de que los participantes acepten la invitación
-                        </p>
-                    }
-                    else
-                    {
-                        <ul>
-                            @foreach (var p in lista)
-                            {
-                                <li>@p.Correo</li>
-                            }
-                        </ul>
-                    }
+                        <button @onclick="() => GuardarNombreGrupo(g)"
+                                style="margin-left:10px; background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:6px;">
+                            Guardar nombre
+                        </button>
+                    <button @onclick="() => EliminarGrupoUI(g.Id)"
+                            style="background:#dc2626; color:white; border:none; padding:4px 10px; border-radius:6px;">
+                        ✕
+                    </button>
                 }
             </div>
-        }
+
+            <hr />
+
+            <!-- PARTICIPANTES EDITABLES -->
+            @if (faseActual?.Fase == "Inscripciones")
+            {
+                @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
+                {
+                        <div style="margin-bottom:5px; display:flex; gap:8px; align-items:center;">
+
+                      
+                            <input type="text"
+                                   value="@item.value"
+                                   @oninput='e => g.CorreosParticipantes[item.index] = e.Value?.ToString() ?? ""'
+                                   style="width:250px;" />
+                        
+
+                        <button @onclick="() => EliminarParticipante(g, item.index)">
+                            ❌
+                        </button>
+                    </div>
+                }
+
+                <button @onclick="() => AñadirCampoParticipante(g)"
+                        style="margin-top:5px;">
+                    + Añadir participante
+                </button>
+
+                <br />
+
+                <button @onclick="() => GuardarGrupo(g)"
+                        style="margin-top:10px; background:#2563eb; color:white; padding:5px 10px; border-radius:6px;">
+                    💾 Guardar cambios
+                </button>
+            }
+            else
+            {
+                <!-- SOLO LECTURA -->
+                <button @onclick="() => CargarParticipantes(g.Id)">
+                    Ver participantes
+                </button>
+
+                    @if (participantesPorGrupo.TryGetValue(g.Id, out var lista))
+                    {
+                        @if (lista != null && lista.Any())
+                        {
+                            <ul>
+                                @foreach (var p in lista)
+                                {
+                                    <li>@p.Correo</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p style="color:#9ca3af; font-style:italic;">
+                                En espera de que los participantes acepten la invitación
+                            </p>
+                        }
+
+                    }
+
+
+                    
+            }
+        </div>
+    }
     }
 
     <hr />
@@ -361,14 +420,36 @@ else
         if (evento != null)
         {
             categoriaSeleccionadaId = idCategoria;
-            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>($"api/administrador/categoria/{idCategoria}/grupos");
-            if(grupos == null)
+
+            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>(
+                $"api/administrador/categoria/{idCategoria}/grupos");
+
+            if (grupos == null)
             {
                 error = "No se pudieron cargar los grupos.";
                 return;
             }
+
             foreach (var g in grupos)
             {
+
+                var participantes = await ApiClient
+                    .GetFromJsonAsync<List<MiembroGrupoDto>>(
+                        $"api/administrador/grupo/{g.Id}/participantes");
+
+                g.CorreosParticipantes = participantes?
+                    .Select(p => p.Correo)
+                    .ToList() ?? new List<string>();
+
+                //  rellenar huecos si el grupo es fijo
+                if (evento.GruposCompletos)
+                {
+                    while (g.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
+                    {
+                        g.CorreosParticipantes.Add("");
+                    }
+                }
+
                 if (!nuevoCorreoPorGrupo.ContainsKey(g.Id))
                     nuevoCorreoPorGrupo[g.Id] = "";
             }
@@ -377,16 +458,42 @@ else
 
     async Task CargarParticipantes(long idGrupo)
     {
-        if (evento != null)
+
+        var participantes = await ApiClient
+                .GetFromJsonAsync<List<MiembroGrupoDto>>($"api/administrador/grupo/{idGrupo}/participantes");
+
+        if (participantes == null)
         {
-            var participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>($"api/administrador/grupo/{idGrupo}/participantes");
-            if(participantes == null)
-            {
-                error = "No se pudieron cargar los participantes.";
-                return;
-            }
-            participantesPorGrupo[idGrupo] = participantes;
+            error = "No se pudieron cargar los participantes.";
+            return;
         }
+
+        participantesPorGrupo = new Dictionary<long, List<MiembroGrupoDto>>(participantesPorGrupo)
+        {
+            [idGrupo] = participantes ?? new()
+        };
+
+        await InvokeAsync(StateHasChanged);
+
+        var grupo = grupos?.FirstOrDefault(g => g.Id == idGrupo);
+        if (grupo != null)
+        {
+            grupo.CorreosParticipantes = participantes
+                .Select(p => p.Correo)
+                .ToList();
+
+            // rellenar huecos vacíos si faltan
+            while (grupo.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
+            {
+                grupo.CorreosParticipantes.Add("");
+            }
+        }
+    }
+
+    private void EliminarParticipante(GrupoDto grupo, int index)
+    {
+        if (index >= 0 && index < grupo.CorreosParticipantes.Count)
+            grupo.CorreosParticipantes.RemoveAt(index);
     }
 
     async Task IrAVotacionesCategoria(long idCategoria)
@@ -464,27 +571,106 @@ else
             finExperta != evento.FechaFinEvaluacionExperta.ToDateTime(TimeOnly.MinValue);
     }
 
-
-
-    async Task CrearGrupo() //SPRINT 2
+    private async Task CrearGrupo()
     {
-        if (evento != null && !string.IsNullOrWhiteSpace(nombreGrupoNuevo) && categoriaSeleccionadaId != null
-        && categoriaSeleccionadaId is long idCat)
+        if (categoriaSeleccionadaId == null) return;
+
+        var nuevo = new GrupoDto
         {
-            await ApiClient.PostAsJsonAsync($"api/administrador/{EventoId}/categoria/{idCat}/grupos", new { nombreGrupoNuevo, idCat, EventoId });
-            nombreGrupoNuevo = "";
-            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>($"api/administrador/{EventoId}/categoria/{idCat}/grupos");
+            Nombre = "Nuevo grupo",
+            IdCategoria = categoriaSeleccionadaId.Value,
+            CorreosParticipantes = new List<string>()
+        };
+
+        var response = await ApiClient.PostAsJsonAsync(
+            $"api/administrador/categoria/{categoriaSeleccionadaId}/grupo",
+            nuevo);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await CargarGrupos(categoriaSeleccionadaId.Value);
         }
     }
 
-    async Task EliminarGrupoUI(long idGrupo) //SPRINT 2
+    private async Task EliminarGrupoUI(long grupoId)
     {
-        if (evento != null)
+        var confirm = await JS.InvokeAsync<bool>("confirm", "¿Eliminar grupo?");
+        if (!confirm) return;
+
+        try
         {
-            await ApiClient.DeleteAsync($"api/administrador/{EventoId}/grupos/{idGrupo}");
-            grupos = null;
+            var response = await ApiClient.DeleteAsync($"api/administrador/grupo/{grupoId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                mensajeError = "Grupo eliminado correctamente";
+                hayError = false;
+
+                if (categoriaSeleccionadaId != null)
+                    await CargarGrupos(categoriaSeleccionadaId.Value);
+            }
+            else
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensajeError = err?.Error ?? "Error al eliminar grupo";
+                hayError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = ex.Message;
+            hayError = true;
         }
     }
+
+    private async Task GuardarNombreGrupo(GrupoDto grupo)
+    {
+        var response = await ApiClient.PutAsJsonAsync(
+            $"api/administrador/grupo/{grupo.Id}",
+            grupo
+        );
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
+            Console.WriteLine(error?.Error);
+        }
+    }
+
+    private async Task GuardarGrupo(GrupoDto grupo)
+    {
+        try
+        {
+            var response = await ApiClient.PutAsJsonAsync(
+                $"api/administrador/{EventoId}/grupo/{grupo.Id}/participantes",
+                grupo.CorreosParticipantes
+            );
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResp = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensajeError = errorResp?.Error ?? "Error al guardar participantes";
+                hayError = true;
+            }
+            else
+            {
+                mensajeError = "Invitaciones enviadas correctamente";
+                hayError = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = ex.Message;
+            hayError = true;
+        }
+    }
+
+    private void AñadirCampoParticipante(GrupoDto grupo)
+    {
+        grupo.CorreosParticipantes.Add("");
+    }
+
+
     private async Task PausarEvento()
     {
         await ApiClient.PutAsync($"api/administrador/{evento.Id}/pausar", null);
@@ -507,32 +693,8 @@ else
         // Redirigir porque ya no debería existir
         Nav.NavigateTo("/home");
     }
-    /*
-    async Task AñadirParticipanteUI(long idGrupo)
-    {
-        if (eventoAdmin != null && !string.IsNullOrWhiteSpace(nuevoCorreoPorGrupo[idGrupo]))
-        {
-            await eventoAdmin.AñadirParticipante(nuevoCorreoPorGrupo[idGrupo], idGrupo);
 
-            var participantes = await eventoAdmin.VerParticipantes(idGrupo);
-            participantesPorGrupo[idGrupo] = participantes;
 
-            nuevoCorreoPorGrupo[idGrupo] = "";
-        }
-    }
-    async Task EliminarParticipanteUI(long idParticipante)
-    {
-        if (eventoAdmin != null)
-        {
-            await eventoAdmin.EliminarParticipante(idParticipante);
 
-            // recargar TODOS los grupos visibles
-            foreach (var g in grupos!)
-            {
-                var participantes = await eventoAdmin.VerParticipantes(g.Id);
-                participantesPorGrupo[g.Id] = participantes;
-            }
-        }
-    }*/ //PARA EL SPRINT 2
 
 }

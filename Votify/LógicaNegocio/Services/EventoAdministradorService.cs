@@ -1,9 +1,12 @@
-﻿using Votify.LógicaNegocio.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
+using Votify.Persistencia;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
+
 
 namespace Votify.LógicaNegocio.Services
 {
@@ -16,7 +19,14 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Criterio> _criterioRepo;
         private readonly IRepository<Participante> _participanteRepo;
+        private readonly IRepository<InvitacionPendiente> _invitacionRepo;
+        private readonly IRepository<Rol> _rolRepo;
+        private readonly IRepository<Administrador> _administradorRepo;
+        private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
+        private readonly VotifyContext _context;
         public EventoAdministradorService(
             IRepository<Evento> eventoRepo,
             IRepository<Categorium> categoriumRepo,
@@ -25,7 +35,14 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Voto> votoRepo,
             IRepository<Criterio> criterioRepo,
             IRepository<Participante> participanteRepo,
-            IUnitOfWork unitOfWork)
+            IRepository<InvitacionPendiente> invitacionRepo,
+            IRepository<Rol> rolRepo,
+            IRepository<Administrador> administradorRepo,
+            IRepository<Usuario> usuarioRepo,
+        IUnitOfWork unitOfWork,
+            IEmailService emailService,
+            IConfiguration config,
+        VotifyContext context)
         {
             _eventoRepo = eventoRepo;
             _categoriumRepo = categoriumRepo;
@@ -34,7 +51,15 @@ namespace Votify.LógicaNegocio.Services
             _votoRepo = votoRepo;
             _criterioRepo = criterioRepo;
             _participanteRepo = participanteRepo;
+            _invitacionRepo = invitacionRepo;
+            _rolRepo = rolRepo;
+            _administradorRepo = administradorRepo;
+            _usuarioRepo = usuarioRepo;
             _unitOfWork = unitOfWork;
+            _emailService = emailService;
+            _config = config;
+            _context = context;
+            
         }
 
         public async Task CambiarNombre(long idEvento, string nuevoNombre)
@@ -80,15 +105,7 @@ namespace Votify.LógicaNegocio.Services
 
         }
 
-        public async Task<List<Proyecto>> VerProyectoDeGrupo(long idGrupo)
-        {
-            return await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
-        }
 
-        public async Task<List<Participante>> VerParticipantes(long idGrupo)
-        {
-            return await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
-        }
 
         public async Task<List<Proyecto>> VerProyectosCategoria(long idCategoria)
         {
@@ -167,20 +184,149 @@ namespace Votify.LógicaNegocio.Services
 
             return votos.Count;
         }
-        public async Task AñadirGrupo(string nombreGrupo, long idCategoria, long idEvento)
-        {
 
-            if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
-                throw new ValidationException("No se pueden añadir grupos fuera de la fase de inscripción");
+        public async Task<List<Proyecto>> VerProyectoDeGrupo(long idGrupo)
+        {
+            return await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
+        }
+
+        public async Task<List<MiembroGrupoDto>> VerParticipantes(long idGrupo)
+        {
+            return await _context.Participantes
+                .Include(p => p.CorreoUsuarioNavigation)
+                .Where(p => p.IdGrupo == idGrupo)
+                .Select(p => new MiembroGrupoDto
+                {
+                    Correo = p.CorreoUsuario,
+                    Nombre = p.CorreoUsuarioNavigation.Nombre
+                })
+                .ToListAsync();
+        }
+
+        public async Task ActualizarParticipantesGrupo(long eventoId, GrupoDto dto)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+            if (evento == null) throw new Exception("Evento no encontrado");
+
+            ValidarFaseInscripcion(evento);
+
+            var grupo = await _grupoRepo.GetByIdAsync(dto.Id);
+            if (grupo == null) throw new Exception("Grupo no encontrado");
+
+            var actuales = await _participanteRepo.FindAsync(p => p.IdGrupo == dto.Id);
+
+            var correosActuales = actuales
+            .Select(p => p.CorreoUsuario.ToLower())
+            .ToHashSet();
+
+            var nuevosCorreos = dto.CorreosParticipantes
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c.Trim().ToLower())
+                .Distinct()
+                .ToHashSet();
+
+            // 🔥 VALIDACIÓN GLOBAL (igual que ya tienes)
+            var participantesEvento = await _participanteRepo.FindAsync(p => p.IdEvento == eventoId);
+
+            foreach (var correo in nuevosCorreos)
+            {
+                var yaParticipa = participantesEvento.Any(p =>
+                    p.CorreoUsuario == correo && p.IdGrupo != dto.Id);
+
+                if (yaParticipa)
+                    throw new Exception($"El usuario {correo} ya participa en otro grupo del evento.");
+            }
+
+            // 🔥 ELIMINAR participantes existentes (si los quitas)
+            foreach (var p in actuales)
+            {
+                if (!nuevosCorreos.Contains(p.CorreoUsuario))
+                    await _participanteRepo.DeleteAsync(p);
+            }
+
+            var adminList = (await _administradorRepo.FindAsync(a => a.IdEvento == eventoId));
+            var a = adminList[0];
+            var creadorList = (await _usuarioRepo.FindAsync(u => u.Correo == a.CorreoUsuario));
+            var creador = creadorList[0];
+
+
+            // 🔥 AÑADIR → ahora como INVITACIONES (NO participantes)
+            foreach (var correo in nuevosCorreos)
+            {
+                if (!correosActuales.Contains(correo))
+                {
+                    await ProcesarParticipante(
+                        correo,
+                        dto.Id,
+                        evento,
+                        creador
+                    );
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
+
+
+        }
+        private async Task ProcesarParticipante(string correoInvitado, long idGrupo,
+                                          Evento evento, Usuario creador)
+        {
+            if (string.IsNullOrWhiteSpace(correoInvitado)) return;
+
+            // Evitar duplicados de invitación
+            var invExistente = await _invitacionRepo.FindAsync(
+                i => i.CorreoDestino == correoInvitado &&
+                     i.IdEvento == evento.Id &&
+                     i.IdGrupo == idGrupo &&
+                     !i.Aceptada);
+
+            if (invExistente.Any()) return;
+
+            // Siempre crear invitación pendiente, exista o no el usuario
+            var token = Guid.NewGuid().ToString();
+            var invitacion = new InvitacionPendiente
+            {
+                Token = token,
+                CorreoDestino = correoInvitado,
+                IdGrupo = idGrupo,
+                IdEvento = evento.Id,
+                Aceptada = false,
+                FechaExpiracion = DateTime.UtcNow.AddDays(7),
+                CorreoCreador = creador.Correo
+            };
+            await _invitacionRepo.AddAsync(invitacion);
+
+            var urlBase = _config["App:Url"] ?? "https://localhost:7001";
+            var urlAceptacion = $"{urlBase}/aceptar-invitacion/{token}";
+
+            await _emailService.EnviarInvitacionAsync(
+                correoInvitado,
+                evento.Nombre,
+                creador.Nombre,
+                urlAceptacion);
+        }
+        public async Task AñadirGrupo(string nombreGrupo, long idCategoria)
+        {
+            var categoria = await _context.Categoria
+                .FirstOrDefaultAsync(c => c.Id == idCategoria);
+
+            if (categoria == null)
+                throw new Exception("Categoría no encontrada");
+
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento);
+
+            ValidarFaseInscripcion(evento);
 
             var grupo = new Grupo
             {
                 Nombre = nombreGrupo,
+                IdCategoria = idCategoria,
                 HojaRutaTexto = ""
             };
 
             await _grupoRepo.AddAsync(grupo);
+            await _unitOfWork.SaveChangesAsync();
 
+            // crear proyecto asociado
             var proyecto = new Proyecto
             {
                 Nombre = "Sin nombre",
@@ -191,30 +337,107 @@ namespace Votify.LógicaNegocio.Services
             await _proyectoRepo.AddAsync(proyecto);
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task EliminarGrupo(long idEvento,long idGrupo)
+        public async Task EliminarGrupo(long grupoId)
         {
+            var grupo = await _grupoRepo.GetByIdAsync(grupoId);
+            var categoria = await _categoriumRepo.GetByIdAsync(grupo.IdCategoria);
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento);
+            var invitaciones = await _context.InvitacionesPendientes
+            .Where(i => i.IdGrupo == grupoId)
+            .ToListAsync();
 
-            if (ObtenerFaseActual(idEvento) != FasesEvento.Inscripciones)
-                throw new ValidationException("No se pueden eliminar grupos fuera de la fase de inscripción");
+            if (grupo == null)
+                throw new Exception("Grupo no encontrado");
 
-            var grupo = await _grupoRepo.GetByIdAsync(idGrupo) ??
-                throw new NotFoundException("Grupo no encontrado");
 
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdGrupo == idGrupo);
+            if (evento == null)
+                throw new Exception("Evento no encontrado");
 
-            foreach (var pr in proyectos)
+            ValidarFaseInscripcion(evento);
+
+            // eliminar dependencias
+            _context.InvitacionesPendientes.RemoveRange(invitaciones);
+            _context.Participantes.RemoveRange(grupo.Participantes);
+            _context.Grupos.Remove(grupo);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarGrupo(long grupoId, GrupoDto dto)
+        {
+            var grupo = await _grupoRepo.GetByIdAsync(grupoId);
+            if (grupo == null)
+                throw new Exception("Grupo no encontrado");
+
+            // validar fase
+            var categoria = await _categoriumRepo.GetByIdAsync(grupo.IdCategoria);
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento);
+
+            ValidarFaseInscripcion(evento);
+
+            // actualizar nombre
+            grupo.Nombre = dto.Nombre;
+
+            await _grupoRepo.UpdateAsync(grupo);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        /*public async Task AceptarInvitacion(string token)
+        {
+            var invitacion = await _invitacionRepo
+                .FindAsync(i => i.Token == token);
+
+            var inv = invitacion.FirstOrDefault();
+
+            if (inv == null)
+                throw new Exception("Invitación inválida");
+
+            if (inv.FechaExpiracion < DateTime.Now)
+                throw new Exception("Invitación expirada");
+
+            long IdCategoria = ((await _grupoRepo.GetByIdAsync(inv.IdGrupo)).IdCategoria);
+
+            // crear participante
+            var participante = new Participante
             {
-                await _proyectoRepo.DeleteAsync(pr);
-            }
+                CorreoUsuario = inv.CorreoDestino,
+                IdGrupo = inv.IdGrupo,
+                IdEvento = (await _categoriumRepo.GetByIdAsync(IdCategoria)).IdEvento
+            };
 
-            var participantes = await _participanteRepo.FindAsync(p => p.IdGrupo == idGrupo);
+            await _participanteRepo.AddAsync(participante);
 
-            foreach (var p in participantes)
+            // eliminar invitación
+            await _invitacionRepo.DeleteAsync(inv);
+
+            await _unitOfWork.SaveChangesAsync();
+        }*/
+
+        public async Task AceptarInvitacion(string token, string correoUsuario)
+        {
+            var invitacion = await _invitacionRepo
+                .FindAsync(i => i.Token == token && !i.Aceptada);
+
+            var inv = invitacion.FirstOrDefault();
+            if (inv == null)
+                throw new Exception("Invitación inválida o ya utilizada");
+
+            if (inv.FechaExpiracion < DateTime.UtcNow)
+                throw new Exception("La invitación ha expirado");
+
+            if (!inv.CorreoDestino.Equals(correoUsuario, StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Esta invitación no es para tu cuenta");
+
+            // crear participante
+            await _participanteRepo.AddAsync(new Participante
             {
-                await _participanteRepo.DeleteAsync(p);
-            }
+                CorreoUsuario = correoUsuario,
+                IdGrupo = inv.IdGrupo,
+                IdEvento = inv.IdEvento
+            });
 
-            await _grupoRepo.DeleteAsync(grupo);
+            inv.Aceptada = true;
+
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -240,7 +463,7 @@ namespace Votify.LógicaNegocio.Services
             if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly && finVotacionesOnly < finExpertaOnly))
                 throw new ValidationException("Las fechas deben estar en orden lógico");
 
-            /*//  No fechas pasadas
+            /*//  No fechas pasadas por el momento para hacer pruebas
             if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy || finExpertaOnly < hoy)
         throw new ValidationException("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
             //  Restricción por fase
@@ -292,38 +515,21 @@ namespace Votify.LógicaNegocio.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        /*
-        public async Task AñadirParticipante(string correo, long idGrupo)
+        private void ValidarFaseInscripcion(Evento evento)
         {
-            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
-                throw new Exception("Solo se pueden añadir participantes en fase de inscripciones");
+            var hoy = DateOnly.FromDateTime(DateTime.Now);
 
-            var usuario = (await _usuarioRepo.FindAsync(u => u.Correo == correo))
-                .FirstOrDefault();
+            if (hoy > evento.FechaFinInscripciones)
+                throw new Exception("No se pueden modificar participantes fuera de la fase de inscripción.");
 
-            if (usuario == null)
-                throw new Exception("Usuario no encontrado");
+            if (evento.Estado == "Pausado")
+                throw new Exception("El evento está pausado.");
 
-            var participante = new Participante
-            {
-                Correo = correo,
-                IdGrupo = idGrupo
-            };
-
-            await _participanteRepo.AddAsync(participante);
+            if (evento.Estado == "Cerrado")
+                throw new Exception("El evento está cerrado.");
         }
-        public async Task EliminarParticipante(long idParticipante)
-        {
-            if (ObtenerFaseActual() != FasesEvento.Inscripciones)
-                throw new Exception("Solo se pueden eliminar participantes en fase de inscripciones");
 
-            var participante = await _participanteRepo.GetByIdAsync(idParticipante);
 
-            if (participante == null)
-                throw new Exception("Participante no encontrado");
-
-            await _participanteRepo.DeleteAsync(participante);
-        }*/ //PARA EL SPRINT 2
         public FasesEvento ObtenerFaseActual(long idEvento)
         {
             var evento = _eventoRepo.GetByIdAsync(idEvento).Result

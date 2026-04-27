@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
+using Votify.LógicaNegocio.Services;
 
 namespace Votify.Controladores
 {
@@ -53,6 +55,8 @@ namespace Votify.Controladores
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
+
+
 
         [HttpGet("categoria/{id}/proyectos")]
         public async Task<IActionResult> GetProyectos(long id)
@@ -126,30 +130,94 @@ namespace Votify.Controladores
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
-        [HttpPost("{eventoId:long}/categoria/{id}/grupo")]
-        public async Task<IActionResult> AgregarGrupo(long eventoId, long id, [FromBody] string nombreGrupo)
+        [HttpPut("{eventoId:long}/grupo/{grupoId}/participantes")]
+        public async Task<IActionResult> ActualizarParticipantes(
+            long eventoId,
+            long grupoId,
+            [FromBody] List<string> correos)
         {
             try
             {
-                await _eventoAdministradorService.AñadirGrupo(nombreGrupo, id, eventoId);
+                var dto = new GrupoDto
+                {
+                    Id = grupoId,
+                    CorreosParticipantes = correos
+                };
+
+                await _eventoAdministradorService.ActualizarParticipantesGrupo(eventoId, dto);
+
                 return NoContent();
             }
-            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
-            catch (ConflictException ex) { return Conflict(new ErrorDto { Error = ex.Message }); }
-            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpDelete("{eventoId:long}/grupo/{grupoId}")]
-        public async Task<IActionResult> EliminarGrupo(long eventoId, long grupoId)
+        [HttpPut("grupo/{grupoId}")]
+        public async Task<IActionResult> ActualizarGrupo(long grupoId, [FromBody] GrupoDto dto)
         {
             try
             {
-                await _eventoAdministradorService.EliminarGrupo(eventoId, grupoId);
-                return NoContent();
+                await _eventoAdministradorService.ActualizarGrupo(grupoId, dto);
+                return Ok();
             }
-            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
-            catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
         }
+
+        [HttpDelete("grupo/{grupoId}")]
+        public async Task<IActionResult> EliminarGrupo(long grupoId)
+        {
+            try
+            {
+                await _eventoAdministradorService.EliminarGrupo(grupoId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
+        
+        }
+
+        [HttpPost("categoria/{idCategoria}/grupo")]
+        public async Task<IActionResult> CrearGrupo(long idCategoria, [FromBody] GrupoDto dto)
+        {
+            try
+            {
+                await _eventoAdministradorService.AñadirGrupo(dto.Nombre, idCategoria);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
+        }
+        [HttpPost("aceptar-invitacion/{token}")]
+        public async Task<IActionResult> AceptarInvitacion(string token)
+        {
+            try
+            {
+                var correo = User.Claims.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.Email ||
+                    c.Type == "email" ||
+                    c.Type == "sub"
+                )?.Value;
+
+                await _eventoAdministradorService.AceptarInvitacion(token, correo);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
+        }
+
+
+
 
         [HttpPut("{eventoId:long}/fechas")]
         public async Task<IActionResult> ActualizarFechas(long eventoId, [FromBody] ActualizarFechasDto dto)
@@ -189,5 +257,7 @@ namespace Votify.Controladores
             await _eventoAdministradorService.CerrarEvento(eventoId);
             return NoContent();
         }
+
+
     }
 }
