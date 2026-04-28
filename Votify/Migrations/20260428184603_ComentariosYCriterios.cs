@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class Migracion : Migration
+    public partial class ComentariosYCriterios : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -308,8 +308,8 @@ namespace Votify.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     nombre = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     id_grupo = table.Column<long>(type: "bigint", nullable: false),
-                    Descripcion = table.Column<string>(type: "text", nullable: false),
-                    DescripcionBreve = table.Column<string>(type: "text", nullable: false),
+                    descripcion = table.Column<string>(type: "text", nullable: false),
+                    descripcion_breve = table.Column<string>(type: "text", nullable: false),
                     archivo = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
@@ -356,11 +356,18 @@ namespace Votify.Migrations
                     id_rol = table.Column<long>(type: "bigint", nullable: false),
                     correo_rol = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     id_proyecto_gru = table.Column<long>(type: "bigint", nullable: false),
+                    id_criterio = table.Column<long>(type: "bigint", nullable: false),
                     contenido = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("comentario_pkey", x => new { x.id_rol, x.correo_rol, x.id_proyecto_gru });
+                    table.PrimaryKey("comentario_pkey", x => new { x.id_rol, x.correo_rol, x.id_proyecto_gru, x.id_criterio });
+                    table.ForeignKey(
+                        name: "id_criterioFK",
+                        column: x => x.id_criterio,
+                        principalTable: "criterio",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "id_proyectoFK",
                         column: x => x.id_proyecto_gru,
@@ -448,6 +455,11 @@ namespace Votify.Migrations
                 name: "IX_comentario_correo_rol_id_rol",
                 table: "comentario",
                 columns: new[] { "correo_rol", "id_rol" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_comentario_id_criterio",
+                table: "comentario",
+                column: "id_criterio");
 
             migrationBuilder.CreateIndex(
                 name: "IX_comentario_id_proyecto_gru",

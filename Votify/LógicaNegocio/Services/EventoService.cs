@@ -329,12 +329,14 @@ namespace Votify.LógicaNegocio.Services
                 .ToListAsync();
         }
 
-        public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, string comentario)
+        public async Task ComentarProyecto(long idEvento, string correo, long idProyecto, long idCriterio, string comentario)
         {
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) ?? throw new NotFoundException("Proyecto no encontrado.");
 
             Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault() ?? 
                 throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
+
+            Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio) ?? throw new NotFoundException("Criterio no encontrado.");
 
             Comentario comentario1 = new Comentario
             (
@@ -342,8 +344,10 @@ namespace Votify.LógicaNegocio.Services
                 correo,
                 comentario,
                 pr.Id, 
+                idCriterio,
                 pr,
-                rol
+                rol,
+                criterio
             );
 
             

@@ -85,9 +85,8 @@ namespace Votify.LógicaNegocio.Services
             var comentarios = await _comentarioRepo.AsQueryable()
                                             .Where(c => c.IdRol == eventoId && 
                                                         c.CorreoRol == correoJurado &&
-                                                        c.Proyecto != null && 
-                                                        c.Proyecto.IdGrupoNavigation != null &&
-                                                        c.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
+                                                        c.Criterio != null && 
+                                                        c.Criterio.IdCategoria == categoriaId)
                                             .Select(c => c.IdProyectoGru)
                                             .Distinct()
                                             .ToListAsync();
@@ -122,9 +121,8 @@ namespace Votify.LógicaNegocio.Services
             var comentariosJuradoIdsProyectos = await _comentarioRepo.AsQueryable()
                                             .Where(c => c.IdRol == eventoId && 
                                                         c.CorreoRol == correoJurado &&
-                                                        c.Proyecto != null && 
-                                                        c.Proyecto.IdGrupoNavigation != null &&
-                                                        c.Proyecto.IdGrupoNavigation.IdCategoria == categoriaId)
+                                                        c.Criterio != null && 
+                                                        c.Criterio.IdCategoria == categoriaId)
                                             .Select(c => c.IdProyectoGru)
                                             .Distinct()
                                             .ToListAsync();
@@ -156,32 +154,22 @@ namespace Votify.LógicaNegocio.Services
 
             var resultado = new List<CriterioComentariosDto>();
 
-            if (categoria != null && categoria.Criterios != null)
+            if (categoria != null && categoria.Criterios != null && categoria.Criterios.Any())
             {
+                // Obtenemos todos los comentarios de OTROS jueces para este proyecto
+                var comentarios = await _comentarioRepo.AsQueryable()
+                                                .Where(c => c.IdProyectoGru == idGrupo && c.CorreoRol != correoJurado)
+                                                .ToListAsync();
+
                 foreach (var crit in categoria.Criterios)
                 {
                     resultado.Add(new CriterioComentariosDto
                     {
                         CriterioId = crit.Id,
                         NombreCriterio = crit.Nombre,
-                        Comentarios = new List<string>() // En el actual esquema de DB Comentario no liga con Criterio
+                        Comentarios = comentarios.Where(c => c.IdCriterio == crit.Id).Select(c => c.Contenido).ToList()
                     });
                 }
-            }
-
-            // Obtenemos los comentarios del proyecto
-            var comentarios = await _comentarioRepo.AsQueryable()
-                                            .Where(c => c.IdProyectoGru == idGrupo && c.CorreoRol != correoJurado)
-                                            .ToListAsync();
-
-            if (comentarios != null && comentarios.Any())
-            {
-                resultado.Add(new CriterioComentariosDto
-                {
-                    CriterioId = 0,
-                    NombreCriterio = "Comentarios Generales del Proyecto",
-                    Comentarios = comentarios.Select(c => c.Contenido).ToList()
-                });
             }
 
             return resultado;

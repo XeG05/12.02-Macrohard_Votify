@@ -305,7 +305,7 @@ namespace Votify.Controladores
 
             try
             {
-                await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdProyecto, request.Comentario);
+                await _eventoService.ComentarProyecto(request.IdEvento, correo, request.IdProyecto, request.IdCriterio, request.Comentario);
                 return Ok(new { mensaje = "Comentario agregado exitosamente" });
             }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }

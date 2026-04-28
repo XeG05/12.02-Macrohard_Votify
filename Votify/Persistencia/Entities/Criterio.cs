@@ -18,11 +18,13 @@ public class Criterio
 
     public virtual ICollection<Voto> Votos { get; set; } = new List<Voto>();
 
+    public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
     public Criterio()
     {
         Reclamaciones = new List<Reclamacion>();
         Votos = new List<Voto>();
-
+        Comentarios = new List<Comentario>();
     }
     public Criterio(string nombre, string descripcion, long idCategoria, long ponderacion, Categorium idCategoriaNavigation)
     {
@@ -33,5 +35,6 @@ public class Criterio
         IdCategoriaNavigation = idCategoriaNavigation;
         Reclamaciones = new List<Reclamacion>();
         Votos = new List<Voto>();
+        Comentarios = new List<Comentario>();
     }
 }

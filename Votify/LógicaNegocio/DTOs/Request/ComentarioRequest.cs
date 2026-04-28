@@ -5,5 +5,6 @@
         public long IdEvento { get; set; }
         public long IdProyecto { get; set; }
         public string Comentario { get; set; } = string.Empty;
+        public long IdCriterio { get; set; }
     }
 }

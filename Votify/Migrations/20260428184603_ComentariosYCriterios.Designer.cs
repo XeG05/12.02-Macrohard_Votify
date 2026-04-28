@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260426121431_Migracion")]
-    partial class Migracion
+    [Migration("20260428184603_ComentariosYCriterios")]
+    partial class ComentariosYCriterios
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,13 +103,19 @@ namespace Votify.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("id_proyecto_gru");
 
+                    b.Property<long>("IdCriterio")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_criterio");
+
                     b.Property<string>("Contenido")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("contenido");
 
-                    b.HasKey("IdRol", "CorreoRol", "IdProyectoGru")
+                    b.HasKey("IdRol", "CorreoRol", "IdProyectoGru", "IdCriterio")
                         .HasName("comentario_pkey");
+
+                    b.HasIndex("IdCriterio");
 
                     b.HasIndex("IdProyectoGru");
 
@@ -400,11 +406,13 @@ namespace Votify.Migrations
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("DescripcionBreve")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion_breve");
 
                     b.Property<long>("IdGrupo")
                         .HasColumnType("bigint")
@@ -604,6 +612,13 @@ namespace Votify.Migrations
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Comentario", b =>
                 {
+                    b.HasOne("Votify.Persistencia.Entities.Criterio", "Criterio")
+                        .WithMany("Comentarios")
+                        .HasForeignKey("IdCriterio")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("id_criterioFK");
+
                     b.HasOne("Votify.Persistencia.Entities.Proyecto", "Proyecto")
                         .WithMany("Comentarios")
                         .HasForeignKey("IdProyectoGru")
@@ -617,6 +632,8 @@ namespace Votify.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("id_rolFK");
+
+                    b.Navigation("Criterio");
 
                     b.Navigation("Proyecto");
 
@@ -824,6 +841,8 @@ namespace Votify.Migrations
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Criterio", b =>
                 {
+                    b.Navigation("Comentarios");
+
                     b.Navigation("Reclamaciones");
 
                     b.Navigation("Votos");
