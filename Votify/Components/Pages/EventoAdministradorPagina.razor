@@ -107,23 +107,33 @@ else
             <!-- PARTICIPANTES EDITABLES -->
             @if (faseActual?.Fase == "Inscripciones")
             {
-                @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
-                {
+                    @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
+                    {
                         <div style="margin-bottom:5px; display:flex; gap:8px; align-items:center;">
 
-                      
                             <input type="text"
                                    value="@item.value"
                                    @oninput='e => g.CorreosParticipantes[item.index] = e.Value?.ToString() ?? ""'
                                    style="width:250px;" />
-                        
 
-                        <button @onclick="() => EliminarParticipante(g, item.index)">
-                            ❌
-                        </button>
-                    </div>
-                }
+                            <button @onclick="() => EliminarParticipante(g, item.index)">
+                                ❌
+                            </button>
 
+                            @if (string.IsNullOrWhiteSpace(item.value)
+                                    && pendientesPorGrupo.ContainsKey(g.Id)
+                                    && pendientesPorGrupo[g.Id] > item.index)
+                            {
+                                <span style="
+                                            font-size:13px;
+                                            color:#d97706;
+                                            font-style:italic;">
+                                    Esperando invitación...
+                                </span>
+                            }
+
+                        </div>
+                    }
                 <button @onclick="() => AñadirCampoParticipante(g)"
                         style="margin-top:5px;">
                     + Añadir participante
@@ -293,6 +303,8 @@ else
 
     Dictionary<long, string> nuevoCorreoPorGrupo = new();
 
+    Dictionary<long, int> pendientesPorGrupo = new();
+
     EventoDto? evento;
     FaseDto? faseActual;
 
@@ -417,50 +429,63 @@ else
 
     async Task CargarGrupos(long idCategoria)
     {
-        if (evento != null)
+        categoriaSeleccionadaId = idCategoria;
+
+        grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>
+            ($"api/administrador/categoria/{idCategoria}/grupos");
+
+        if (grupos == null)
+            return;
+
+        foreach (var g in grupos)
         {
-            categoriaSeleccionadaId = idCategoria;
-
-            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>(
-                $"api/administrador/categoria/{idCategoria}/grupos");
-
-            if (grupos == null)
-            {
-                error = "No se pudieron cargar los grupos.";
-                return;
-            }
-
-            foreach (var g in grupos)
-            {
-
-                var participantes = await ApiClient
-                    .GetFromJsonAsync<List<MiembroGrupoDto>>(
-                        $"api/administrador/grupo/{g.Id}/participantes");
-
-                g.CorreosParticipantes = participantes?
-                    .Select(p => p.Correo)
-                    .ToList() ?? new List<string>();
-
-                //  rellenar huecos si el grupo es fijo
-                if (evento.GruposCompletos)
-                {
-                    while (g.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
-                    {
-                        g.CorreosParticipantes.Add("");
-                    }
-                }
-
-                if (!nuevoCorreoPorGrupo.ContainsKey(g.Id))
-                    nuevoCorreoPorGrupo[g.Id] = "";
-            }
+            await CargarParticipantes(g.Id);
         }
-    }
 
+        StateHasChanged();
+    }
     async Task CargarParticipantes(long idGrupo)
     {
-
         var participantes = await ApiClient
-                .GetFromJsonAsync<List<MiembroGrupoDto>>($"api/administrador/grupo/{idGrupo}/participantes");
+            .GetFromJsonAsync<List<MiembroGrupoDto>>
+            ($"api/administrador/grupo/{idGrupo}/participantes");
+
+        if (participantes == null)
+        {
+            error = "No se pudieron cargar participantes";
+            return;
+        }
+
+        var pendientes = await ApiClient
+            .GetFromJsonAsync<int>
+            ($"api/administrador/grupo/{idGrupo}/pendientes");
+
+        pendientesPorGrupo[idGrupo] = pendientes;
+
+        var grupo = grupos?.FirstOrDefault(g => g.Id == idGrupo);
+
+        if (grupo != null)
+        {
+            grupo.CorreosParticipantes = participantes
+                .Select(p => p.Correo)
+                .ToList();
+
+            // Añadir huecos ocupados por pendientes
+            for (int i = 0; i < pendientes; i++)
+                grupo.CorreosParticipantes.Add("Invitación Pendiente");
+
+            while (grupo.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
+                grupo.CorreosParticipantes.Add("");
+        }
+
+        StateHasChanged();
+    }
+    /*
+    async Task CargarParticipantes(long idGrupo)
+    {
+        var participantes = await ApiClient
+            .GetFromJsonAsync<List<MiembroGrupoDto>>(
+                $"api/administrador/grupo/{idGrupo}/participantes");
 
         if (participantes == null)
         {
@@ -470,25 +495,32 @@ else
 
         participantesPorGrupo = new Dictionary<long, List<MiembroGrupoDto>>(participantesPorGrupo)
         {
-            [idGrupo] = participantes ?? new()
+            [idGrupo] = participantes
         };
 
-        await InvokeAsync(StateHasChanged);
-
         var grupo = grupos?.FirstOrDefault(g => g.Id == idGrupo);
+
         if (grupo != null)
         {
             grupo.CorreosParticipantes = participantes
                 .Select(p => p.Correo)
                 .ToList();
 
-            // rellenar huecos vacíos si faltan
             while (grupo.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
             {
                 grupo.CorreosParticipantes.Add("");
             }
         }
+
+        var pendientes = await ApiClient.GetFromJsonAsync<int>(
+            $"api/administrador/grupo/{idGrupo}/pendientes");
+
+        pendientesPorGrupo[idGrupo] = pendientes;
+        Console.WriteLine($"Pendientes cargados: {pendientes}");
+
+        await InvokeAsync(StateHasChanged);
     }
+    */
 
     private void EliminarParticipante(GrupoDto grupo, int index)
     {
@@ -654,8 +686,10 @@ else
             }
             else
             {
-                mensajeError = "Invitaciones enviadas correctamente";
+                mensajeError = "Cambios realizados correctamente";
                 hayError = false;
+                await CargarParticipantes(grupo.Id);  
+                StateHasChanged();
             }
         }
         catch (Exception ex)

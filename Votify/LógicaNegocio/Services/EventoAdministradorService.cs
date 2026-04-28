@@ -411,36 +411,6 @@ namespace Votify.LógicaNegocio.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        /*public async Task AceptarInvitacion(string token)
-        {
-            var invitacion = await _invitacionRepo
-                .FindAsync(i => i.Token == token);
-
-            var inv = invitacion.FirstOrDefault();
-
-            if (inv == null)
-                throw new Exception("Invitación inválida");
-
-            if (inv.FechaExpiracion < DateTime.Now)
-                throw new Exception("Invitación expirada");
-
-            long IdCategoria = ((await _grupoRepo.GetByIdAsync(inv.IdGrupo)).IdCategoria);
-
-            // crear participante
-            var participante = new Participante
-            {
-                CorreoUsuario = inv.CorreoDestino,
-                IdGrupo = inv.IdGrupo,
-                IdEvento = (await _categoriumRepo.GetByIdAsync(IdCategoria)).IdEvento
-            };
-
-            await _participanteRepo.AddAsync(participante);
-
-            // eliminar invitación
-            await _invitacionRepo.DeleteAsync(inv);
-
-            await _unitOfWork.SaveChangesAsync();
-        }*/
 
         public async Task AceptarInvitacion(string token, string correoUsuario)
         {
@@ -468,6 +438,12 @@ namespace Votify.LógicaNegocio.Services
             inv.Aceptada = true;
 
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<int> ContarInvitacionesPendientes(long idGrupo)
+        {
+            return await _context.InvitacionesPendientes
+                .CountAsync(i => i.IdGrupo == idGrupo && !i.Aceptada);
         }
 
         public async Task ActualizarFechas(long eventoId,

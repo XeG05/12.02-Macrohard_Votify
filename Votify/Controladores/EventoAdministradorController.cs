@@ -216,6 +216,14 @@ namespace Votify.Controladores
             }
         }
 
+        [HttpGet("grupo/{id}/pendientes")]
+        public async Task<IActionResult> Pendientes(long id)
+        {
+            var cantidad = await _eventoAdministradorService.ContarInvitacionesPendientes(id);
+            Console.WriteLine($"Grupo {id} pendientes = {cantidad}");
+            return Ok(cantidad);
+
+        }
 
 
 
