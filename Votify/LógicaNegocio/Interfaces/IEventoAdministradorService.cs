@@ -26,6 +26,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task CerrarEvento(long eventoId);
         Task ActualizarParticipantesGrupo(long eventoId, GrupoDto dto);
         Task AceptarInvitacion(string token, string correoUsuario);
+        Task<int> ContarInvitacionesPendientes(long idGrupo);
 
     }
 }
