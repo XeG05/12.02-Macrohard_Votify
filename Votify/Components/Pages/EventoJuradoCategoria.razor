@@ -72,7 +72,7 @@ else if (eventoNombre != "" && categoria != null)
                         </div>
 
                         <!-- 3 Columnas principales de info del proyecto -->
-                        <div class="ejc-proyecto-cols" style="cursor: pointer;" @onclick="() => IrAProyecto(p.IdGrupo)">
+                        <div class="ejc-proyecto-cols" style="cursor: pointer;" @onclick="() => IrAProyecto(p.Id)">
 
                             <!-- Izquierda: Titulo + Participantes -->
                             <div class="ejc-col-left">
@@ -162,9 +162,9 @@ else if (eventoNombre != "" && categoria != null)
         Nav.NavigateTo($"/eventojurado/{EventoId}");
     }
 
-    private void IrAProyecto(long idGrupo)
+    private void IrAProyecto(long idProyecto)
     {
-        Nav.NavigateTo($"/proyectopagina/{idGrupo}");
+        Nav.NavigateTo($"/{EventoId}/proyecto/{idProyecto}");
     }
 
     private void IrAResultadoPopular(long idGrupo)

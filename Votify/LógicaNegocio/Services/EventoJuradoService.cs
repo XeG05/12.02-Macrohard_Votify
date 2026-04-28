@@ -33,15 +33,22 @@ namespace Votify.LógicaNegocio.Services
                                             .ToListAsync();
 
             var categoriasAsignadas = categorias.Where(c => c.Jurados != null && c.Jurados.Any(j => j.CorreoUsuario == correo)).ToList();
-            
-            return categoriasAsignadas.Select(c => new CategoriaJuradoDto
+
+            var resultado = new List<CategoriaJuradoDto>();
+            foreach(var c in categoriasAsignadas)
             {
-                Id = c.Id,
-                Nombre = c.Nombre,
-                Descripcion = c.Descripcion,
-                ProyectosRevisados = 0,
-                ProyectosTotales = 0
-            }).ToList();
+                var datosProyectos = await ObtenerProyectosRevisadosPorJurado(correo, eventoId, c.Id);
+                resultado.Add(new CategoriaJuradoDto
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    Descripcion = c.Descripcion,
+                    ProyectosRevisados = datosProyectos[0],
+                    ProyectosTotales = datosProyectos[1]
+                });
+            }
+
+            return resultado;
         }
 
         public async Task<String> ObtenerNombreEvento(long eventoId)

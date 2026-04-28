@@ -71,9 +71,27 @@
             </div>
         }
 
-        @if (esVotante)
+        @if (esVotante || esJurado)
         {
-            @if (GetFaseClass(evento) == "votaciones")
+            // Separamos la lógica de en qué fase debe mostrarse la votación:
+            // Votante normal => fase "votaciones"
+            // Jurado => fase "evaluacion" (despues de votaciones, osea la que en tu condicional cae a 'resultados' u otra fase experta)
+            bool puedeVotarSegunFase = false;
+            string nombreFasePermitida = "";
+            var faseActual = GetFaseClass(evento);
+
+            if (esVotante && faseActual == "votaciones")
+            {
+                puedeVotarSegunFase = true;
+                nombreFasePermitida = "votaciones";
+            }
+            else if (esJurado && faseActual == "evaluacion") // La fase que corresponda a cuando acaba la votación
+            {
+                puedeVotarSegunFase = true;
+                nombreFasePermitida = "evaluacion experta";
+            }
+
+            @if (puedeVotarSegunFase)
             {
                 <div class="votacion-criterios">
                     <h3>Votación</h3>
@@ -127,7 +145,10 @@
             else
             {
                 <div class="seccion-votar">
-                    <div class="evp-alert evp-alert-info">Las votaciones y los comentarios solo están habilitados durante la fase de votaciones.</div>
+                    <div class="evp-alert evp-alert-info">
+                        Las votaciones y los comentarios solo están habilitados durante tu fase correspondiente 
+                        @(esJurado ? "(evaluación experta)" : "(fase de votaciones)").
+                    </div>
                 </div>
             }
         }
@@ -158,11 +179,15 @@ else {
     int votosTotalesEvento = 0;
     string errorMessage = "";
     private long _ultimoIdCargado = 0;
+    private long _idCategoria = 0;
     bool esVotante = false;
+    bool esJurado = false;
 
     private async Task EmitirVotoCriterio(ChangeEventArgs e, long idCriterio)
     {
-        if (evento == null || GetFaseClass(evento) != "votaciones") return;
+        if (evento == null) return;
+        var faseActual = GetFaseClass(evento);
+        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
 
         bool isChecked = (bool)(e.Value ?? false);
         if (!isChecked) return;
@@ -214,7 +239,9 @@ else {
 
     private async Task EnviarComentario()
     {
-        if (GetFaseClass(evento) != "votaciones") return;
+        if (evento == null) return;
+        var faseActual = GetFaseClass(evento);
+        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
         if (string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
 
         var peticion = new 
@@ -245,7 +272,14 @@ else {
 
     private void VolverAtras()
     {
-        Nav.NavigateTo($"/listaproyectos/{idEvento}");
+        if (esJurado && _idCategoria > 0)
+        {
+            Nav.NavigateTo($"/eventojurado/{idEvento}/categoria/{_idCategoria}");
+        }
+        else
+        {
+            Nav.NavigateTo($"/listaproyectos/{idEvento}");
+        }
     }
 
     private void ImagenAnterior()
@@ -305,6 +339,7 @@ else {
             evento = entrada.Evento;
             esVotante = entrada.Rol.EsVotante && !entrada.Rol.EsAdministrador
             && !entrada.Rol.EsJurado && !entrada.Rol.EsParticipante;
+            esJurado = entrada.Rol.EsJurado;
 
             proyecto = await ApiClient.GetFromJsonAsync<ProyectoDto>($"api/evento/proyecto/{idProyecto}");
             if(proyecto == null)
@@ -318,6 +353,7 @@ else {
 
             if (grupoProyecto != null)
             {
+                _idCategoria = grupoProyecto.IdCategoria;
                 var categoriaProyecto = categorias.FirstOrDefault(c => c.Id == grupoProyecto.IdCategoria);
                 criteriosCategoria = categoriaProyecto?.Criterios ?? new();
 
@@ -346,7 +382,7 @@ else {
                 Console.WriteLine("Error al obtener el comentario del usuario (o no existe): " + ex.Message);
             }
 
-            if (esVotante)
+            if (esVotante || esJurado)
             {
                 try
                 {
@@ -386,6 +422,7 @@ else {
         if (hoy <= ev.FechaFinInscripciones) return "inscripciones";
         if (hoy <= ev.FechaFinEntrega) return "entregas";
         if (hoy <= ev.FechaFinVotaciones) return "votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "evaluacion";
         return "resultados";
     }
 }
