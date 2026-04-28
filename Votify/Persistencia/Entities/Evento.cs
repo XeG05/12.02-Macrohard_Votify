@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Votify.LógicaNegocio.Enums;
 
 namespace Votify.Persistencia.Entities;
 
@@ -18,16 +19,12 @@ public class Evento
 
     public DateOnly FechaFinEvaluacionExperta { get; set; }
 
-    public bool SinComentarios { get; set; }
-    public bool ComentariosOpcionales { get; set; }
-    public bool ComentariosObligatorios { get; set; }
+    public TipoComentario TipoComentario { get; set; }
 
     public bool ParticipantesVotan { get; set; }
 
-    public bool VotarXProyectos { get; set; }
-    public bool RepartirPuntos { get; set; }
-    public bool CalificarNumericamente { get; set; }
-    public int VotarProyectos { get; set; }
+    public TipoVotacion TipoVotacion { get; set; }
+    public int NumVotarProyectos { get; set; }
     public int PuntosARepartir { get; set; }
 
     public bool TieneGrupos { get; set; }
@@ -51,14 +48,10 @@ public class Evento
         DateOnly fechaFinEntrega,
         DateOnly fechaFinVotaciones,
         DateOnly fechaFinEvaluacionExperta,
-        bool sinComentarios,
-        bool comentariosOpcionales,
-        bool comentariosObligatorios,
+        TipoComentario tipoComentario,
         bool participantesVotan,
-        bool calificarNumericamente,
-        bool votarXProyecto,
-        int votarProyecto,
-        bool repartirPuntos,
+        TipoVotacion tipoVotacion,
+        int numVotarProyectos,
         int puntosARepartir,
         bool tieneGrupos,
         bool gruposCompletos,
@@ -70,14 +63,10 @@ public class Evento
         FechaFinEntrega = fechaFinEntrega;
         FechaFinVotaciones = fechaFinVotaciones;
         FechaFinEvaluacionExperta = fechaFinEvaluacionExperta;
-        SinComentarios = sinComentarios;
-        ComentariosOpcionales = comentariosOpcionales;
-        ComentariosObligatorios = comentariosObligatorios;
+        TipoComentario = tipoComentario;
         ParticipantesVotan = participantesVotan;
-        CalificarNumericamente = calificarNumericamente;
-        VotarXProyectos = votarXProyecto;
-        VotarProyectos = votarProyecto;
-        RepartirPuntos = repartirPuntos;
+        TipoVotacion = tipoVotacion;
+        NumVotarProyectos = numVotarProyectos;
         PuntosARepartir = puntosARepartir;
         TieneGrupos = tieneGrupos;
         GruposCompletos = gruposCompletos;

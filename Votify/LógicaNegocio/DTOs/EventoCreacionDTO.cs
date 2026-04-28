@@ -1,3 +1,5 @@
+using Votify.LógicaNegocio.Enums;
+
 namespace Votify.LógicaNegocio.DTOs
 {
     public class EventoCreacionDto
@@ -10,17 +12,12 @@ namespace Votify.LógicaNegocio.DTOs
         public DateOnly? FechaFinVotaciones { get; set; }
         public DateOnly? FechaFinExperta { get; set; }
 
-        public bool SinComentarios { get; set; }
-        public bool ComentariosOpcionales { get; set; }
-        public bool ComentariosObligatorios { get; set; }
+        public TipoComentario TipoComentario { get; set; } = TipoComentario.SinComentarios;
+        public TipoVotacion TipoVotacion { get; set; } = TipoVotacion.Simple;
 
         public bool ParticipantesVotan { get; set; }
-
-        public bool VotarXProyectos { get; set; }
-        public bool RepartirPuntos { get; set; }
-        public bool CalificarNumericamente { get; set; }
-        public int VotarProyectos { get; set; } = 1;
-        public int PuntosARepartir { get; set; } = 1;
+        public int NumVotarProyectos { get; set; } = 3;
+        public int PuntosARepartir { get; set; } = 100;
 
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
@@ -59,6 +56,12 @@ namespace Votify.LógicaNegocio.DTOs
 
             if (TieneGrupos && NumParticipantes < 1)
                 return (false, "El número de participantes por grupo debe ser al menos 1");
+
+            if (TipoVotacion == TipoVotacion.Simple && NumVotarProyectos < 1)
+                return (false, "El número de proyectos a votar debe ser al menos 1");
+
+            if (TipoVotacion == TipoVotacion.Puntos && PuntosARepartir < 1)
+                return (false, "Los puntos a repartir deben ser al menos 1");
 
             foreach (var cat in Categorias)
             {

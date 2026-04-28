@@ -17,5 +17,7 @@
         public string NombreCriterio { get; set; } = "";
         public long Ponderacion { get; set; }
         public int CantidadVotos { get; set; }
+        public double? MediaNota { get; set; }
+        public double? TotalPuntos { get; set; }
     }
 }

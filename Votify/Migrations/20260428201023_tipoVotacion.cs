@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class ComentariosYCriterios : Migration
+    public partial class tipoVotacion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,14 +24,10 @@ namespace Votify.Migrations
                     fecha_fin_entrega = table.Column<DateOnly>(type: "date", nullable: false),
                     fecha_fin_votaciones = table.Column<DateOnly>(type: "date", nullable: false),
                     fecha_fin_evaluacion_experta = table.Column<DateOnly>(type: "date", nullable: false),
-                    sin_comentario = table.Column<bool>(type: "boolean", nullable: false),
-                    comentario_opcional = table.Column<bool>(type: "boolean", nullable: false),
-                    comentario_obligatorio = table.Column<bool>(type: "boolean", nullable: false),
+                    tipo_comentario = table.Column<string>(type: "text", nullable: false, defaultValue: "SinComentarios"),
                     participante_votan = table.Column<bool>(type: "boolean", nullable: false),
-                    votar_x_proyecto = table.Column<bool>(type: "boolean", nullable: false),
-                    repartir_puntos = table.Column<bool>(type: "boolean", nullable: false),
-                    calificar_numericamente = table.Column<bool>(type: "boolean", nullable: false),
-                    votar_proyecto = table.Column<int>(type: "integer", nullable: false),
+                    tipo_votacion = table.Column<string>(type: "text", nullable: false, defaultValue: "Simple"),
+                    num_votar_proyectos = table.Column<int>(type: "integer", nullable: false),
                     puntos_a_repartir = table.Column<int>(type: "integer", nullable: false),
                     tiene_grupos = table.Column<bool>(type: "boolean", nullable: false),
                     grupos_completos = table.Column<bool>(type: "boolean", nullable: false),

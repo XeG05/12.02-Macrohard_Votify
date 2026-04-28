@@ -72,7 +72,18 @@ else
                     {
                         <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#555;">
                             <span>@c.NombreCriterio - @c.Ponderacion%</span>
-                            <span>@c.CantidadVotos votos</span>
+                            @if (evento?.TipoVotacion == TipoVotacion.Nota)
+                            {
+                                <span>@(c.MediaNota.HasValue ? c.MediaNota.Value.ToString("0.##") : "-") nota media (@c.CantidadVotos votos)</span>
+                            }
+                            else if (evento?.TipoVotacion == TipoVotacion.Puntos)
+                            {
+                                <span>@(c.TotalPuntos.HasValue ? c.TotalPuntos.Value.ToString("0.##") : "0") puntos totales</span>
+                            }
+                            else
+                            {
+                                <span>@c.CantidadVotos votos</span>
+                            }
                         </div>
                     }
                 </div>

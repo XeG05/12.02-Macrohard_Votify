@@ -31,7 +31,7 @@ namespace Votify.LógicaNegocio.Interfaces
 
         Task<List<CriterioVotoInfoDto>> ObtenerInfoVotoPorCriterios(long idEvento, long idProyecto, string correo);
 
-        Task VotarProyectoSimple(long idEvento, long idProyecto, long idCriterio, string correo);
+        Task VotarProyecto(long idEvento, long idProyecto, long idCriterio, int? valor, string correo);
 
         Task<List<Evento>> GetEventosJurados(string correo);
     }

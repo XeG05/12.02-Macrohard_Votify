@@ -1,4 +1,6 @@
-﻿namespace Votify.LógicaNegocio.DTOs
+﻿using Votify.LógicaNegocio.Enums;
+
+namespace Votify.LógicaNegocio.DTOs
 {
     public class EventoDto
     {
@@ -14,5 +16,9 @@
         public int ParticipantesPorGrupo { get; set; }
 
         public string Estado { get; set; } = "Activo";
+        public TipoComentario TipoComentario { get; set; }
+        public TipoVotacion TipoVotacion { get; set; }
+        public int NumVotarProyectos { get; set; }
+        public int PuntosARepartir { get; set; }
     }
 }

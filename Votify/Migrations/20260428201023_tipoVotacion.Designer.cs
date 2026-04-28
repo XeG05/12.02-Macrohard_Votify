@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Votify.Persistencia;
@@ -11,9 +12,11 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    partial class VotifyContextModelSnapshot : ModelSnapshot
+    [Migration("20260428201023_tipoVotacion")]
+    partial class tipoVotacion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,18 +169,6 @@ namespace Votify.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<bool>("CalificarNumericamente")
-                        .HasColumnType("boolean")
-                        .HasColumnName("calificar_numericamente");
-
-                    b.Property<bool>("ComentariosObligatorios")
-                        .HasColumnType("boolean")
-                        .HasColumnName("comentario_obligatorio");
-
-                    b.Property<bool>("ComentariosOpcionales")
-                        .HasColumnType("boolean")
-                        .HasColumnName("comentario_opcional");
-
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text")
@@ -216,6 +207,10 @@ namespace Votify.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
+                    b.Property<int>("NumVotarProyectos")
+                        .HasColumnType("integer")
+                        .HasColumnName("num_votar_proyectos");
+
                     b.Property<int>("ParticipantesPorGrupo")
                         .HasColumnType("integer")
                         .HasColumnName("participantes_por_grupo");
@@ -228,25 +223,23 @@ namespace Votify.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("puntos_a_repartir");
 
-                    b.Property<bool>("RepartirPuntos")
-                        .HasColumnType("boolean")
-                        .HasColumnName("repartir_puntos");
-
-                    b.Property<bool>("SinComentarios")
-                        .HasColumnType("boolean")
-                        .HasColumnName("sin_comentario");
-
                     b.Property<bool>("TieneGrupos")
                         .HasColumnType("boolean")
                         .HasColumnName("tiene_grupos");
 
-                    b.Property<int>("VotarProyectos")
-                        .HasColumnType("integer")
-                        .HasColumnName("votar_proyecto");
+                    b.Property<string>("TipoComentario")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("SinComentarios")
+                        .HasColumnName("tipo_comentario");
 
-                    b.Property<bool>("VotarXProyectos")
-                        .HasColumnType("boolean")
-                        .HasColumnName("votar_x_proyecto");
+                    b.Property<string>("TipoVotacion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Simple")
+                        .HasColumnName("tipo_votacion");
 
                     b.HasKey("Id")
                         .HasName("evento_pkey");

@@ -5,6 +5,6 @@
         public long IdEvento { get; set; }
         public long IdProyecto { get; set; }
         public long IdCriterio { get; set; }
-        public int? Nota { get; set; }
+        public int? Valor { get; set; }
     }
 }

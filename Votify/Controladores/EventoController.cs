@@ -38,6 +38,10 @@ namespace Votify.Controladores
             GruposCompletos = e.GruposCompletos,
             ParticipantesPorGrupo = e.ParticipantesPorGrupo,
             Estado = e.Estado,
+            TipoComentario = e.TipoComentario,
+            TipoVotacion = e.TipoVotacion,
+            NumVotarProyectos = e.NumVotarProyectos,
+            PuntosARepartir = e.PuntosARepartir,
         };
 
         private static GrupoDto MapGrupo(Grupo g) => new()
@@ -346,20 +350,21 @@ namespace Votify.Controladores
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
-        /// Emite un voto estandar al proyecto
+        /// Emite un voto al proyecto (Simple, Nota o Puntos según el tipo del evento)
         [HttpPost("proyecto/votar")]
-        public async Task<IActionResult> VotarProyectoSimple([FromBody] VotoRequest request)
+        public async Task<IActionResult> VotarProyecto([FromBody] VotoRequest request)
         {
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
             try
             {
-                await _eventoService.VotarProyectoSimple(request.IdEvento, request.IdProyecto, request.IdCriterio, correo);
+                await _eventoService.VotarProyecto(request.IdEvento, request.IdProyecto, request.IdCriterio, request.Valor, correo);
                 return Ok(new { mensaje = "Voto emitido exitosamente" });
             }
             catch (ConflictException ex) { return Conflict(new ErrorDto { Error = ex.Message }); }
             catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
+            catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
     }

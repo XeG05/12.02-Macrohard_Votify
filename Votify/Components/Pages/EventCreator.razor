@@ -57,36 +57,45 @@ else
                 <div>
                     <p>Comentarios de los votantes</p>
                     <div class="radio-opcion">
-                        <input type="radio" name="comentarios" @bind="dto.SinComentarios" checked/>
+                        <input type="radio" name="comentarios"
+                               checked="@(dto.TipoComentario == TipoComentario.SinComentarios)"
+                               @onchange="@(() => dto.TipoComentario = TipoComentario.SinComentarios)" />
                         <p>Sin comentarios</p>
                     </div>
                     <div class="radio-opcion">
-                        <input type="radio" name="comentarios" @bind="dto.ComentariosOpcionales" />
+                        <input type="radio" name="comentarios"
+                               checked="@(dto.TipoComentario == TipoComentario.Opcional)"
+                               @onchange="@(() => dto.TipoComentario = TipoComentario.Opcional)" />
                         <p>Comentarios opcionales</p>
                     </div>
                     <div class="radio-opcion">
-                        <input type="radio" name="comentarios" @bind="dto.ComentariosObligatorios" />
+                        <input type="radio" name="comentarios"
+                               checked="@(dto.TipoComentario == TipoComentario.Obligatorio)"
+                               @onchange="@(() => dto.TipoComentario = TipoComentario.Obligatorio)" />
                         <p>Comentarios obligatorios con el voto</p>
                     </div>
                 </div>
                 <div>
-                    <p>Tipo de votación(por Criterio)</p>
+                    <p>Tipo de votación (por Criterio)</p>
                     <div class="radio-opcion">
-                        <input type="radio" name="votos" checked="@dto.CalificarNumericamente"
-                               @onchange="@(() => SetTipoVoto("calificar"))" />
-                        <p>Calificar numéricamente(de 1 a 10)</p>
+                        <input type="radio" name="votos"
+                               checked="@(dto.TipoVotacion == TipoVotacion.Nota)"
+                               @onchange="@(() => dto.TipoVotacion = TipoVotacion.Nota)" />
+                        <p>Calificar con nota (de 1 a 10)</p>
                     </div>
                     <div class="radio-opcion">
-                        <input type="radio" name="votos" checked="@dto.VotarXProyectos"
-                               @onchange="@(() => SetTipoVoto("proyectos"))" />
+                        <input type="radio" name="votos"
+                               checked="@(dto.TipoVotacion == TipoVotacion.Simple)"
+                               @onchange="@(() => dto.TipoVotacion = TipoVotacion.Simple)" />
                         <p>Voto simple: votar X proyectos</p>
-                        <input type="number" min="1" max="100" @bind="dto.VotarProyectos" disabled="@(!dto.VotarXProyectos)" />
-                    </div >
+                        <input type="number" min="1" max="100" @bind="dto.NumVotarProyectos" disabled="@(dto.TipoVotacion != TipoVotacion.Simple)" />
+                    </div>
                     <div class="radio-opcion">
-                        <input type="radio" name="votos" checked="@dto.RepartirPuntos"
-                               @onchange="@(() => SetTipoVoto("puntos"))" />
-                        <p>Repartir X puntos entre los proyectos</p>
-                        <input type="number" min="1" max="100" @bind="dto.PuntosARepartir" disabled="@(!dto.RepartirPuntos)" />
+                        <input type="radio" name="votos"
+                               checked="@(dto.TipoVotacion == TipoVotacion.Puntos)"
+                               @onchange="@(() => dto.TipoVotacion = TipoVotacion.Puntos)" />
+                        <p>Repartir X puntos entre los criterios</p>
+                        <input type="number" min="1" max="10000" @bind="dto.PuntosARepartir" disabled="@(dto.TipoVotacion != TipoVotacion.Puntos)" />
                     </div>
                 </div>
             </div>
@@ -241,14 +250,6 @@ else
         autenticado = true;
         StateHasChanged();
     }
-
-    private void SetTipoVoto(string tipo)
-    {
-        dto.VotarXProyectos = tipo == "proyectos";
-        dto.RepartirPuntos = tipo == "puntos";
-        dto.CalificarNumericamente = tipo == "calificar";
-    }
-
 
     private void AñadirCategoria()
     {

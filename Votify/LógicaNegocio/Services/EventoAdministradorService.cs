@@ -125,6 +125,12 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria)
         {
+            var categoria = await _categoriumRepo.GetByIdAsync(idCategoria)
+                ?? throw new NotFoundException("Categoría no encontrada.");
+
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
+                ?? throw new NotFoundException("Evento no encontrado.");
+
             var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
             var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == idCategoria);
 
@@ -145,15 +151,38 @@ namespace Votify.LógicaNegocio.Services
 
                 foreach (var criterio in criterios)
                 {
-                    int votosCriterio = votosProyecto.Count(v => v.IdCriterio == criterio.Id);
+                    var votosCriterio = votosProyecto.Where(v => v.IdCriterio == criterio.Id).ToList();
+                    double ponderacion = criterio.Ponderacion / 100.0;
+                    double? mediaNota = null;
+                    double? totalPuntos = null;
 
-                    puntuacion += (criterio.Ponderacion / 100.0) * votosCriterio;
+                    switch (evento.TipoVotacion)
+                    {
+                        case TipoVotacion.Simple:
+                            puntuacion += ponderacion * votosCriterio.Count;
+                            break;
+
+                        case TipoVotacion.Nota:
+                            if (votosCriterio.Any())
+                            {
+                                mediaNota = votosCriterio.Average(v => (double)(v.Nota ?? 0));
+                                puntuacion += ponderacion * mediaNota.Value;
+                            }
+                            break;
+
+                        case TipoVotacion.Puntos:
+                            totalPuntos = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
+                            puntuacion += ponderacion * totalPuntos.Value;
+                            break;
+                    }
 
                     resultadosCriterios.Add(new ResultadoCriterioDto
                     {
                         NombreCriterio = criterio.Nombre,
                         Ponderacion = criterio.Ponderacion,
-                        CantidadVotos = votosCriterio
+                        CantidadVotos = votosCriterio.Count,
+                        MediaNota = mediaNota,
+                        TotalPuntos = totalPuntos
                     });
                 }
 
