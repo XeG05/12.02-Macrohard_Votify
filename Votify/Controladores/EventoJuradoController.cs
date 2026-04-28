@@ -89,5 +89,22 @@ namespace Votify.Controladores
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}/proyecto/{proyectoId}/comentarios")]
+        public async Task<IActionResult> GetComentariosDeOtros(long eventoId, long categoriaId, long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var comentarios = await _eventoJuradoService.ObtenerComentariosDeOtrosJueces(correo, eventoId, categoriaId, proyectoId);
+                return Ok(comentarios);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

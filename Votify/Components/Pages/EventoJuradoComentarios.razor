@@ -1,0 +1,145 @@
+@page "/eventojurado/{EventoId:long}/categoria/{CategoriaId:long}/proyecto/{ProyectoId:long}/comentarios"
+@rendermode InteractiveServer
+@inject ApiClient ApiClient
+@inject NavigationManager Nav
+@inject BlazorAuthStateProvider AuthProvider
+@using Votify.LógicaNegocio.DTOs
+
+<div class="ejc-wrapper">
+    <div class="ejc-hero">
+        <div class="ejc-hero-left">
+            <button class="ejc-btn-volver" @onclick="Volver" title="Volver a los proyectos">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+                </svg>
+            </button>
+            <div class="ejc-hero-text">
+                <h1>Comentarios de los otros jueces</h1>
+            </div>
+        </div>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="ejc-loading-state">
+            <div class="ejc-spinner"></div>
+            <p>Cargando comentarios...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="ejc-alert ejc-alert-error">@error</div>
+    }
+    else if (criterios != null && criterios.Any())
+    {
+        <div class="ej-comentarios-container">
+            @foreach (var criterio in criterios)
+            {
+                var isExpanded = expandedState.ContainsKey(criterio.CriterioId) && expandedState[criterio.CriterioId];
+
+                <div class="ej-accordion-item">
+                    <div class="ej-accordion-header" @onclick="() => ToggleAccordion(criterio.CriterioId)">
+                        <h3>@criterio.NombreCriterio</h3>
+                        <button class="ej-accordion-btn">
+                            @if (isExpanded)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                </svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+                                </svg>
+                            }
+                        </button>
+                    </div>
+
+                    @if (isExpanded)
+                    {
+                        <div class="ej-accordion-body">
+                            @if (criterio.Comentarios != null && criterio.Comentarios.Any())
+                            {
+                                @foreach (var comentario in criterio.Comentarios)
+                                {
+                                    <div class="ej-comentario-box">
+                                        <p>@comentario</p>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="ej-no-comments">No hay comentarios en este criterio.</p>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No se encontraron criterios ni comentarios.</p>
+    }
+</div>
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+    [Parameter] public long CategoriaId { get; set; }
+    [Parameter] public long ProyectoId { get; set; }
+
+    private bool cargando = true;
+    private string error = "";
+    private List<CriterioComentariosDto> criterios = new();
+    private Dictionary<long, bool> expandedState = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            criterios = await ApiClient.GetFromJsonAsync<List<CriterioComentariosDto>>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyecto/{ProyectoId}/comentarios") ?? new List<CriterioComentariosDto>();
+        }
+        catch (Exception ex)
+        {
+            error = "Ocurrió un error cargando los comentarios.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            // Inicializar todos los acordeones para saber si están seleccionados
+            foreach(var c in criterios)
+            {
+                expandedState[c.CriterioId] = false;
+            }
+
+            // Expandimos el primero por defecto tal como en el mockup
+            if (criterios.Any())
+            {
+                expandedState[criterios.First().CriterioId] = true;
+            }
+
+            cargando = false;
+        }
+    }
+
+    private void ToggleAccordion(long id)
+    {
+        if (expandedState.ContainsKey(id))
+        {
+            expandedState[id] = !expandedState[id];
+        }
+    }
+
+    private void Volver()
+    {
+        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{CategoriaId}");
+    }
+}

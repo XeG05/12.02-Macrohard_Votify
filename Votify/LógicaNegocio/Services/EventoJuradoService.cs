@@ -146,5 +146,45 @@ namespace Votify.LógicaNegocio.Services
 
             return resultado;
         }
+
+        public async Task<List<CriterioComentariosDto>> ObtenerComentariosDeOtrosJueces(string correoJurado, long eventoId, long categoriaId, long idGrupo)
+        {
+            var categoria = await _categoriaRepo.AsQueryable()
+                                            .Where(c => c.Id == categoriaId && c.IdEvento == eventoId)
+                                            .Include(c => c.Criterios)
+                                            .FirstOrDefaultAsync();
+
+            var resultado = new List<CriterioComentariosDto>();
+
+            if (categoria != null && categoria.Criterios != null)
+            {
+                foreach (var crit in categoria.Criterios)
+                {
+                    resultado.Add(new CriterioComentariosDto
+                    {
+                        CriterioId = crit.Id,
+                        NombreCriterio = crit.Nombre,
+                        Comentarios = new List<string>() // En el actual esquema de DB Comentario no liga con Criterio
+                    });
+                }
+            }
+
+            // Obtenemos los comentarios del proyecto
+            var comentarios = await _comentarioRepo.AsQueryable()
+                                            .Where(c => c.IdProyectoGru == idGrupo && c.CorreoRol != correoJurado)
+                                            .ToListAsync();
+
+            if (comentarios != null && comentarios.Any())
+            {
+                resultado.Add(new CriterioComentariosDto
+                {
+                    CriterioId = 0,
+                    NombreCriterio = "Comentarios Generales del Proyecto",
+                    Comentarios = comentarios.Select(c => c.Contenido).ToList()
+                });
+            }
+
+            return resultado;
+        }
     }
 }

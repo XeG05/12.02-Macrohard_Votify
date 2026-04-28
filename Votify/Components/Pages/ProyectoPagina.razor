@@ -73,9 +73,6 @@
 
         @if (esVotante || esJurado)
         {
-            // Separamos la lógica de en qué fase debe mostrarse la votación:
-            // Votante normal => fase "votaciones"
-            // Jurado => fase "evaluacion" (despues de votaciones, osea la que en tu condicional cae a 'resultados' u otra fase experta)
             bool puedeVotarSegunFase = false;
             string nombreFasePermitida = "";
             var faseActual = GetFaseClass(evento);
@@ -85,7 +82,7 @@
                 puedeVotarSegunFase = true;
                 nombreFasePermitida = "votaciones";
             }
-            else if (esJurado && faseActual == "evaluacion") // La fase que corresponda a cuando acaba la votación
+            else if (esJurado && faseActual == "evaluacion") 
             {
                 puedeVotarSegunFase = true;
                 nombreFasePermitida = "evaluacion experta";
