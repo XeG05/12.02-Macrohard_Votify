@@ -54,22 +54,8 @@ else if (eventoNombre != "" && categoria != null)
                 {
                     <div class="ejc-proyecto-card">
 
-                        <!-- Indicador visual de si ha sido revisado (simulado) -->
-                        <div class="ejc-proyecto-status-icon" title="@(p.Revisado ? "Proyecto Revisado" : "Pendiente de revisar")">
-                            @if (p.Revisado)
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#10b981" viewBox="0 0 16 16">
-                                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                                    <path d="M2.5 1.5A1.5 1.5 0 0 1 4 .5h8a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V1.5zM4 1.5v13h8v-13H4z"/>
-                                </svg>
-                            }
-                            else
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#9ca3af" viewBox="0 0 16 16">
-                                    <path d="M2.5 1.5A1.5 1.5 0 0 1 4 .5h8a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V1.5zM4 1.5v13h8v-13H4z"/>
-                                </svg>
-                            }
-                        </div>
+                        <!-- Indicador visual de si ha sido revisado tipo semáforo en el borde derecho -->
+                        <div class="ejc-proyecto-status-bar @(p.Revisado ? "revisado" : "pendiente")" title="@(p.Revisado ? "Proyecto Revisado" : "Pendiente de revisar")"></div>
 
                         <!-- 3 Columnas principales de info del proyecto -->
                         <div class="ejc-proyecto-cols" style="cursor: pointer;" @onclick="() => IrAProyecto(p.Id)">

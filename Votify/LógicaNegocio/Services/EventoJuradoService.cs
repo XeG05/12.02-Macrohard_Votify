@@ -175,10 +175,10 @@ namespace Votify.LógicaNegocio.Services
             return resultado;
         }
 
-        public async Task<List<CriterioComentariosDto>> ObtenerComentariosPopulares(long idGrupo)
+        public async Task<List<CriterioComentariosDto>> ObtenerComentariosPopulares(long idProyecto)
         {
             var categoria = await _categoriaRepo.AsQueryable()
-                                            .Where(c => c.Grupos.Any(g => g.Id == idGrupo))
+                                            .Where(c => c.Grupos.Any(g => g.Proyecto != null && g.Proyecto.Id == idProyecto))
                                             .Include(c => c.Criterios)
                                             .FirstOrDefaultAsync();
 
@@ -186,10 +186,8 @@ namespace Votify.LógicaNegocio.Services
 
             if (categoria != null && categoria.Criterios != null && categoria.Criterios.Any())
             {
-                // Aquí asumiré que los comentarios que emite un Votante no se encuentran insertados por rol Jurado (lo cual verificamos consultando _juradoRepo) o 
-                // alternativamente, los tomamos en cuenta filtrando los votos / comentarios emitidos por jurados
                 var listaComentarios = await _comentarioRepo.AsQueryable()
-                                                .Where(c => c.IdProyectoGru == idGrupo)
+                                                .Where(c => c.IdProyectoGru == idProyecto)
                                                 .ToListAsync();
 
                 var juradosCorreos = await _juradoRepo.AsQueryable()
