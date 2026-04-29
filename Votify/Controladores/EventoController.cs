@@ -317,18 +317,21 @@ namespace Votify.Controladores
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
         }
 
-        /// Obtiene el comentario de un usuario en un proyecto (si existe)
-        [HttpGet("proyecto/{proyectoId:long}/comentario/usuario")]
-        public async Task<IActionResult> ObtenerComentarioUsuario(long proyectoId)
+        /// Obtiene los comentarios de un usuario en un proyecto
+        [HttpGet("proyecto/{proyectoId:long}/comentarios/usuario")]
+        public async Task<IActionResult> ObtenerComentariosUsuario(long proyectoId)
         {
             var correo = ObtenerCorreo();
             if (correo is null) return Unauthorized();
 
             try
             {
-                var comentario = await _eventoService.ObtenerComentarioUsuario(proyectoId, correo);
-                if (comentario is null) return NoContent();
-                return Ok(new { Contenido = comentario.Contenido });
+                var comentarios = await _eventoService.ObtenerComentariosUsuario(proyectoId, correo);
+                if (comentarios is null || !comentarios.Any()) return NoContent();
+                return Ok(comentarios.Select(c => new { 
+                    c.IdCriterio, 
+                    c.Contenido 
+                }));
             }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }

@@ -346,14 +346,13 @@ namespace Votify.LógicaNegocio.Services
             await _uow.SaveChangesAsync();
         }
 
-        public async Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo)
+        public async Task<List<Comentario>> ObtenerComentariosUsuario(long idProyecto, string correo)
         {
             var proyecto = await _proyectoRepo.GetByIdAsync(idProyecto);
-            if (proyecto == null) return null;
+            if (proyecto == null) return new List<Comentario>();
 
-            // Buscamos el comentario basándonos en el Id del proyecto y el correo del usuario (el IdProyectoGru en la BD significa Id del Proyecto)
             var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id && c.CorreoRol == correo);
-            return comentarios.FirstOrDefault();
+            return comentarios;
         }
 
         public async Task<List<CriterioVotoInfoDto>> ObtenerInfoVotoPorCriterios(long idEvento, long idProyecto, string correo)

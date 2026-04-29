@@ -127,19 +127,21 @@
                                                     <span style="color:#6b7280;"> (opcional)</span>
                                                 }
                                             </h4>
-                                            @if (!comentarioEnviado)
+                                            @if (!comentariosEnviados.Contains(criterio.Id))
                                             {
                                                 <textarea placeholder="Escribe tu comentario sobre el proyecto..."
-                                                          @bind="nuevoComentario" rows="3"></textarea>
+                                                          value="@(nuevosComentarios.GetValueOrDefault(criterio.Id))"
+                                                          @onchange="@(e => nuevosComentarios[criterio.Id] = e.Value?.ToString() ?? "")"
+                                                          rows="3"></textarea>
                                                 <button class="btn-secundario" @onclick="() => EnviarComentario(criterio.Id)"
-                                                        disabled="@(string.IsNullOrWhiteSpace(nuevoComentario))">
+                                                        disabled="@(string.IsNullOrWhiteSpace(nuevosComentarios.GetValueOrDefault(criterio.Id)))">
                                                     Enviar comentario
                                                 </button>
                                             }
                                             else
                                             {
                                                 <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem;">
-                                                    <p style="margin:0; color:#166534;">@nuevoComentario</p>
+                                                    <p style="margin:0; color:#166534;">@nuevosComentarios.GetValueOrDefault(criterio.Id)</p>
                                                     <small style="color:#6b7280;">✓ Comentario enviado</small>
                                                 </div>
                                             }
@@ -231,9 +233,9 @@ else {
     Dictionary<long, int> valoresPendientes = new();
     HashSet<long> criteriosAbiertos = new();
 
-    string nuevoComentario = "";
+    Dictionary<long, string> nuevosComentarios = new();
+    HashSet<long> comentariosEnviados = new();
     int imagenActual = 0;
-    bool comentarioEnviado = false;
     string errorMessage = "";
     private long _ultimoIdCargado = 0;
     private long _idCategoria = 0;
@@ -350,7 +352,7 @@ else {
 
     private async Task EnviarComentario(long idCriterio)
     {
-        if (evento == null || string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
+        if (evento == null || !nuevosComentarios.TryGetValue(idCriterio, out string? coment) || string.IsNullOrWhiteSpace(coment) || proyecto == null) return;
         var faseActual = GetFaseClass(evento);
         if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
 
@@ -359,14 +361,14 @@ else {
             IdEvento = idEvento,
             IdProyecto = idProyecto,
             IdCriterio = idCriterio,
-            Comentario = nuevoComentario
+            Comentario = coment
         };
 
         var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/comentar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
-            comentarioEnviado = true;
+            comentariosEnviados.Add(idCriterio);
         }
         else
         {
@@ -420,8 +422,8 @@ else {
 
         proyecto = null;
         participantes = null;
-        nuevoComentario = "";
-        comentarioEnviado = false;
+        nuevosComentarios = new();
+        comentariosEnviados = new();
         imagenActual = 0;
         errorMessage = "";
         criteriosCategoria = new();
@@ -472,18 +474,23 @@ else {
                     criteriosAbiertos.Add(criteriosCategoria.First().Id);
                 }
             }
-            // Al solicitar el comentario, si no existe o devuelve NoContent(204), HttpClient lanzará una excepción o devolverá null
+            // Al solicitar los comentarios
             try
             {
-                var responseComentario = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/comentario/usuario");
+                var responseComentario = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/comentarios/usuario");
                 if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
-                    // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
-                    var comentarioExistente = await responseComentario.Content.ReadFromJsonAsync<ComentarioDto>();
-                    if (comentarioExistente != null && !string.IsNullOrWhiteSpace(comentarioExistente.Contenido))
+                    var comentariosExistentes = await responseComentario.Content.ReadFromJsonAsync<List<ComentarioInfo>>();
+                    if (comentariosExistentes != null)
                     {
-                        nuevoComentario = comentarioExistente.Contenido;
-                        comentarioEnviado = true;
+                        foreach (var c in comentariosExistentes)
+                        {
+                            if (!string.IsNullOrWhiteSpace(c.Contenido))
+                            {
+                                nuevosComentarios[c.IdCriterio] = c.Contenido;
+                                comentariosEnviados.Add(c.IdCriterio);
+                            }
+                        }
                     }
                 }
             }
@@ -530,5 +537,11 @@ else {
         if (hoy <= ev.FechaFinVotaciones) return "votaciones";
         if (hoy <= ev.FechaFinEvaluacionExperta) return "evaluacion";
         return "resultados";
+    }
+
+    public class ComentarioInfo
+    {
+        public long IdCriterio { get; set; }
+        public string Contenido { get; set; } = "";
     }
 }

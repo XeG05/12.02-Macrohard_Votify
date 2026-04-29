@@ -85,6 +85,21 @@ builder.Services.AddDbContext<VotifyContext>(options =>
 
 var app = builder.Build();
 
+// Resincronizar la secuencia de la tabla Proyecto automáticamente
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<VotifyContext>();
+        // Esto le dice a PostgreSQL: "arregla auto-incremento para que empiece después del ID más alto que exista"
+        db.Database.ExecuteSqlRaw("SELECT setval(pg_get_serial_sequence('proyecto', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM proyecto;");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"No se pudo sincronizar la secuencia de Postgres: {ex.Message}");
+    }
+}
+
 app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 {
     var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
