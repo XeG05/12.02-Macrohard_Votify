@@ -174,5 +174,44 @@ namespace Votify.LógicaNegocio.Services
 
             return resultado;
         }
+
+        public async Task<List<CriterioComentariosDto>> ObtenerComentariosPopulares(long idGrupo)
+        {
+            var categoria = await _categoriaRepo.AsQueryable()
+                                            .Where(c => c.Grupos.Any(g => g.Id == idGrupo))
+                                            .Include(c => c.Criterios)
+                                            .FirstOrDefaultAsync();
+
+            var resultado = new List<CriterioComentariosDto>();
+
+            if (categoria != null && categoria.Criterios != null && categoria.Criterios.Any())
+            {
+                // Aquí asumiré que los comentarios que emite un Votante no se encuentran insertados por rol Jurado (lo cual verificamos consultando _juradoRepo) o 
+                // alternativamente, los tomamos en cuenta filtrando los votos / comentarios emitidos por jurados
+                var listaComentarios = await _comentarioRepo.AsQueryable()
+                                                .Where(c => c.IdProyectoGru == idGrupo)
+                                                .ToListAsync();
+
+                var juradosCorreos = await _juradoRepo.AsQueryable()
+                                                .Where(j => j.IdEvento == categoria.IdEvento)
+                                                .Select(j => j.CorreoUsuario)
+                                                .ToListAsync();
+
+                // Aquellos creados por usuarios que no están en la tabla de Jurado
+                var comentarios = listaComentarios.Where(c => !juradosCorreos.Contains(c.CorreoRol)).ToList();
+
+                foreach (var crit in categoria.Criterios)
+                {
+                    resultado.Add(new CriterioComentariosDto
+                    {
+                        CriterioId = crit.Id,
+                        NombreCriterio = crit.Nombre,
+                        Comentarios = comentarios.Where(c => c.IdCriterio == crit.Id).Select(c => c.Contenido).ToList()
+                    });
+                }
+            }
+
+            return resultado;
+        }
     }
 }

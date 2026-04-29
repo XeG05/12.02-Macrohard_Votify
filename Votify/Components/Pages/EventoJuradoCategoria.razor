@@ -94,8 +94,8 @@ else if (eventoNombre != "" && categoria != null)
 
                             <!-- Derecha: Botones -->
                             <div class="ejc-col-right" @onclick:stopPropagation="true">
-                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.IdGrupo)">Resultado de la votación popular</button>
-                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.IdGrupo)">Comentarios del jurado</button>
+                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.Id)">Resultado de la votación popular</button>
+                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.Id)">Comentarios del jurado</button>
                             </div>
 
                         </div>
@@ -167,13 +167,13 @@ else if (eventoNombre != "" && categoria != null)
         Nav.NavigateTo($"/{EventoId}/proyecto/{idProyecto}");
     }
 
-    private void IrAResultadoPopular(long idGrupo)
+    private void IrAResultadoPopular(long idProyecto)
     {
-        // Nav.NavigateTo($"/eventojurado/{EventoId}/proyecto/{idGrupo}/resultados");
+        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{CategoriaId}/proyecto/{idProyecto}/resultados");
     }
 
-    private void IrAComentariosJurado(long idGrupo)
+    private void IrAComentariosJurado(long idProyecto)
     {
-        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{CategoriaId}/proyecto/{idGrupo}/comentarios");
+        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{CategoriaId}/proyecto/{idProyecto}/comentarios");
     }
 }

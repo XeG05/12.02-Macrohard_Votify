@@ -480,47 +480,7 @@ else
 
         StateHasChanged();
     }
-    /*
-    async Task CargarParticipantes(long idGrupo)
-    {
-        var participantes = await ApiClient
-            .GetFromJsonAsync<List<MiembroGrupoDto>>(
-                $"api/administrador/grupo/{idGrupo}/participantes");
-
-        if (participantes == null)
-        {
-            error = "No se pudieron cargar los participantes.";
-            return;
-        }
-
-        participantesPorGrupo = new Dictionary<long, List<MiembroGrupoDto>>(participantesPorGrupo)
-        {
-            [idGrupo] = participantes
-        };
-
-        var grupo = grupos?.FirstOrDefault(g => g.Id == idGrupo);
-
-        if (grupo != null)
-        {
-            grupo.CorreosParticipantes = participantes
-                .Select(p => p.Correo)
-                .ToList();
-
-            while (grupo.CorreosParticipantes.Count < evento.ParticipantesPorGrupo)
-            {
-                grupo.CorreosParticipantes.Add("");
-            }
-        }
-
-        var pendientes = await ApiClient.GetFromJsonAsync<int>(
-            $"api/administrador/grupo/{idGrupo}/pendientes");
-
-        pendientesPorGrupo[idGrupo] = pendientes;
-        Console.WriteLine($"Pendientes cargados: {pendientes}");
-
-        await InvokeAsync(StateHasChanged);
-    }
-    */
+   
 
     private void EliminarParticipante(GrupoDto grupo, int index)
     {
