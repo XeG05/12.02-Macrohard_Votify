@@ -156,7 +156,6 @@ namespace Votify.LógicaNegocio.Services
 
             if (categoria != null && categoria.Criterios != null && categoria.Criterios.Any())
             {
-                // Obtenemos todos los comentarios de OTROS jueces para este proyecto
                 var comentarios = await _comentarioRepo.AsQueryable()
                                                 .Where(c => c.IdProyectoGru == idGrupo && c.CorreoRol != correoJurado)
                                                 .ToListAsync();
@@ -210,6 +209,14 @@ namespace Votify.LógicaNegocio.Services
             }
 
             return resultado;
+        }
+
+        public async Task<List<string>> ObtenerJuradosCategoria(long eventoId, long categoriaId)
+        {
+            return await _juradoRepo.AsQueryable()
+                                            .Where(j => j.IdEvento == eventoId && j.Categorias.Any(c => c.Id == categoriaId))
+                                            .Select(j => j.CorreoUsuario)
+                                            .ToListAsync();
         }
     }
 }

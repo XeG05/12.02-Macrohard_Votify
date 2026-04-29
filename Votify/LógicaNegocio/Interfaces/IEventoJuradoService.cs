@@ -19,5 +19,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<List<CriterioComentariosDto>> ObtenerComentariosDeOtrosJueces(string correoJurado, long eventoId, long categoriaId, long idGrupo);
 
         Task<List<CriterioComentariosDto>> ObtenerComentariosPopulares(long idProyecto);
+
+        Task<List<string>> ObtenerJuradosCategoria(long eventoId, long categoriaId);
     }
 }

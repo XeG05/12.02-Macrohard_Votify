@@ -44,6 +44,45 @@ else if (eventoNombre != "" && categoria != null)
             </div>
         </div>
 
+        <div class="jur-accordion-item">
+            <div class="jur-accordion-header" @onclick="() => ToggleAccordion()">
+                <h3>Jurado</h3>
+                <button class="jur-accordion-btn">
+                    @if (isExpanded)
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                        </svg>
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+                        </svg>
+                    }
+                </button>
+            </div>
+
+            @if (isExpanded)
+            {
+                <div class="jur-accordion-body">
+                    @if (Jurados != null && Jurados.Any())
+                    {
+                        @foreach (var jurado in Jurados)
+                        {
+                            <div class="jurado-box">
+                                <p>@jurado</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="jur-no-comments">Error cargando los jurados.</p>
+                    }
+                </div>
+            }
+        </div>
+
         <h2 class="ejc-section-title">Proyectos</h2>
         <hr class="ejc-divider" />
 
@@ -93,13 +132,6 @@ else if (eventoNombre != "" && categoria != null)
                 <p style="color:#6b7280; font-style:italic;">No hay proyectos asociados a esta categoría.</p>
             }
         </div>
-
-        <!-- Botón flotante Chat (Simulado según el mockup) -->
-        <button class="ejc-chat-fab">
-            <span>Chat</span>
-            <div class="ejc-chat-dot"></div>
-        </button>
-
     </div>
 }
 
@@ -108,12 +140,14 @@ else if (eventoNombre != "" && categoria != null)
     [Parameter] public long CategoriaId { get; set; }
 
     private bool cargando = true;
+    private bool isExpanded = false;
     private string error = "";
 
     private class EventoNombreResponse { public string Nombre { get; set; } = string.Empty; }
     private String eventoNombre = "";
     private CategoriaJuradoDto? categoria;
     private List<ProyectoJuradoViewDto>? proyectos;
+    private List<string>? Jurados;
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,6 +164,7 @@ else if (eventoNombre != "" && categoria != null)
             eventoNombre = evtResp?.Nombre ?? "";
             categoria = await ApiClient.GetFromJsonAsync<CategoriaJuradoDto>($"api/jurado/{EventoId}/categoria/{CategoriaId}");
             proyectos = await ApiClient.GetFromJsonAsync<List<ProyectoJuradoViewDto>>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyectos");
+            Jurados = await ApiClient.GetFromJsonAsync<List<string>>($"api/jurado/{EventoId}/categoria/{CategoriaId}/jurados"); 
 
         }
         catch (Exception ex)
@@ -141,6 +176,11 @@ else if (eventoNombre != "" && categoria != null)
         {
             cargando = false;
         }
+    }
+
+    private void ToggleAccordion()
+    {
+        isExpanded = !isExpanded;
     }
 
     private void VolverAlEvento()

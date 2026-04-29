@@ -115,10 +115,7 @@ namespace Votify.Controladores
 
             try
             {
-                // Obtenemos los comentarios populares (de usuarios EsVotante) usando el Service
                 var comentarios = await _eventoJuradoService.ObtenerComentariosPopulares(proyectoId);
-
-                // TODO: Calcular "posicionRanking" y "votosRecibidos" una vez haya lógica de votos
 
                 return Ok(new 
                 { 
@@ -126,6 +123,23 @@ namespace Votify.Controladores
                     PosicionRanking = 1,
                     VotosRecibidos = 27
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}/jurados")]
+        public async Task<IActionResult> GetJuradosCategoria(long eventoId, long categoriaId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var jurados = await _eventoJuradoService.ObtenerJuradosCategoria(eventoId, categoriaId);
+                return Ok(jurados);
             }
             catch (Exception ex)
             {
