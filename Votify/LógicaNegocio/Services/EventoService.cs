@@ -382,15 +382,6 @@ namespace Votify.LógicaNegocio.Services
             var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == idCategoriaActual);
             var todosLosVotosUsuario = await _votoRepo.FindAsync(v => v.IdRol == idEvento && v.CorreoRol == correo);
 
-            int? puntosRestantesGlobal = null;
-            if (evento.TipoVotacion == TipoVotacion.Puntos)
-            {
-                var puntosUsados = todosLosVotosUsuario
-                    .Where(v => v.IdProyectoGru == idProyecto)
-                    .Sum(v => (int)(v.Nota ?? 0));
-                puntosRestantesGlobal = Math.Max(0, evento.PuntosARepartir - puntosUsados);
-            }
-
             var resultado = new List<CriterioVotoInfoDto>();
 
             foreach (var criterio in criterios)
@@ -425,9 +416,10 @@ namespace Votify.LógicaNegocio.Services
 
                     case TipoVotacion.Puntos:
                         var votoPuntos = votosCriterio.FirstOrDefault(v => v.IdProyectoGru == idProyecto);
+                        var puntosUsadosCriterio = votosCriterio.Sum(v => (int)(v.Nota ?? 0));
                         dto.HaVotado = votoPuntos != null && votoPuntos.Nota > 0;
                         dto.PuntosAsignados = votoPuntos?.Nota ?? 0;
-                        dto.PuntosRestantes = puntosRestantesGlobal;
+                        dto.PuntosRestantes = Math.Max(0, evento.PuntosARepartir - puntosUsadosCriterio);
                         break;
                 }
 
@@ -580,19 +572,19 @@ namespace Votify.LógicaNegocio.Services
             Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == evento.Id && r.CorreoUsuario == correo)).FirstOrDefault()
                 ?? throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
 
-            var todosVotosProyecto = await _votoRepo.FindAsync(v =>
+            var todosVotosCriterio = await _votoRepo.FindAsync(v =>
                 v.IdRol == evento.Id &&
                 v.CorreoRol == correo &&
-                v.IdProyectoGru == idProyecto);
+                v.IdCriterio == idCriterio);
 
-            var votoExistente = todosVotosProyecto.FirstOrDefault(v => v.IdCriterio == idCriterio);
+            var votoExistente = todosVotosCriterio.FirstOrDefault(v => v.IdProyectoGru == idProyecto);
 
-            var puntosUsadosOtrosCriterios = todosVotosProyecto
-                .Where(v => v.IdCriterio != idCriterio)
+            var puntosUsadosOtrosProyectos = todosVotosCriterio
+                .Where(v => v.IdProyectoGru != idProyecto)
                 .Sum(v => (int)(v.Nota ?? 0));
 
-            if (puntosUsadosOtrosCriterios + puntos > evento.PuntosARepartir)
-                throw new ConflictException($"Superas el límite de {evento.PuntosARepartir} puntos para este proyecto.");
+            if (puntosUsadosOtrosProyectos + puntos > evento.PuntosARepartir)
+                throw new ConflictException($"Superas el límite de {evento.PuntosARepartir} puntos para este criterio.");
 
             if (votoExistente != null)
             {

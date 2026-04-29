@@ -88,13 +88,6 @@
                 <div class="votacion-criterios">
                     <h3>Votación</h3>
 
-                    @if (evento!.TipoVotacion == TipoVotacion.Puntos)
-                    {
-                        <div class="puntos-globales-info">
-                            <span>Puntos disponibles: <b>@PuntosRestantesGlobal</b> / @evento.PuntosARepartir</span>
-                        </div>
-                    }
-
                     @foreach (var criterio in criteriosCategoria)
                     {
                         var abierto = criteriosAbiertos.Contains(criterio.Id);
@@ -107,6 +100,13 @@
                                     class="criterio-voto-header"
                                     @onclick="() => ToggleCriterio(criterio.Id)">
                                 <span>@criterio.Nombre</span>
+                                    @if (evento!.TipoVotacion == TipoVotacion.Puntos)
+                                    {
+                                        var restantes = info.PuntosRestantes ?? evento!.PuntosARepartir;
+                                        <span class="puntos-criterio-badge @(restantes == 0 ? "agotado" : restantes < evento!.PuntosARepartir / 4 ? "bajo" : "")">
+                                            @restantes / @evento!.PuntosARepartir pts
+                                        </span>
+                                    }
                                 <span>@(abierto ? "▲" : "▼")</span>
                             </button>
 
@@ -157,10 +157,14 @@
                                                     @onclick="() => EmitirVotoPuntos(criterio.Id)">
                                                 Asignar puntos
                                             </button>
-                                            @if (info.PuntosAsignados > 0)
-                                            {
-                                                <span class="votos-restantes">Asignados: @info.PuntosAsignados pts</span>
-                                            }
+                                        </div>
+                                        <div class="puntos-criterio-detalle">
+                                            <span class="puntos-asignados-proyecto">
+                                                Este proyecto: <b>@(info.PuntosAsignados ?? 0)</b> pts
+                                            </span>
+                                            <span class="puntos-restantes-criterio @(info.PuntosRestantes == 0 ? "agotado" : "")">
+                                                Restantes: <b>@(info.PuntosRestantes ?? evento!.PuntosARepartir)</b> / @evento!.PuntosARepartir
+                                            </span>
                                         </div>
                                     }
 
@@ -245,11 +249,8 @@ else {
     private long _ultimoIdCargado = 0;
     private long _idCategoria = 0;
     bool esVotante = false;
-    bool esJurado = false;
-
-    private int PuntosRestantesGlobal =>
-        votoInfoPorCriterio.Values.FirstOrDefault()?.PuntosRestantes ?? evento?.PuntosARepartir ?? 0;
-
+    bool esJurado = false;    
+    
     private int ObtenerValorPendiente(long idCriterio, CriterioVotoInfoDto info)
     {
         if (valoresPendientes.TryGetValue(idCriterio, out var v)) return v;

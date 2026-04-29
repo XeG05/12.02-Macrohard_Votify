@@ -250,3 +250,39 @@
         font-size: 0.95rem;
         color: #777;
     }
+
+.puntos-criterio-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    margin-left: auto;
+    margin-right: 0.5rem;
+}
+
+    .puntos-criterio-badge.bajo {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .puntos-criterio-badge.agotado {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+.puntos-criterio-detalle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #555;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.puntos-restantes-criterio.agotado {
+    color: #b91c1c;
+    font-weight: 600;
+}
