@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Votify.Persistencia;
@@ -12,11 +11,9 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260428201023_tipoVotacion")]
-    partial class tipoVotacion
+    partial class VotifyContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,6 +177,13 @@ namespace Votify.Migrations
                         .HasColumnType("text")
                         .HasDefaultValue("Activo")
                         .HasColumnName("estado");
+
+                    b.Property<string>("FaseActual")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Inscripciones")
+                        .HasColumnName("fase_actual");
 
                     b.Property<DateOnly>("FechaFinEntrega")
                         .HasColumnType("date")
@@ -359,23 +363,65 @@ namespace Votify.Migrations
             modelBuilder.Entity("Votify.Persistencia.Entities.Notificacion", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
 
-                    b.Property<string>("Correo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("correo");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ClaveUnica")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("clave_unica");
 
                     b.Property<string>("Contenido")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("contenido");
 
-                    b.HasKey("Id", "Correo")
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("correo");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_creacion");
+
+                    b.Property<long?>("IdEvento")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_evento");
+
+                    b.Property<bool>("Leida")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("leida");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("titulo");
+
+                    b.HasKey("Id")
                         .HasName("notificacion_pkey");
 
+                    b.HasIndex("ClaveUnica")
+                        .IsUnique()
+                        .HasDatabaseName("notificacion_clave_unica_key");
+
                     b.HasIndex("Correo");
+
+                    b.HasIndex("IdEvento");
 
                     b.ToTable("notificacion", (string)null);
                 });
@@ -693,7 +739,15 @@ namespace Votify.Migrations
                         .IsRequired()
                         .HasConstraintName("correoFK");
 
+                    b.HasOne("Votify.Persistencia.Entities.Evento", "Evento")
+                        .WithMany()
+                        .HasForeignKey("IdEvento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("id_eventoFK");
+
                     b.Navigation("CorreoNavigation");
+
+                    b.Navigation("Evento");
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Proyecto", b =>

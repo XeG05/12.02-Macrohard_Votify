@@ -189,6 +189,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.GruposCompletos).HasColumnName("grupos_completos");
             entity.Property(e => e.ParticipantesPorGrupo).HasColumnName("participantes_por_grupo");
             entity.Property(e => e.Estado).HasColumnName("estado").HasDefaultValue("Activo");
+            entity.Property(e => e.FaseActual).HasConversion<string>().HasColumnName("fase_actual").HasDefaultValue(FasesEvento.Inscripciones);
         });
 
         modelBuilder.Entity<Grupo>(entity =>
@@ -203,16 +204,58 @@ public partial class VotifyContext : DbContext
 
         modelBuilder.Entity<Notificacion>(entity =>
         {
-            entity.HasKey(e => new { e.Id, e.Correo }).HasName("notificacion_pkey");
-            entity.ToTable("notificacion");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Correo).HasMaxLength(50).HasColumnName("correo");
-            entity.Property(e => e.Contenido).HasColumnName("contenido");
+            entity.HasKey(e => e.Id).HasName("notificacion_pkey");
 
-            entity.HasOne(d => d.CorreoNavigation).WithMany(p => p.Notificaciones)
+            entity.ToTable("notificacion");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+
+            entity.Property(e => e.Correo)
+                .HasMaxLength(50)
+                .HasColumnName("correo");
+
+            entity.Property(e => e.IdEvento)
+                .HasColumnName("id_evento");
+
+            entity.Property(e => e.Titulo)
+                .HasMaxLength(100)
+                .HasColumnName("titulo");
+
+            entity.Property(e => e.Contenido)
+                .HasColumnName("contenido");
+
+            entity.Property(e => e.Tipo)
+                .HasMaxLength(80)
+                .HasColumnName("tipo");
+
+            entity.Property(e => e.FechaCreacion)
+                .HasColumnName("fecha_creacion");
+
+            entity.Property(e => e.Leida)
+                .HasColumnName("leida")
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.ClaveUnica)
+                .HasMaxLength(250)
+                .HasColumnName("clave_unica");
+
+            entity.HasIndex(e => e.ClaveUnica)
+                .IsUnique()
+                .HasDatabaseName("notificacion_clave_unica_key");
+
+            entity.HasOne(d => d.CorreoNavigation)
+                .WithMany(p => p.Notificaciones)
                 .HasForeignKey(d => d.Correo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("correoFK");
+
+            entity.HasOne(d => d.Evento)
+                .WithMany()
+                .HasForeignKey(d => d.IdEvento)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_eventoFK");
         });
 
         modelBuilder.Entity<Proyecto>(entity =>

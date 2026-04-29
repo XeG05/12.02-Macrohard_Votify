@@ -35,6 +35,8 @@ public class Evento
 
     public string Estado { get; set; } = "Activo";
 
+    public FasesEvento FaseActual { get; set; } = FasesEvento.Inscripciones;
+
     public virtual ICollection<Categorium> Categorias { get; set; } = new List<Categorium>();
 
     public virtual ICollection<Rol> Roles { get; set; } = new List<Rol>();
