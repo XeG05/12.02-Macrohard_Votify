@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Votify.Migrations
 {
     /// <inheritdoc />
-    public partial class tipoVotacion : Migration
+    public partial class NotificacionesObserverBasico : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,7 +32,8 @@ namespace Votify.Migrations
                     tiene_grupos = table.Column<bool>(type: "boolean", nullable: false),
                     grupos_completos = table.Column<bool>(type: "boolean", nullable: false),
                     participantes_por_grupo = table.Column<int>(type: "integer", nullable: false),
-                    estado = table.Column<string>(type: "text", nullable: false, defaultValue: "Activo")
+                    estado = table.Column<string>(type: "text", nullable: false, defaultValue: "Activo"),
+                    fase_actual = table.Column<string>(type: "text", nullable: false, defaultValue: "Inscripciones")
                 },
                 constraints: table =>
                 {
@@ -81,18 +82,31 @@ namespace Votify.Migrations
                 name: "notificacion",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "bigint", nullable: false),
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     correo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    contenido = table.Column<string>(type: "text", nullable: false)
+                    id_evento = table.Column<long>(type: "bigint", nullable: true),
+                    titulo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    contenido = table.Column<string>(type: "text", nullable: false),
+                    tipo = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    fecha_creacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    leida = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    clave_unica = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("notificacion_pkey", x => new { x.id, x.correo });
+                    table.PrimaryKey("notificacion_pkey", x => x.id);
                     table.ForeignKey(
                         name: "correoFK",
                         column: x => x.correo,
                         principalTable: "usuario",
                         principalColumn: "correo");
+                    table.ForeignKey(
+                        name: "id_eventoFK",
+                        column: x => x.id_evento,
+                        principalTable: "evento",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -496,6 +510,17 @@ namespace Votify.Migrations
                 name: "IX_notificacion_correo",
                 table: "notificacion",
                 column: "correo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notificacion_id_evento",
+                table: "notificacion",
+                column: "id_evento");
+
+            migrationBuilder.CreateIndex(
+                name: "notificacion_clave_unica_key",
+                table: "notificacion",
+                column: "clave_unica",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_participante_id_evento",
