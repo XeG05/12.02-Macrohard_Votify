@@ -27,7 +27,7 @@ namespace Votify.LógicaNegocio.Interfaces
 
         Task ComentarProyecto(long idEvento, string correo, long idProyecto, long idCriterio, string comentario);
 
-        Task<List<Comentario>> ObtenerComentariosUsuario(long idProyecto, string correo);
+        Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo);
 
         Task<List<CriterioVotoInfoDto>> ObtenerInfoVotoPorCriterios(long idEvento, long idProyecto, string correo);
 
