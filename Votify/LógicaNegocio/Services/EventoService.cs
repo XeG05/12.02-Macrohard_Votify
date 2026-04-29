@@ -434,6 +434,18 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
                 ?? throw new NotFoundException("Evento no encontrado.");
 
+            if (evento.TipoComentario == TipoComentario.Obligatorio)
+            {
+                var comentario = (await _comentarioRepo.FindAsync(c =>
+                    c.IdRol == idEvento &&
+                    c.CorreoRol == correo &&
+                    c.IdProyectoGru == idProyecto &&
+                    c.IdCriterio == idCriterio)).FirstOrDefault();
+
+                if (comentario == null || string.IsNullOrWhiteSpace(comentario.Contenido))
+                    throw new ValidationException("Debes enviar un comentario antes de votar en este criterio.");
+            }
+
             switch (evento.TipoVotacion)
             {
                 case TipoVotacion.Simple:

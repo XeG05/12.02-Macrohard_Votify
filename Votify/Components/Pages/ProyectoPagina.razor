@@ -95,6 +95,9 @@
                             ? votoInfoPorCriterio[criterio.Id]
                             : new CriterioVotoInfoDto { IdCriterio = criterio.Id };
 
+                        var comentarioObligatorioFaltante = evento!.TipoComentario == TipoComentario.Obligatorio
+                            && !(comentariosEnviados.ContainsKey(criterio.Id) && comentariosEnviados[criterio.Id]);
+
                         <div class="criterio-voto-card">
                             <button type="button"
                                     class="criterio-voto-header"
@@ -113,13 +116,19 @@
                             @if (abierto)
                             {
                                 <div class="criterio-voto-body">
+                                    @if (comentarioObligatorioFaltante)
+                                    {
+                                        <div class="aviso-comentario-obligatorio">
+                                            Envía tu comentario antes de votar en este criterio.
+                                        </div>
+                                    }
                                     @if (evento!.TipoVotacion == TipoVotacion.Simple)
                                     {
                                         <div class="criterio-voto-footer">
                                             <label class="checkbox-votar">
                                                 <input type="checkbox"
                                                        checked="@info.HaVotado"
-                                                       disabled="@(info.HaVotado || info.VotosRestantes <= 0)"
+                                                       disabled="@(info.HaVotado || info.VotosRestantes <= 0 || comentarioObligatorioFaltante)" )"
                                                        @onchange="e => EmitirVotoSimple(e, criterio.Id)" />
                                                 Votar por el proyecto
                                             </label>
@@ -136,6 +145,7 @@
                                                    value="@ObtenerValorPendiente(criterio.Id, info)"
                                                    @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
                                             <button class="btn-secundario"
+                                                    disabled="@comentarioObligatorioFaltante"
                                                     @onclick="() => EmitirVotoNota(criterio.Id)">
                                                 @(info.HaVotado ? "Actualizar nota" : "Guardar nota")
                                             </button>
@@ -154,6 +164,7 @@
                                                    value="@ObtenerValorPendiente(criterio.Id, info)"
                                                    @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
                                             <button class="btn-secundario"
+                                                    disabled="@comentarioObligatorioFaltante"
                                                     @onclick="() => EmitirVotoPuntos(criterio.Id)">
                                                 Asignar puntos
                                             </button>
