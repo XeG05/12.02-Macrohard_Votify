@@ -1,0 +1,186 @@
+@page "/eventojurado/{EventoId:long}/categoria/{CategoriaId:long}/proyecto/{ProyectoId:long}/resultados"
+@rendermode InteractiveServer
+@inject ApiClient ApiClient
+@inject NavigationManager Nav
+@inject BlazorAuthStateProvider AuthProvider
+@using Votify.LógicaNegocio.DTOs
+
+<div class="ejc-wrapper">
+    <div class="ejc-hero-comentarios">
+        <button class="ejc-btn-volver" @onclick="Volver" title="Volver a los proyectos">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+        </button>
+        <h2 class="ejc-titulo-comentarios">Resultado de la votación popular</h2>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="ejc-loading-state">
+            <div class="ejc-spinner"></div>
+            <p>Cargando resultados...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="ejc-alert ejc-alert-error">@error</div>
+    }
+    else
+    {
+        <!-- Caja superior de informacion -->
+        <div class="erp-info-box">
+            <h3 class="erp-proyecto-titulo">@proyectoNombre</h3>
+
+            <div class="erp-stats-row">
+                <div class="erp-stat-pill">
+                    Ranking popular: @(posicionRanking > 0 ? $"{posicionRanking}er puesto" : "Sin posición")
+                </div>
+                <div class="erp-stat-pill">
+                    Votos recibidos/puntuación media.....: @votosRecibidos
+                </div>
+            </div>
+        </div>
+
+        <h2 class="ejc-titulo-comentarios mt-4">Comentarios</h2>
+        <hr class="ejc-divider-comentarios" />
+
+        <!-- Comentarios (Acordeon) -->
+        @if (criterios != null && criterios.Any())
+        {
+            <div class="ej-comentarios-container">
+                @foreach (var criterio in criterios)
+                {
+                    var isExpanded = expandedState.ContainsKey(criterio.CriterioId) && expandedState[criterio.CriterioId];
+
+                    <div class="ej-accordion-item">
+                        <div class="ej-accordion-header" @onclick="() => ToggleAccordion(criterio.CriterioId)">
+                            <h3>@criterio.NombreCriterio</h3>
+                            <button class="ej-accordion-btn">
+                                @if (isExpanded)
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                      <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                    </svg>
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                      <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+                                    </svg>
+                                }
+                            </button>
+                        </div>
+
+                        @if (isExpanded)
+                        {
+                            <div class="ej-accordion-body">
+                                @if (criterio.Comentarios != null && criterio.Comentarios.Any())
+                                {
+                                    @foreach (var comentario in criterio.Comentarios)
+                                    {
+                                        <div class="ej-comentario-box">
+                                            <p>@comentario</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="ej-no-comments">No hay comentarios en este criterio.</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p style="color:#6b7280; font-style:italic;">No se encontraron criterios ni comentarios.</p>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+    [Parameter] public long CategoriaId { get; set; }
+    [Parameter] public long ProyectoId { get; set; }
+
+    private bool cargando = true;
+    private string error = "";
+    private string proyectoNombre = "Cargando...";
+
+    private int posicionRanking = 0;
+    private int votosRecibidos = 0;
+
+    private List<CriterioComentariosDto> criterios = new();
+    private Dictionary<long, bool> expandedState = new();
+
+    private class ResultadoVotacionPopularResponse
+    {
+        public List<CriterioComentariosDto> Comentarios { get; set; } = new();
+        public int PosicionRanking { get; set; }
+        public int VotosRecibidos { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var correo = AuthProvider.ObtenerCorreo();
+        if (string.IsNullOrWhiteSpace(correo) || !AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            // Primero obtenemos el nombre del proyecto
+            var proyecto = await ApiClient.GetFromJsonAsync<ProyectoDto>($"api/evento/proyecto/{ProyectoId}");
+            if (proyecto != null)
+            {
+                proyectoNombre = proyecto.Nombre;
+            }
+
+            var resultado = await ApiClient.GetFromJsonAsync<ResultadoVotacionPopularResponse>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyecto/{ProyectoId}/resultados");
+
+            if (resultado != null)
+            {
+                criterios = resultado.Comentarios ?? new List<CriterioComentariosDto>();
+                posicionRanking = resultado.PosicionRanking;
+                votosRecibidos = resultado.VotosRecibidos;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = "Ocurrió un error cargando los resultados populares.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            foreach(var c in criterios)
+            {
+                expandedState[c.CriterioId] = false;
+            }
+
+            if (criterios.Any())
+            {
+                expandedState[criterios.First().CriterioId] = true;
+            }
+
+            cargando = false;
+        }
+    }
+
+    private void ToggleAccordion(long id)
+    {
+        if (expandedState.ContainsKey(id))
+        {
+            expandedState[id] = !expandedState[id];
+        }
+    }
+
+    private void Volver()
+    {
+        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{CategoriaId}");
+    }
+}

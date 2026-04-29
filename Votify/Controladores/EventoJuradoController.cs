@@ -106,5 +106,31 @@ namespace Votify.Controladores
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}/proyecto/{proyectoId}/resultados")]
+        public async Task<IActionResult> GetResultadosVotacionPopular(long eventoId, long categoriaId, long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                // Obtenemos los comentarios populares (de usuarios EsVotante) usando el Service
+                var comentarios = await _eventoJuradoService.ObtenerComentariosPopulares(proyectoId);
+
+                // TODO: Calcular "posicionRanking" y "votosRecibidos" una vez haya lógica de votos
+
+                return Ok(new 
+                { 
+                    Comentarios = comentarios,
+                    PosicionRanking = 1,
+                    VotosRecibidos = 27
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
