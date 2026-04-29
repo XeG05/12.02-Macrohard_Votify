@@ -332,28 +332,38 @@ namespace Votify.LógicaNegocio.Services
 
             Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio) ?? throw new NotFoundException("Criterio no encontrado.");
 
-            Comentario comentario1 = new Comentario(idEvento, correo,
-                comentario, pr.Id, idCriterio, pr, rol, criterio);
-            
-            pr.Comentarios ??= new List<Comentario>();
-            rol.Comentarios ??= new List<Comentario>();
+            var existente = (await _comentarioRepo.FindAsync(c =>
+                c.IdProyectoGru == idProyecto &&
+                c.CorreoRol == correo &&
+                c.IdRol == idEvento &&
+                c.IdCriterio == idCriterio)).FirstOrDefault();
 
-            pr.Comentarios.Add(comentario1);
-            rol.Comentarios.Add(comentario1);
-            await _comentarioRepo.AddAsync(comentario1);
-            await _proyectoRepo.UpdateAsync(pr);
-            await _rolRepo.UpdateAsync(rol);
+            if (existente != null)
+            {
+                existente.Contenido = comentario;
+                await _comentarioRepo.UpdateAsync(existente);
+            }
+            else
+            {
+                var nuevo = new Comentario(idEvento, correo, comentario, pr.Id, idCriterio, pr, rol, criterio);
+                await _comentarioRepo.AddAsync(nuevo);
+            }
+
             await _uow.SaveChangesAsync();
         }
 
-        public async Task<Comentario?> ObtenerComentarioUsuario(long idProyecto, string correo)
+        public async Task<List<ComentarioDto>> ObtenerComentariosUsuario(long idProyecto, string correo)
         {
-            var proyecto = await _proyectoRepo.GetByIdAsync(idProyecto);
-            if (proyecto == null) return null;
+            var comentarios = await _comentarioRepo.FindAsync(
+                c => c.IdProyectoGru == idProyecto && c.CorreoRol == correo);
 
             // Buscamos el comentario basándonos en el Id del proyecto y el correo del usuario (el IdProyectoGru en la BD significa Id del Proyecto)
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id && c.CorreoRol == correo);
-            return comentarios.FirstOrDefault();
+            return comentarios.Select(c => new ComentarioDto
+            {
+                IdCriterio = c.IdCriterio,
+                Autor = correo,
+                Contenido = c.Contenido
+            }).ToList();
         }
 
         public async Task<List<CriterioVotoInfoDto>> ObtenerInfoVotoPorCriterios(long idEvento, long idProyecto, string correo)

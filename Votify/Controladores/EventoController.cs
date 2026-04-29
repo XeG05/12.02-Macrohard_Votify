@@ -326,9 +326,9 @@ namespace Votify.Controladores
 
             try
             {
-                var comentario = await _eventoService.ObtenerComentarioUsuario(proyectoId, correo);
-                if (comentario is null) return NoContent();
-                return Ok(new { Contenido = comentario.Contenido });
+                var comentarios = await _eventoService.ObtenerComentariosUsuario(proyectoId, correo);
+                if (!comentarios.Any()) return NoContent();
+                return Ok(comentarios);
             }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }

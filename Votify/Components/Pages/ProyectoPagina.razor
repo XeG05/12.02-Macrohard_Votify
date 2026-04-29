@@ -113,38 +113,6 @@
                             @if (abierto)
                             {
                                 <div class="criterio-voto-body">
-                                    @if (evento!.TipoComentario != TipoComentario.SinComentarios)
-                                    {
-                                        <div class="comentario-section">
-                                            <h4>
-                                                Comentario
-                                                @if (evento.TipoComentario == TipoComentario.Obligatorio)
-                                                {
-                                                    <span style="color:#ef4444;"> (obligatorio)</span>
-                                                }
-                                                else
-                                                {
-                                                    <span style="color:#6b7280;"> (opcional)</span>
-                                                }
-                                            </h4>
-                                            @if (!comentarioEnviado)
-                                            {
-                                                <textarea placeholder="Escribe tu comentario sobre el proyecto..."
-                                                          @bind="nuevoComentario" rows="3"></textarea>
-                                                <button class="btn-secundario" @onclick="() => EnviarComentario(criterio.Id)"
-                                                        disabled="@(string.IsNullOrWhiteSpace(nuevoComentario))">
-                                                    Enviar comentario
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:1rem;">
-                                                    <p style="margin:0; color:#166534;">@nuevoComentario</p>
-                                                    <small style="color:#6b7280;">✓ Comentario enviado</small>
-                                                </div>
-                                            }
-                                        </div>
-                                    }
                                     @if (evento!.TipoVotacion == TipoVotacion.Simple)
                                     {
                                         <div class="criterio-voto-footer">
@@ -195,6 +163,45 @@
                                             }
                                         </div>
                                     }
+
+                                    @if (evento!.TipoComentario != TipoComentario.SinComentarios)
+                                    {
+                                        var textoComentario = comentariosPorCriterio.TryGetValue(criterio.Id, out var tc) ? tc : "";
+                                        var enviado = comentariosEnviados.TryGetValue(criterio.Id, out var ce) && ce;
+
+                                        <div class="comentario-section" style="margin-top:12px;">
+                                            <h5 style="margin-bottom:6px;">
+                                                Comentario
+                                                @if (evento.TipoComentario == TipoComentario.Obligatorio)
+                                                {
+                                                    <span style="color:#ef4444; font-size:0.85rem;"> (obligatorio)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:#6b7280; font-size:0.85rem;"> (opcional)</span>
+                                                }
+                                            </h5>
+                                            @if (!enviado)
+                                            {
+                                                <textarea placeholder="Escribe tu comentario sobre este criterio..."
+                                                          value="@textoComentario"
+                                                          @onchange="ev => ActualizarComentario(criterio.Id, ev)"
+                                                          rows="3" style="width:100%; box-sizing:border-box;"></textarea>
+                                                <button class="btn-secundario"
+                                                        @onclick="() => EnviarComentario(criterio.Id)"
+                                                        disabled="@(string.IsNullOrWhiteSpace(textoComentario))">
+                                                    Enviar comentario
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:0.75rem;">
+                                                    <p style="margin:0; color:#166534;">@textoComentario</p>
+                                                    <small style="color:#6b7280;">✓ Comentario enviado</small>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
                                 </div>
                             }
                         </div>
@@ -230,10 +237,10 @@ else {
     Dictionary<long, CriterioVotoInfoDto> votoInfoPorCriterio = new();
     Dictionary<long, int> valoresPendientes = new();
     HashSet<long> criteriosAbiertos = new();
+    Dictionary<long, string> comentariosPorCriterio = new();
+    Dictionary<long, bool> comentariosEnviados = new();
 
-    string nuevoComentario = "";
     int imagenActual = 0;
-    bool comentarioEnviado = false;
     string errorMessage = "";
     private long _ultimoIdCargado = 0;
     private long _idCategoria = 0;
@@ -348,25 +355,31 @@ else {
             criteriosAbiertos.Remove(idCriterio);
     }
 
+    private void ActualizarComentario(long idCriterio, ChangeEventArgs e)
+    {
+        comentariosPorCriterio[idCriterio] = e.Value?.ToString() ?? "";
+    }
+
     private async Task EnviarComentario(long idCriterio)
     {
-        if (evento == null || string.IsNullOrWhiteSpace(nuevoComentario) || proyecto == null) return;
+        if (evento == null || proyecto == null) return;
+        if (!comentariosPorCriterio.TryGetValue(idCriterio, out var texto) || string.IsNullOrWhiteSpace(texto)) return;
         var faseActual = GetFaseClass(evento);
         if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
 
-        var peticion = new 
+        var peticion = new
         {
             IdEvento = idEvento,
             IdProyecto = idProyecto,
             IdCriterio = idCriterio,
-            Comentario = nuevoComentario
+            ComentarioDto = texto
         };
 
         var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/comentar", peticion);
 
         if (response.IsSuccessStatusCode)
         {
-            comentarioEnviado = true;
+            comentariosEnviados[idCriterio] = true;
         }
         else
         {
@@ -420,8 +433,8 @@ else {
 
         proyecto = null;
         participantes = null;
-        nuevoComentario = "";
-        comentarioEnviado = false;
+        comentariosPorCriterio = new();
+        comentariosEnviados = new();
         imagenActual = 0;
         errorMessage = "";
         criteriosCategoria = new();
@@ -478,12 +491,14 @@ else {
                 var responseComentario = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/comentario/usuario");
                 if (responseComentario.IsSuccessStatusCode && responseComentario.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
-                    // IMPORTANTE: Leemos con el ComentarioDto temporal en vez del Comentario de entidad EF.
-                    var comentarioExistente = await responseComentario.Content.ReadFromJsonAsync<ComentarioDto>();
-                    if (comentarioExistente != null && !string.IsNullOrWhiteSpace(comentarioExistente.Contenido))
+                    var comentariosExistentes = await responseComentario.Content.ReadFromJsonAsync<List<ComentarioDto>>();
+                    if (comentariosExistentes != null)
                     {
-                        nuevoComentario = comentarioExistente.Contenido;
-                        comentarioEnviado = true;
+                        foreach (var c in comentariosExistentes)
+                        {
+                            comentariosPorCriterio[c.IdCriterio] = c.Contenido;
+                            comentariosEnviados[c.IdCriterio] = true;
+                        }
                     }
                 }
             }
