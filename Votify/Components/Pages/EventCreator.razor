@@ -196,6 +196,24 @@ else
                                 + Añadir Grupo
                             </button>
                         </div>
+                        <div class="jurados-categoria">
+                            <h4>Jurados</h4>
+                            <hr />
+                            @for (int i = 0; i < cat.CorreosJurados.Count; i++)
+                            {
+                                var idx = i;
+                                <div class="participante">
+                                    <input type="text"
+                                           placeholder="correo@jurado.com"
+                                           value="@cat.CorreosJurados[idx]"
+                                           @onchange="e => cat.CorreosJurados[idx] = e.Value?.ToString() ?? string.Empty" />
+                                    <button type="button" @onclick="() => EliminarJurado(cat, idx)">✕</button>
+                                </div>
+                            }
+                            <button type="button" @onclick="() => AñadirJurado(cat)">
+                                + Añadir Jurado
+                            </button>
+                        </div>
                     </div>
                     <button type="button" @onclick="() => EliminarCategoria(cat)">✕</button>
                 </div>
@@ -289,6 +307,16 @@ else
     private void EliminarGrupo(CategoriaDto cat, GrupoDto grupo)
     {
         cat.Grupos.Remove(grupo);
+    }
+    
+    private void AñadirJurado(CategoriaDto cat)
+    {
+        cat.CorreosJurados.Add(string.Empty);
+    }
+
+    private void EliminarJurado(CategoriaDto cat, int idx)
+    {
+        cat.CorreosJurados.RemoveAt(idx);
     }
 
     private void SincronizarFechas()

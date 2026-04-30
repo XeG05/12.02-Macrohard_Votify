@@ -54,5 +54,46 @@ namespace Votify.LógicaNegocio.Services
                 throw; // relanza para que el componente lo muestre
             }
         }
+
+        public async Task EnviarInvitacionJuradoAsync(string correoDestino, string nombreEvento,
+                                                       string nombreCreador, string nombreCategoria, string urlAceptacion)
+        {
+            try
+            {
+                var smtp = new SmtpClient(_config["Email:Host"])
+                {
+                    Port = int.Parse(_config["Email:Port"]!),
+                    Credentials = new NetworkCredential(
+                        _config["Email:Usuario"],
+                        _config["Email:Contraseña"]),
+                    EnableSsl = true
+                };
+
+                var mensaje = new MailMessage
+                {
+                    From = new MailAddress(_config["Email:Usuario"]!),
+                    Subject = $"Invitación como jurado: {nombreEvento}",
+                    Body = $"""
+                    Hola,
+
+                    {nombreCreador} te ha invitado a participar como jurado en "{nombreEvento}" (categoría: {nombreCategoria}) en Votify.
+
+                    Acepta tu invitación aquí:
+                    {urlAceptacion}
+
+                    El enlace caduca en 7 días.
+                    """,
+                    IsBodyHtml = false
+                };
+                mensaje.To.Add(correoDestino);
+
+                await smtp.SendMailAsync(mensaje);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EMAIL ERROR] {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

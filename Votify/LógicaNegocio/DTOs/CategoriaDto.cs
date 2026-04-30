@@ -11,5 +11,6 @@
         public bool CriteriosSonPorcentaje { get; set; } = true;
         public List<CriterioDto> Criterios { get; set; } = new();
         public List<GrupoDto> Grupos { get; set; } = new();
+        public List<string> CorreosJurados { get; set; } = new();
     }
 }

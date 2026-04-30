@@ -1,0 +1,141 @@
+﻿@page "/aceptar-invitacion-jurado/{Token}"
+@rendermode InteractiveServer
+@layout NoLayout
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+@if (cargando)
+{
+    <p>Verificando invitación...</p>
+}
+else if (invitacion == null)
+{
+    <p>Esta invitación no es válida o ha caducado.</p>
+}
+else if (invitacion.Aceptada)
+{
+    <p>Esta invitación ya fue aceptada.</p>
+}
+else if (aceptada)
+{
+    <p>¡Bienvenido! Redirigiendo...</p>
+}
+else
+{
+    <div class="layout">
+        <h1>Votify</h1>
+        <p>Has sido invitado como <strong>jurado</strong> al evento <strong>@invitacion.NombreEvento</strong>.</p>
+
+        @if (invitacion.UsuarioExiste)
+        {
+            <p>Inicia sesión para confirmar tu participación como jurado:</p>
+            <div class="input">
+                <p>Contraseña:</p>
+                <input @bind="contraseña" type="password"
+                       placeholder="Introduce tu contraseña" />
+            </div>
+        }
+        else
+        {
+            <p>Crea tu cuenta para unirte como jurado:</p>
+            <div class="input">
+                <p>Nombre:</p>
+                <input @bind="nombre" placeholder="Tu nombre completo" />
+            </div>
+            <div class="input">
+                <p>Contraseña:</p>
+                <input @bind="contraseña" type="password" />
+            </div>
+            <div class="input">
+                <p>Repite contraseña:</p>
+                <input @bind="contraseña2" type="password" />
+            </div>
+        }
+
+        <div class="input">
+            <p>Correo:</p>
+            <input value="@invitacion.CorreoDestino" disabled />
+        </div>
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <p style="color:red">@error</p>
+        }
+
+        <div class="button">
+            <button @onclick="Aceptar">
+                @(invitacion.UsuarioExiste ? "Confirmar rol de jurado" : "Crear cuenta y unirme como jurado")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+
+    InvitacionDto? invitacion;
+    bool cargando = true;
+    bool aceptada = false;
+    string error = "";
+
+    string nombre = "";
+    string contraseña = "";
+    string contraseña2 = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            invitacion = await ApiClient.GetFromJsonAsync<InvitacionDto>($"api/invitacion/jurado/validar/{Token}");
+        }
+        catch (HttpRequestException)
+        {
+            // 404 → token inválido
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    async Task Aceptar()
+    {
+        error = "";
+        try
+        {
+            var response = await ApiClient.PostAnonymousAsync("api/invitacion/jurado/aceptar",
+                new AceptarInvitacionDto
+                {
+                    Token = Token,
+                    Contraseña = contraseña,
+                    Nombre = nombre,
+                    ConfirmarContraseña = contraseña2
+                });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var auth = await response.Content.ReadFromJsonAsync<AuthDto>();
+                if (string.IsNullOrEmpty(auth?.Token))
+                {
+                    error = "Error al procesar la invitación.";
+                    return;
+                }
+
+                await AuthProvider.MarcarAutenticado(auth.Token);
+                aceptada = true;
+                StateHasChanged();
+                await Task.Delay(1500);
+                Nav.NavigateTo("/home");
+            }
+            else
+            {
+                error = $"Error {(int)response.StatusCode}: no se pudo aceptar la invitación.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

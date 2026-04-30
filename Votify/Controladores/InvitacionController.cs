@@ -73,9 +73,61 @@ namespace Votify.Controladores
             { 
                 return Conflict(new ErrorDto { Error = ex.Message }); 
             }
-            catch (Exception ex) 
-            { 
-                return BadRequest(new ErrorDto { Error = ex.Message }); 
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
+        }
+
+        [HttpGet("jurado/validar/{token}")]
+        public async Task<IActionResult> ValidarTokenJurado(string token)
+        {
+            try
+            {
+                var dto = await _invitacionService.ObtenerInvitacionJuradoInfoAsync(token);
+                if (dto is not null) return Ok(dto);
+                return NotFound(new ErrorDto { Error = "Invitación de jurado no encontrada" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
+            }
+        }
+
+        [HttpPost("jurado/aceptar")]
+        public async Task<IActionResult> AceptarInvitacionJurado([FromBody] AceptarInvitacionDto request)
+        {
+            try
+            {
+                var jwtToken = await _invitacionService.AceptarInvitacionJuradoAsync(
+                    request.Token, request.Contraseña, request.Nombre, request.ConfirmarContraseña);
+
+                var principal = _jwtService.ValidateToken(jwtToken);
+                var correo = principal?.FindFirst(ClaimTypes.Name)?.Value ?? "";
+                var nombre = principal?.FindFirst("nombre")?.Value ?? "";
+
+                return Ok(new AuthDto
+                {
+                    Token = jwtToken,
+                    Correo = correo,
+                    Nombre = nombre
+                });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ErrorDto { Error = ex.Message });
+            }
+            catch (ValidationException ex)
+            {
+                return UnprocessableEntity(new ErrorDto { Error = ex.Message });
+            }
+            catch (ConflictException ex)
+            {
+                return Conflict(new ErrorDto { Error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ErrorDto { Error = ex.Message });
             }
         }
     }

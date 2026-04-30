@@ -26,6 +26,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
+        private readonly IRepository<InvitacionJurado> _invitacionJuradoRepo;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IUnitOfWork _uow;
@@ -45,6 +46,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
+            IRepository<InvitacionJurado> invitacionJuradoRepo,
             IEmailService emailService,
             IConfiguration config,
             IUnitOfWork uow) : base(eventoRepo, uow)
@@ -64,6 +66,7 @@ namespace Votify.LógicaNegocio.Services
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
+            _invitacionJuradoRepo = invitacionJuradoRepo;
             _emailService = emailService;
             _config = config;
             _uow = uow;
@@ -211,6 +214,9 @@ namespace Votify.LógicaNegocio.Services
             if (evento.TieneGrupos)
                 foreach (var grupoDto in catDto.Grupos)
                     await CrearGrupoConParticipantes(grupoDto, categoria.Id, evento, creador);
+
+            foreach (var correoJurado in catDto.CorreosJurados.Where(c => !string.IsNullOrWhiteSpace(c)))
+                await ProcesarJurado(correoJurado, categoria, evento, creador);
         }
 
         private async Task CrearGrupoConParticipantes(GrupoDto grupoDto, long idCategoria, Evento evento, Usuario creador)
@@ -282,6 +288,41 @@ namespace Votify.LógicaNegocio.Services
                 correoInvitado,
                 evento.Nombre,
                 creador.Nombre,
+                urlAceptacion);
+        }
+
+        private async Task ProcesarJurado(string correoJurado, Categorium categoria, Evento evento, Usuario creador)
+        {
+            if (string.IsNullOrWhiteSpace(correoJurado)) return;
+
+            var invExistente = await _invitacionJuradoRepo.FindAsync(
+                i => i.CorreoDestino == correoJurado &&
+                     i.IdCategoria == categoria.Id &&
+                     !i.Aceptada);
+
+            if (invExistente.Any()) return;
+
+            var token = Guid.NewGuid().ToString();
+            var invitacion = new InvitacionJurado
+            {
+                Token = token,
+                CorreoDestino = correoJurado,
+                IdCategoria = categoria.Id,
+                IdEvento = evento.Id,
+                Aceptada = false,
+                FechaExpiracion = DateTime.UtcNow.AddDays(7),
+                CorreoCreador = creador.Correo
+            };
+            await _invitacionJuradoRepo.AddAsync(invitacion);
+
+            var urlBase = _config["App:Url"] ?? "https://localhost:7001";
+            var urlAceptacion = $"{urlBase}/aceptar-invitacion-jurado/{token}";
+
+            await _emailService.EnviarInvitacionJuradoAsync(
+                correoJurado,
+                evento.Nombre,
+                creador.Nombre,
+                categoria.Nombre,
                 urlAceptacion);
         }
 
