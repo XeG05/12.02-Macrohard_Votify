@@ -1,0 +1,250 @@
+﻿@page "/eventoadmin/{EventoId:long}/categoria/{CategoriaId:long}"
+@rendermode InteractiveServer
+
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div style="color:red">@error</div>
+}
+else
+{
+    <!-- PANCARTA -->
+    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+
+        <button @onclick="Volver"
+                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
+            ← Volver
+        </button>
+
+        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
+        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
+
+        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
+            Fase actual: @faseActual?.Fase
+        </span>
+    </div>
+
+    <!-- CATEGORÍA -->
+    <div style="margin-bottom:25px;">
+        <h2>@categoria?.Nombre</h2>
+        <p>@categoria?.Descripcion</p>
+    </div>
+
+    @if (faseActual?.Fase == "Inscripciones")
+    {
+        <button @onclick="CrearGrupo"
+                style="background:#16a34a;color:white;border:none;padding:10px 16px;border-radius:10px;margin-bottom:20px;">
+            + Añadir grupo
+        </button>
+    }
+
+    <!-- GRUPOS -->
+    @foreach (var g in grupos)
+    {
+        <div style="border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin-bottom:16px;">
+
+            <!-- NOMBRE -->
+            <div style="display:flex;align-items:center;gap:10px;">
+
+                <input type="text"
+                       @bind="g.Nombre"
+                       disabled="@(faseActual?.Fase != "Inscripciones")"
+                       style="font-weight:bold;font-size:16px;" />
+
+                @if (faseActual?.Fase == "Inscripciones")
+                {
+                    <button @onclick="() => GuardarNombreGrupo(g)"
+                            style="background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:8px;">
+                        Guardar nombre
+                    </button>
+
+                    <button @onclick="() => EliminarGrupo(g.Id)"
+                            style="background:#dc2626;color:white;border:none;padding:6px 10px;border-radius:8px;">
+                        ✕
+                    </button>
+                }
+            </div>
+
+            <hr />
+
+            <!-- PARTICIPANTES -->
+            @if (faseActual?.Fase == "Inscripciones")
+            {
+                @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
+                {
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+
+                        <input type="text"
+                               value="@item.value"
+                               @oninput='e => g.CorreosParticipantes[item.index] = e.Value?.ToString() ?? ""'
+                               style="width:260px;" />
+
+                        <button @onclick="() => EliminarParticipante(g, item.index)">
+                            ❌
+                        </button>
+
+                        @if (item.value == "Invitación Pendiente")
+                        {
+                            <span style="color:#d97706;font-size:13px;">
+                                Invitación enviada
+                            </span>
+                        }
+
+                    </div>
+                }
+
+                <button @onclick="() => AñadirParticipante(g)"
+                        style="margin-top:6px;">
+                    + Añadir participante
+                </button>
+
+                <br />
+
+                <button @onclick="() => GuardarGrupo(g)"
+                        style="margin-top:10px;background:#2563eb;color:white;border:none;padding:8px 12px;border-radius:8px;">
+                    💾 Guardar cambios
+                </button>
+            }
+            else
+            {
+                <ul>
+                    @foreach (var p in g.CorreosParticipantes)
+                    {
+                        <li>@p</li>
+                    }
+                </ul>
+            }
+
+        </div>
+    }
+}
+
+@code {
+
+    [Parameter] public long EventoId { get; set; }
+    [Parameter] public long CategoriaId { get; set; }
+
+    EventoDto? evento;
+    FaseDto? faseActual;
+    CategoriaDto? categoria;
+
+    List<GrupoDto> grupos = new();
+
+    bool cargando = true;
+    string error = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var entrada = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>(
+                $"api/evento/{EventoId}");
+
+            evento = entrada?.Evento;
+
+            faseActual = await ApiClient.GetFromJsonAsync<FaseDto>(
+                $"api/administrador/{EventoId}/fase");
+
+            var categorias = await ApiClient.GetFromJsonAsync<List<CategoriaDto>>(
+                $"api/evento/{EventoId}/categorias");
+
+            categoria = categorias?.FirstOrDefault(x => x.Id == CategoriaId);
+
+            grupos = await ApiClient.GetFromJsonAsync<List<GrupoDto>>(
+                $"api/administrador/categoria/{CategoriaId}/grupos") ?? new();
+
+            foreach (var g in grupos)
+                await CargarParticipantes(g);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    async Task CargarParticipantes(GrupoDto grupo)
+    {
+        var participantes = await ApiClient.GetFromJsonAsync<List<MiembroGrupoDto>>(
+            $"api/administrador/grupo/{grupo.Id}/participantes");
+
+        var pendientes = await ApiClient.GetFromJsonAsync<int>(
+            $"api/administrador/grupo/{grupo.Id}/pendientes");
+
+        grupo.CorreosParticipantes = participantes?
+            .Select(x => x.Correo)
+            .ToList() ?? new();
+
+        for (int i = 0; i < pendientes; i++)
+            grupo.CorreosParticipantes.Add("Invitación Pendiente");
+    }
+
+    void Volver()
+    {
+        Nav.NavigateTo($"/eventoadmin/{EventoId}");
+    }
+
+    async Task CrearGrupo()
+    {
+        var dto = new GrupoDto
+        {
+            Nombre = "Nuevo grupo",
+            IdCategoria = CategoriaId,
+            CorreosParticipantes = new()
+        };
+
+        await ApiClient.PostAsJsonAsync(
+            $"api/administrador/categoria/{CategoriaId}/grupo", dto);
+
+        Nav.NavigateTo(Nav.Uri, true);
+    }
+
+    async Task GuardarNombreGrupo(GrupoDto grupo)
+    {
+        await ApiClient.PutAsJsonAsync(
+            $"api/administrador/grupo/{grupo.Id}", grupo);
+    }
+
+    async Task GuardarGrupo(GrupoDto grupo)
+    {
+        await ApiClient.PutAsJsonAsync(
+            $"api/administrador/{EventoId}/grupo/{grupo.Id}/participantes",
+            grupo.CorreosParticipantes);
+
+        Nav.NavigateTo(Nav.Uri, true);
+    }
+
+    async Task EliminarGrupo(long idGrupo)
+    {
+        var ok = await JS.InvokeAsync<bool>("confirm", "¿Eliminar grupo?");
+        if (!ok) return;
+
+        await ApiClient.DeleteAsync($"api/administrador/grupo/{idGrupo}");
+
+        Nav.NavigateTo(Nav.Uri, true);
+    }
+
+    void AñadirParticipante(GrupoDto grupo)
+    {
+        grupo.CorreosParticipantes.Add("");
+    }
+
+    void EliminarParticipante(GrupoDto grupo, int index)
+    {
+        grupo.CorreosParticipantes.RemoveAt(index);
+    }
+}

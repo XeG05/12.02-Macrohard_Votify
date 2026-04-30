@@ -19,6 +19,8 @@ public class Evento
 
     public DateOnly FechaFinEvaluacionExperta { get; set; }
 
+    public DateOnly FechaFinVotacionExperta { get; set; }
+
     public TipoComentario TipoComentario { get; set; }
 
     public bool ParticipantesVotan { get; set; }

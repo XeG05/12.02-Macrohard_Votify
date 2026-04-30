@@ -1,0 +1,216 @@
+﻿@page "/eventoadmin/{EventoId:long}/configuracion"
+@rendermode InteractiveServer
+
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <div style="color:red">@error</div>
+}
+else
+{
+    <!-- PANCARTA -->
+    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+
+        <button @onclick="Volver"
+                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
+            ← Volver
+        </button>
+
+        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
+        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
+
+        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
+            Fase actual: @faseActual?.Fase
+        </span>
+    </div>
+
+    <!-- FECHAS -->
+    <h2>Fechas del evento</h2>
+
+    <div style="display:flex;flex-direction:column;gap:15px;max-width:420px;margin-bottom:25px;">
+
+        <div>
+            <label>Fin inscripciones</label><br />
+            <input type="date" @bind="finInscripciones" />
+        </div>
+
+        <div>
+            <label>Fin entrega proyectos</label><br />
+            <input type="date" @bind="finEntrega" />
+        </div>
+
+        <div>
+            <label>Fin votaciones</label><br />
+            <input type="date" @bind="finVotaciones" />
+        </div>
+
+        <div>
+            <label>Fin evaluación experta</label><br />
+            <input type="date" @bind="finExperta" />
+        </div>
+
+    </div>
+
+    <button @onclick="GuardarFechas"
+            style="background:#2563eb;color:white;border:none;padding:10px 16px;border-radius:10px;">
+        Guardar fechas
+    </button>
+
+    <hr style="margin:30px 0;" />
+
+    <!-- CONFIG EVENTO -->
+    <h2>Configuración seleccionada</h2>
+
+    <ul style="line-height:2;">
+        <li>Tiene grupos: @(evento?.TieneGrupos == true ? "Sí" : "No")</li>
+        <li>Grupos completos: @(evento?.GruposCompletos == true ? "Sí" : "No")</li>
+        <li>Participantes por grupo: @evento?.ParticipantesPorGrupo</li>
+        <li>Tipo comentario: @evento?.TipoComentario</li>
+        <li>Tipo votación: @evento?.TipoVotacion</li>
+        <li>Número proyectos a votar: @evento?.NumVotarProyectos</li>
+        <li>Puntos a repartir: @evento?.PuntosARepartir</li>
+    </ul>
+
+    <hr style="margin:30px 0;" />
+
+    <!-- ESTADO -->
+    <h2>Administración</h2>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+
+        @if (evento?.Estado == "Activo")
+        {
+            <button @onclick="Pausar"
+                    style="background:#f59e0b;color:white;border:none;padding:10px 14px;border-radius:10px;">
+                ⏸️ Pausar evento
+            </button>
+        }
+
+        @if (evento?.Estado == "Pausado")
+        {
+            <button @onclick="Reanudar"
+                    style="background:#16a34a;color:white;border:none;padding:10px 14px;border-radius:10px;">
+                ▶️ Reanudar evento
+            </button>
+        }
+
+        @if (evento?.Estado != "Cerrado")
+        {
+            <button @onclick="Cerrar"
+                    style="background:#dc2626;color:white;border:none;padding:10px 14px;border-radius:10px;">
+                ❌ Cerrar evento
+            </button>
+        }
+
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(mensaje))
+    {
+        <div style="margin-top:20px;color:#16a34a;">
+            @mensaje
+        </div>
+    }
+}
+
+@code {
+
+    [Parameter] public long EventoId { get; set; }
+
+    EventoDto? evento;
+    FaseDto? faseActual;
+
+    bool cargando = true;
+    string error = "";
+    string mensaje = "";
+
+    DateTime finInscripciones;
+    DateTime finEntrega;
+    DateTime finVotaciones;
+    DateTime finExperta;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var entrada = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>(
+                $"api/evento/{EventoId}");
+
+            evento = entrada?.Evento;
+
+            faseActual = await ApiClient.GetFromJsonAsync<FaseDto>(
+                $"api/administrador/{EventoId}/fase");
+
+            if (evento != null)
+            {
+                finInscripciones = evento.FechaFinInscripciones.ToDateTime(TimeOnly.MinValue);
+                finEntrega = evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue);
+                finVotaciones = evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue);
+                finExperta = evento.FechaFinEvaluacionExperta.ToDateTime(TimeOnly.MinValue);
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    void Volver()
+    {
+        Nav.NavigateTo($"/eventoadmin/{EventoId}");
+    }
+
+    async Task GuardarFechas()
+    {
+        var dto = new ActualizarFechasDto
+        {
+            FechaFinInscripciones = finInscripciones,
+            FechaFinEntrega = finEntrega,
+            FechaFinVotaciones = finVotaciones,
+            FechaFinExperta = finExperta
+        };
+
+        await ApiClient.PutAsJsonAsync(
+            $"api/administrador/{EventoId}/fechas", dto);
+
+        mensaje = "Fechas guardadas.";
+    }
+
+    async Task Pausar()
+    {
+        await ApiClient.PutAsync($"api/administrador/{EventoId}/pausar", null);
+        Nav.NavigateTo(Nav.Uri, true);
+    }
+
+    async Task Reanudar()
+    {
+        await ApiClient.PutAsync($"api/administrador/{EventoId}/reanudar", null);
+        Nav.NavigateTo(Nav.Uri, true);
+    }
+
+    async Task Cerrar()
+    {
+        var ok = await JS.InvokeAsync<bool>("confirm",
+            "¿Seguro que deseas cerrar el evento?");
+
+        if (!ok) return;
+
+        await ApiClient.PutAsync($"api/administrador/{EventoId}/cerrar", null);
+
+        Nav.NavigateTo("/home");
+    }
+}

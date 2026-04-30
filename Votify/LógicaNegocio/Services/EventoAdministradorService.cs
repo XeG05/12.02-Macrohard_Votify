@@ -260,26 +260,38 @@ namespace Votify.LógicaNegocio.Services
             foreach (var correo in nuevosCorreos)
             {
                 var yaParticipa = participantesEvento.Any(p =>
-                    p.CorreoUsuario == correo && p.IdGrupo != dto.Id);
+                    p.CorreoUsuario.ToLower() == correo && p.IdGrupo != dto.Id);
 
                 if (yaParticipa)
                     throw new Exception($"El usuario {correo} ya participa en otro grupo del evento.");
             }
 
-            // 🔥 ELIMINAR participantes existentes (si los quitas)
+            // 🔥 ELIMINAR participantes existentes 
             foreach (var p in actuales)
             {
-                if (!nuevosCorreos.Contains(p.CorreoUsuario))
+                var correoActual = p.CorreoUsuario.Trim().ToLower();
+
+                if (!nuevosCorreos.Contains(correoActual))
                     await _participanteRepo.DeleteAsync(p);
+            }
+
+            // eliminar invitaciones pendientes antiguas
+            var invitaciones = await _invitacionRepo.FindAsync(i =>
+                i.IdGrupo == dto.Id &&
+                i.IdEvento == eventoId &&
+                !i.Aceptada);
+
+            foreach (var inv in invitaciones)
+            {
+                if (!nuevosCorreos.Contains(inv.CorreoDestino.ToLower()))
+                    await _invitacionRepo.DeleteAsync(inv);
             }
 
             var adminList = (await _administradorRepo.FindAsync(a => a.IdEvento == eventoId));
             var a = adminList[0];
             var creadorList = (await _usuarioRepo.FindAsync(u => u.Correo == a.CorreoUsuario));
             var creador = creadorList[0];
-
-
-            // 🔥 AÑADIR → ahora como INVITACIONES (NO participantes)
+            //  AÑADIR INVITACIONES 
             foreach (var correo in nuevosCorreos)
             {
                 if (!correosActuales.Contains(correo))
@@ -293,8 +305,6 @@ namespace Votify.LógicaNegocio.Services
                 }
             }
             await _unitOfWork.SaveChangesAsync();
-
-
         }
         private async Task ProcesarParticipante(string correoInvitado, long idGrupo,
                                           Evento evento, Usuario creador)

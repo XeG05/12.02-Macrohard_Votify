@@ -6,6 +6,7 @@
         Entregas,
         Votaciones,
         EvaluacionExperta,
+        VotacionExperta,
         Resultados
     }
 }
