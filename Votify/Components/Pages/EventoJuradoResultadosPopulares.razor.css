@@ -71,6 +71,27 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Estilo para destacar la nota media */
+.erp-stat-destacado {
+    background-color: #fef3c7; /* Un amarillo suave */
+    color: #92400e;
+    font-weight: bold;
+    border: 1px solid #f59e0b;
+}
+
+/* Estilo para la nota dentro del h3 del acordeón */
+.erp-nota-criterio {
+    color: #3b82f6; /* Azul */
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+/* Animación simple para el icono del acordeón */
+.rotate-icon {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+}
+
 .ejc-divider-comentarios {
     border: none;
     border-top: 2px solid #000000;

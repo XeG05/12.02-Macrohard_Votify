@@ -237,7 +237,7 @@ namespace Votify.LógicaNegocio.Services
                 .Distinct()
                 .ToHashSet();
 
-            // 🔥 VALIDACIÓN GLOBAL (igual que ya tienes)
+            // VALIDACIÓN GLOBAL (igual que ya tienes)
             var participantesEvento = await _participanteRepo.FindAsync(p => p.IdEvento == eventoId);
 
             foreach (var correo in nuevosCorreos)
@@ -249,7 +249,7 @@ namespace Votify.LógicaNegocio.Services
                     throw new Exception($"El usuario {correo} ya participa en otro grupo del evento.");
             }
 
-            // 🔥 ELIMINAR participantes existentes 
+            // ELIMINAR participantes existentes 
             foreach (var p in actuales)
             {
                 var correoActual = p.CorreoUsuario.Trim().ToLower();

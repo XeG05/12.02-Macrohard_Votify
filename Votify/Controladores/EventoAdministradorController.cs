@@ -14,10 +14,12 @@ namespace Votify.Controladores
     public class EventoAdministradorController : Controller
     {
         private readonly IEventoAdministradorService _eventoAdministradorService;
+        private readonly IEventoService _eventoService;
 
-        public EventoAdministradorController(IEventoAdministradorService eventoAdministradorService)
+        public EventoAdministradorController(IEventoAdministradorService eventoAdministradorService, IEventoService eventoService)
         {
             _eventoAdministradorService = eventoAdministradorService;
+            _eventoService = eventoService;
         }
 
         [HttpGet("{eventoId:long}/categorias")]
