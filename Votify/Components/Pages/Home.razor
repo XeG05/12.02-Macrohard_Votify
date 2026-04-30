@@ -67,6 +67,10 @@
                                     <span class="fecha-label">Votaciones</span>
                                     <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
                                 </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones Expertas</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                </div>
                             </div>
                             <div class="evento-footer">
                                 <span class="ver-mas">Ver evento →</span>
@@ -120,6 +124,10 @@
                                     <span class="fecha-label">Votaciones</span>
                                     <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
                                 </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones Expertas</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                </div>
                             </div>
                             <div class="evento-footer">
                                 <span class="ver-mas">Ver evento →</span>
@@ -164,6 +172,10 @@
                                 <div class="fecha-item">
                                     <span class="fecha-label">Votaciones</span>
                                     <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones Expertas</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
                                 </div>
                             </div>
                             <div class="evento-footer">
@@ -215,6 +227,10 @@
                                 <div class="fecha-item">
                                     <span class="fecha-label">Votaciones</span>
                                     <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <div class="fecha-item">
+                                    <span class="fecha-label">Votaciones Expertas</span>
+                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
                                 </div>
                             </div>
 
@@ -277,7 +293,8 @@
         if (hoy <= ev.FechaFinInscripciones) return "Inscripciones";
         if (hoy <= ev.FechaFinEntrega) return "Entregas";
         if (hoy <= ev.FechaFinVotaciones) return "Votaciones";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "Evaluación experta";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "Opinión experta";
+        if (hoy <= ev.FechaFinVotExperta) return "Votación experta";
         return "Finalizados";
     }
 
@@ -287,7 +304,8 @@
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-experta";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-opinión-experta";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votación-experta";
         return "fase-finalizado";
     }
 
