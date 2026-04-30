@@ -39,27 +39,27 @@ else
 
         <div>
             <label>Fin inscripciones</label><br />
-            <input type="date" @bind="finInscripciones" />
+            <input type="date" @bind="finInscripciones" disabled="@(!puedeEditarInscripciones)" />
         </div>
 
         <div>
             <label>Fin entrega proyectos</label><br />
-            <input type="date" @bind="finEntrega" />
+            <input type="date" @bind="finEntrega" disabled="@(!puedeEditarEntrega)" />
         </div>
 
         <div>
             <label>Fin votaciones</label><br />
-            <input type="date" @bind="finVotaciones" />
+            <input type="date" @bind="finVotaciones" disabled="@(!puedeEditarVotaciones)" />
         </div>
 
         <div>
             <label>Fin evaluación experta</label><br />
-            <input type="date" @bind="finExperta" />
+            <input type="date" @bind="finExperta" disabled="@(!puedeEditarExperta)" />
         </div>
 
         <div>
             <label>Fin votación experta</label><br />
-            <input type="date" @bind="finVotExperta" />
+            <input type="date" @bind="finVotExperta" disabled="@(!puedeEditarVotExperta)" />
         </div>
 
     </div>
@@ -68,7 +68,28 @@ else
             style="background:#2563eb;color:white;border:none;padding:10px 16px;border-radius:10px;">
         Guardar fechas
     </button>
-
+    @if (!string.IsNullOrWhiteSpace(errorAccion))
+    {
+        <div style="
+                margin-top:15px;
+                padding:10px;
+                border-radius:10px;
+                background:#fee2e2;
+                color:#991b1b;">
+            @errorAccion
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(mensaje))
+    {
+        <div style="
+                margin-top:15px;
+                padding:10px;
+                border-radius:10px;
+                background:#dcfce7;
+                color:#166534;">
+            @mensaje
+        </div>
+    }
     <hr style="margin:30px 0;" />
 
     <!-- CONFIG EVENTO -->
@@ -117,10 +138,15 @@ else
 
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(mensaje))
+    @if (!string.IsNullOrWhiteSpace(error))
     {
-        <div style="margin-top:20px;color:#16a34a;">
-            @mensaje
+        <div style="
+                margin-top:20px;
+                padding:10px;
+                border-radius:10px;
+                background:#fee2e2;
+                color:#991b1b;">
+            @error
         </div>
     }
 }
@@ -135,12 +161,19 @@ else
     bool cargando = true;
     string error = "";
     string mensaje = "";
+    string errorAccion = "";
 
     DateTime finInscripciones;
     DateTime finEntrega;
     DateTime finVotaciones;
     DateTime finExperta;
     DateTime finVotExperta;
+
+    bool puedeEditarInscripciones;
+    bool puedeEditarEntrega;
+    bool puedeEditarVotaciones;
+    bool puedeEditarExperta;
+    bool puedeEditarVotExperta;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -155,6 +188,35 @@ else
 
             faseActual = await ApiClient.GetFromJsonAsync<FaseDto>(
                 $"api/administrador/{EventoId}/fase");
+
+            if (faseActual != null)
+            {
+                var fase = faseActual.Fase;
+
+                puedeEditarInscripciones = fase == "Inscripciones";
+
+                puedeEditarEntrega =
+                    fase == "Inscripciones" ||
+                    fase == "Entregas";
+
+                puedeEditarVotaciones =
+                    fase == "Inscripciones" ||
+                    fase == "Entregas" ||
+                    fase == "Votaciones";
+
+                puedeEditarExperta =
+                    fase == "Inscripciones" ||
+                    fase == "Entregas" ||
+                    fase == "Votaciones" ||
+                    fase == "EvaluacionExperta";
+
+                puedeEditarVotExperta =
+                    fase == "Inscripciones" ||
+                    fase == "Entregas" ||
+                    fase == "Votaciones" ||
+                    fase == "EvaluacionExperta" ||
+                    fase == "VotacionExperta";
+            }
 
             if (evento != null)
             {
@@ -183,19 +245,38 @@ else
 
     async Task GuardarFechas()
     {
-        var dto = new ActualizarFechasDto
+        mensaje = "";
+        errorAccion = "";
+
+        try
         {
-            FechaFinInscripciones = finInscripciones,
-            FechaFinEntrega = finEntrega,
-            FechaFinVotaciones = finVotaciones,
-            FechaFinExperta = finExperta,
-            FechaFinVotExperta = finVotExperta
-        };
+            var dto = new ActualizarFechasDto
+            {
+                FechaFinInscripciones = finInscripciones,
+                FechaFinEntrega = finEntrega,
+                FechaFinVotaciones = finVotaciones,
+                FechaFinExperta = finExperta,
+                FechaFinVotExperta = finVotExperta
+            };
 
-        await ApiClient.PutAsJsonAsync(
-            $"api/administrador/{EventoId}/fechas", dto);
+            var response = await ApiClient.PutAsJsonAsync(
+                $"api/administrador/{EventoId}/fechas", dto);
 
-        mensaje = "Fechas guardadas.";
+            if (response.IsSuccessStatusCode)
+            {
+                //  Recarga REAL de la página
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                errorAccion = err?.Error ?? "Error al guardar fechas";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorAccion = ex.Message;
+        }
     }
 
     async Task Pausar()

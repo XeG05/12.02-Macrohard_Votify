@@ -13,10 +13,12 @@ namespace Votify.Controladores
     public class EventoJuradoController : ControllerBase
     {
         private readonly IEventoJuradoService _eventoJuradoService;
+        private readonly IEventoService _eventoService;
 
-        public EventoJuradoController(IEventoJuradoService eventoJuradoService)
+        public EventoJuradoController(IEventoJuradoService eventoJuradoService, IEventoService eventoService)
         {
             _eventoJuradoService = eventoJuradoService;
+            _eventoService = eventoService;
         }
 
         private string? ObtenerCorreo()
@@ -115,14 +117,32 @@ namespace Votify.Controladores
 
             try
             {
-                var comentarios = await _eventoJuradoService.ObtenerComentariosPopulares(proyectoId);
+                var resultado = await _eventoService.ObtenerResultadoProyecto(proyectoId);
 
                 return Ok(new 
                 { 
-                    Comentarios = comentarios,
-                    PosicionRanking = 1,
-                    VotosRecibidos = 27
+                    TotalVotos = resultado.TotalVotos,
+                    ResultadoVotos = resultado.ResultadoVotos,
+                    PosicionRanking = resultado.PosicionRanking,
+                    VotosPorCriterio = resultado.VotosPorCriterio
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{eventoId}/categoria/{categoriaId}/proyecto/{proyectoId}/comentariosPopulares")]
+        public async Task<IActionResult> GetComentariosPopulares(long proyectoId)
+        {
+            var correo = ObtenerCorreo();
+            if (correo is null) return Unauthorized();
+
+            try
+            {
+                var comentarios = await _eventoJuradoService.ObtenerComentariosPopulares(proyectoId);
+                return Ok(comentarios);
             }
             catch (Exception ex)
             {

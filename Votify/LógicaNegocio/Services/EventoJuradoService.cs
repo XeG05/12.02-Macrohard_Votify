@@ -14,7 +14,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Jurado> _juradoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
 
-        public EventoJuradoService(IRepository<Evento> eventoRepo, IRepository<Categorium> categoriaRepo, IRepository<Jurado> juradoRepo, IRepository<Comentario> comentarioRepo)
+        public EventoJuradoService(IRepository<Evento> eventoRepo, IRepository<Categorium> categoriaRepo, IRepository<Jurado> juradoRepo, IRepository<Comentario> comentarioRepo, IRepository<Voto> votoRepo, IRepository<Proyecto> proyectoRepo)
         {
             _eventoRepo = eventoRepo;
             _categoriaRepo = categoriaRepo;

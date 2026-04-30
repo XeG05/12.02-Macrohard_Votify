@@ -30,7 +30,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IUnitOfWork _uow;
-        public EventoService(AdministradorCreator adminC, 
+        public EventoService(AdministradorCreator adminC,
             VotanteCreator votanteC,
             IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
@@ -369,7 +369,7 @@ namespace Votify.LógicaNegocio.Services
         {
             Proyecto pr = await _proyectoRepo.GetByIdAsync(idProyecto) ?? throw new NotFoundException("Proyecto no encontrado.");
 
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault() ?? 
+            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == idEvento && r.CorreoUsuario == correo)).FirstOrDefault() ??
                 throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
 
             Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio) ?? throw new NotFoundException("Criterio no encontrado.");
@@ -413,7 +413,7 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
                 ?? throw new NotFoundException("Evento no encontrado");
 
-            var proyectoActual = await _proyectoRepo.GetByIdAsync(idProyecto) 
+            var proyectoActual = await _proyectoRepo.GetByIdAsync(idProyecto)
                 ?? throw new NotFoundException("Proyecto no encontrado");
 
             var grupoActual = await _grupoRepo.GetByIdAsync(proyectoActual.IdGrupo)
@@ -659,6 +659,98 @@ namespace Votify.LógicaNegocio.Services
             }
 
             await _uow.SaveChangesAsync();
+        }
+
+        public async Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto)
+        {
+            // 1. Obtener el contexto del proyecto y su categoría
+            var proyectoApp = await _proyectoRepo.AsQueryable()
+                .Include(p => p.IdGrupoNavigation)
+                    .ThenInclude(g => g.IdCategoriaNavigation)
+                        .ThenInclude(c => c.Criterios)
+                .FirstOrDefaultAsync(p => p.Id == idProyecto)
+                ?? throw new NotFoundException("Proyecto no encontrado.");
+
+            var categoria = proyectoApp.IdGrupoNavigation.IdCategoriaNavigation;
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
+                ?? throw new NotFoundException("Evento no encontrado.");
+
+            // 2. Obtener TODOS los proyectos de esta categoría para calcular el ranking
+            var proyectosCategoria = await _proyectoRepo.AsQueryable()
+                .Where(p => p.IdGrupoNavigation.IdCategoria == categoria.Id)
+                .ToListAsync();
+
+            // 3. Obtener TODOS los votos de la categoría de una sola vez (más óptimo que ir uno a uno)
+            var todosLosVotos = await _votoRepo.AsQueryable()
+                .Where(v => v.IdCriterioNavigation.IdCategoria == categoria.Id)
+                .ToListAsync();
+
+            // 4. Calcular puntajes de todos los proyectos para poder rankear
+            var tablaPuntuaciones = proyectosCategoria.Select(p => new
+            {
+                Id = p.Id,
+                Puntaje = CalcularPuntajeTotal(p.Id, categoria.Criterios.ToList(), todosLosVotos, evento.TipoVotacion)
+            })
+            .OrderByDescending(x => x.Puntaje)
+            .ToList();
+
+            // 5. Preparar el DTO del proyecto solicitado
+            var votosProyecto = todosLosVotos.Where(v => v.IdProyectoGru == idProyecto).ToList();
+            var desgloseCriterios = new Dictionary<string, long>();
+            double resultadoFinalGlobal = 0;
+
+            foreach (var criterio in categoria.Criterios)
+            {
+                var votosCriterio = votosProyecto.Where(v => v.IdCriterio == criterio.Id).ToList();
+                double valorCriterio = 0;
+
+                switch (evento.TipoVotacion)
+                {
+                    case TipoVotacion.Simple:
+                        valorCriterio = votosCriterio.Count;
+                        break;
+                    case TipoVotacion.Nota:
+                        valorCriterio = votosCriterio.Any() ? votosCriterio.Average(v => (double)(v.Nota ?? 0)) : 0;
+                        break;
+                    case TipoVotacion.Puntos:
+                        valorCriterio = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
+                        break;
+                }
+
+                // Guardamos en el diccionario (Nombre Criterio -> Valor obtenido sin ponderar)
+                desgloseCriterios[criterio.Nombre] = (long)Math.Round(valorCriterio);
+
+                // Sumamos al total aplicando la ponderación
+                resultadoFinalGlobal += valorCriterio * (criterio.Ponderacion / 100.0);
+            }
+
+            return new ResultadoProyectoDto
+            {
+                TotalVotos = votosProyecto.Count,
+                ResultadoVotos = (long)Math.Round(resultadoFinalGlobal),
+                VotosPorCriterio = desgloseCriterios,
+                PosicionRanking = tablaPuntuaciones.FindIndex(x => x.Id == idProyecto) + 1
+            };
+        }
+
+        // Método privado auxiliar para calcular el puntaje de cualquier proyecto de la categoría
+        private double CalcularPuntajeTotal(long idPr, List<Criterio> criterios, List<Voto> votosTotales, TipoVotacion tipo)
+        {
+            double total = 0;
+            var votosProyecto = votosTotales.Where(v => v.IdProyectoGru == idPr).ToList();
+
+            foreach (var crit in criterios)
+            {
+                var vCrit = votosProyecto.Where(v => v.IdCriterio == crit.Id).ToList();
+                double valor = 0;
+
+                if (tipo == TipoVotacion.Simple) valor = vCrit.Count;
+                else if (tipo == TipoVotacion.Nota) valor = vCrit.Any() ? vCrit.Average(v => (double)(v.Nota ?? 0)) : 0;
+                else if (tipo == TipoVotacion.Puntos) valor = vCrit.Sum(v => (double)(v.Nota ?? 0));
+
+                total += valor * (crit.Ponderacion / 100.0);
+            }
+            return total;
         }
     }
 }

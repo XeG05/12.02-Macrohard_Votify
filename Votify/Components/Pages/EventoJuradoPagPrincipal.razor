@@ -164,6 +164,7 @@ else
         if (hoy <= ev.FechaFinEntrega) return "Fase de entrega";
         if (hoy <= ev.FechaFinVotaciones) return "Fase de votación";
         if (hoy <= ev.FechaFinEvaluacionExperta) return "Fase de evaluación experta";
+        if (hoy <= ev.FechaFinVotExperta) return "Fase de votación experta";   
         return "Fase finalizada";
     }
 }
