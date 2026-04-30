@@ -52,6 +52,7 @@ public class Evento
         DateOnly fechaFinEntrega,
         DateOnly fechaFinVotaciones,
         DateOnly fechaFinEvaluacionExperta,
+        DateOnly fechaFinVotacionExperta,
         TipoComentario tipoComentario,
         bool participantesVotan,
         TipoVotacion tipoVotacion,
@@ -67,6 +68,7 @@ public class Evento
         FechaFinEntrega = fechaFinEntrega;
         FechaFinVotaciones = fechaFinVotaciones;
         FechaFinEvaluacionExperta = fechaFinEvaluacionExperta;
+        FechaFinVotacionExperta = fechaFinVotacionExperta;
         TipoComentario = tipoComentario;
         ParticipantesVotan = participantesVotan;
         TipoVotacion = tipoVotacion;

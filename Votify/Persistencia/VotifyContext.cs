@@ -180,6 +180,7 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.FechaFinEntrega).HasColumnName("fecha_fin_entrega");
             entity.Property(e => e.FechaFinVotaciones).HasColumnName("fecha_fin_votaciones");
             entity.Property(e => e.FechaFinEvaluacionExperta).HasColumnName("fecha_fin_evaluacion_experta");
+            entity.Property(e => e.FechaFinVotacionExperta).HasColumnName("fecha_fin_votacion_experta");
             entity.Property(e => e.TipoComentario).HasConversion<string>().HasColumnName("tipo_comentario").HasDefaultValue(TipoComentario.SinComentarios);
             entity.Property(e => e.ParticipantesVotan).HasColumnName("participante_votan");
             entity.Property(e => e.TipoVotacion).HasConversion<string>().HasColumnName("tipo_votacion").HasDefaultValue(TipoVotacion.Simple);

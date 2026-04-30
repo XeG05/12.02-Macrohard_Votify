@@ -11,6 +11,7 @@ namespace Votify.LógicaNegocio.DTOs
         public DateOnly FechaFinEntrega { get; set; }
         public DateOnly FechaFinVotaciones { get; set; }
         public DateOnly FechaFinEvaluacionExperta { get; set; }
+        public DateOnly FechaFinVotExperta { get; set; }
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
         public int ParticipantesPorGrupo { get; set; }

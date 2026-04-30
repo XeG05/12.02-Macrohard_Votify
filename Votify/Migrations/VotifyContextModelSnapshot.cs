@@ -197,6 +197,10 @@ namespace Votify.Migrations
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_inscripciones");
 
+                    b.Property<DateOnly>("FechaFinVotacionExperta")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin_votacion_experta");
+
                     b.Property<DateOnly>("FechaFinVotaciones")
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_votaciones");

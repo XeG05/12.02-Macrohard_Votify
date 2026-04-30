@@ -86,23 +86,6 @@ namespace Votify.LógicaNegocio.Services
         public async Task<List<Grupo>> VerGrupo(long idCategoria)
         {
             return await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
-            /*
-            var proyectos = await _proyectoRepo.FindAsync(p => p.IdCategoria == idCategoria);
-
-            var grupos = new List<Grupo>();
-
-            foreach (var p in proyectos)
-            {
-                var grupo = await _grupoRepo.GetByIdAsync(p.IdGrupo);
-
-                if (grupo != null && !grupos.Any(g => g.Id == grupo.Id)) //evitar repetidos
-                {
-                    grupos.Add(grupo);
-                }
-            }
-            
-            return grupos;*/
-
         }
 
 
@@ -420,8 +403,6 @@ namespace Votify.LógicaNegocio.Services
             await _grupoRepo.UpdateAsync(grupo);
             await _unitOfWork.SaveChangesAsync();
         }
-
-
         public async Task AceptarInvitacion(string token, string correoUsuario)
         {
             var invitacion = await _invitacionRepo
@@ -460,12 +441,14 @@ namespace Votify.LógicaNegocio.Services
         DateTime finInscripciones,
         DateTime finEntrega,
         DateTime finVotaciones,
-        DateTime finExperta)
+        DateTime finExperta,
+        DateTime finVotExperta)
         {
             DateOnly finInscripcionesOnly = DateOnly.FromDateTime(finInscripciones);
             DateOnly finEntregaOnly = DateOnly.FromDateTime(finEntrega);
             DateOnly finVotacionesOnly = DateOnly.FromDateTime(finVotaciones);
             DateOnly finExpertaOnly = DateOnly.FromDateTime(finExperta);
+            DateOnly finVotExpertaOnly = DateOnly.FromDateTime(finVotExperta);
 
             var evento = await _eventoRepo.GetByIdAsync(eventoId);
 
@@ -475,11 +458,11 @@ namespace Votify.LógicaNegocio.Services
             var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
 
             //  Validar orden
-            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly && finVotacionesOnly < finExpertaOnly))
+            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly && finVotacionesOnly < finExpertaOnly && finExpertaOnly < finVotExpertaOnly))
                 throw new ValidationException("Las fechas deben estar en orden lógico");
 
             /*//  No fechas pasadas por el momento para hacer pruebas
-            if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy || finExpertaOnly < hoy)
+            if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy || finExpertaOnly < hoy || finVotExpertaOnly < hoy)
         throw new ValidationException("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS
             //  Restricción por fase
             var faseActual = ObtenerFaseActual(eventoId);
@@ -487,31 +470,41 @@ namespace Votify.LógicaNegocio.Services
             // 🔹 INSCRIPCIONES → puedes modificar todo
             if (faseActual == FasesEvento.Inscripciones)
             {
-                // no bloqueas nada
+                // no bloqueo nada
             }
 
             // 🔹 ENTREGAS → no puedes tocar inscripciones
             else if (faseActual == FasesEvento.Entregas)
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones)
-                    throw new ValidationException("No puedes modificar la fase de inscripciones");
+                    throw new ValidationException("No puedes modificar una fase ya finalizada");
             }
 
-            // 🔹 VOTACIONES → solo puedes tocar votaciones
+            // 🔹 VOTACIONES → no puedes tocar inscripciones ni entregas
             else if (faseActual == FasesEvento.Votaciones)
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones ||
                     finEntregaOnly != evento.FechaFinEntrega)
-                    throw new ValidationException("No puedes modificar la fase de votaciones ni de entregas");
+                    throw new ValidationException("No puedes modificar una fase ya finalizada");
             }
 
-            // 🔹 Evaluacion Experta → solo puedes tocar votaciones
+            // 🔹 Evaluacion Experta → no puedes tocar inscripciones ni entregas ni votaciones
             else if (faseActual == FasesEvento.EvaluacionExperta)
             {
                 if (finInscripcionesOnly != evento.FechaFinInscripciones ||
                     finEntregaOnly != evento.FechaFinEntrega ||
                     finVotacionesOnly != evento.FechaFinVotaciones)
-                    throw new ValidationException("Solo puedes modificar la fase de evaluación experta");
+                    throw new ValidationException("No puedes modificar una fase ya finalizada");
+            }
+
+            // 🔹 Votación Experta → solo puedes tocar votacion experta
+            else if (faseActual == FasesEvento.VotacionExperta)
+            {
+                if (finInscripcionesOnly != evento.FechaFinInscripciones ||
+                    finEntregaOnly != evento.FechaFinEntrega ||
+                    finVotacionesOnly != evento.FechaFinVotaciones ||
+                    finExpertaOnly != evento.FechaFinEvaluacionExperta)
+                    throw new ValidationException("No puedes modificar una fase ya finalizada");
             }
 
             // 🔹 FINALIZADO → nada
@@ -525,6 +518,7 @@ namespace Votify.LógicaNegocio.Services
             evento.FechaFinEntrega = finEntregaOnly;
             evento.FechaFinVotaciones = finVotacionesOnly;
             evento.FechaFinEvaluacionExperta = finExpertaOnly;
+            evento.FechaFinVotacionExperta = finVotExpertaOnly;
 
             await _eventoRepo.UpdateAsync(evento);
             await _unitOfWork.SaveChangesAsync();
@@ -555,6 +549,7 @@ namespace Votify.LógicaNegocio.Services
             if (hoy <= evento.FechaFinEntrega) return FasesEvento.Entregas;
             if (hoy <= evento.FechaFinVotaciones) return FasesEvento.Votaciones;
             if (hoy <= evento.FechaFinEvaluacionExperta) return FasesEvento.EvaluacionExperta;
+            if (hoy <= evento.FechaFinVotacionExperta) return FasesEvento.VotacionExperta;
             return FasesEvento.Resultados;
         }
         public async Task PausarEvento(long eventoId)

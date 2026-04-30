@@ -237,7 +237,8 @@ namespace Votify.Controladores
                     dto.FechaFinInscripciones,
                     dto.FechaFinEntrega,
                     dto.FechaFinVotaciones,
-                    dto.FechaFinExperta);
+                    dto.FechaFinExperta,
+                    dto.FechaFinVotExperta);
                 return NoContent();
             }
             catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }

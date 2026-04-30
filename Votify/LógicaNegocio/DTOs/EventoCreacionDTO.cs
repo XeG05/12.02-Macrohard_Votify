@@ -11,6 +11,7 @@ namespace Votify.LógicaNegocio.DTOs
         public DateOnly? FechaFinEntrega { get; set; }
         public DateOnly? FechaFinVotaciones { get; set; }
         public DateOnly? FechaFinExperta { get; set; }
+        public DateOnly? FechaFinVotExperta { get; set; }
 
         public TipoComentario TipoComentario { get; set; } = TipoComentario.SinComentarios;
         public TipoVotacion TipoVotacion { get; set; } = TipoVotacion.Simple;

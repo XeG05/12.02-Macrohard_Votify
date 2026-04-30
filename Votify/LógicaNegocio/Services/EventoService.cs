@@ -175,6 +175,7 @@ namespace Votify.LógicaNegocio.Services
             dto.FechaFinEntrega!.Value,
             dto.FechaFinVotaciones!.Value,
             dto.FechaFinExperta!.Value,
+            dto.FechaFinVotExperta!.Value,
             dto.TipoComentario,
             dto.ParticipantesVotan,
             dto.TipoVotacion,

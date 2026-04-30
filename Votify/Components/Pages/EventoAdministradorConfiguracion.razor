@@ -57,6 +57,11 @@ else
             <input type="date" @bind="finExperta" />
         </div>
 
+        <div>
+            <label>Fin votación experta</label><br />
+            <input type="date" @bind="finVotExperta" />
+        </div>
+
     </div>
 
     <button @onclick="GuardarFechas"
@@ -135,6 +140,7 @@ else
     DateTime finEntrega;
     DateTime finVotaciones;
     DateTime finExperta;
+    DateTime finVotExperta;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -156,6 +162,7 @@ else
                 finEntrega = evento.FechaFinEntrega.ToDateTime(TimeOnly.MinValue);
                 finVotaciones = evento.FechaFinVotaciones.ToDateTime(TimeOnly.MinValue);
                 finExperta = evento.FechaFinEvaluacionExperta.ToDateTime(TimeOnly.MinValue);
+                finVotExperta = evento.FechaFinVotExperta.ToDateTime(TimeOnly.MinValue);
             }
         }
         catch (Exception ex)
@@ -181,7 +188,8 @@ else
             FechaFinInscripciones = finInscripciones,
             FechaFinEntrega = finEntrega,
             FechaFinVotaciones = finVotaciones,
-            FechaFinExperta = finExperta
+            FechaFinExperta = finExperta,
+            FechaFinVotExperta = finVotExperta
         };
 
         await ApiClient.PutAsJsonAsync(

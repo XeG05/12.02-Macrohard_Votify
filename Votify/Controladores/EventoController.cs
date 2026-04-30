@@ -34,6 +34,7 @@ namespace Votify.Controladores
             FechaFinEntrega = e.FechaFinEntrega,
             FechaFinVotaciones = e.FechaFinVotaciones,
             FechaFinEvaluacionExperta = e.FechaFinEvaluacionExperta,
+            FechaFinVotExperta  = e.FechaFinVotacionExperta,
             TieneGrupos = e.TieneGrupos,
             GruposCompletos = e.GruposCompletos,
             ParticipantesPorGrupo = e.ParticipantesPorGrupo,
