@@ -14,6 +14,9 @@ using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
 using Votify.Persistencia.Interfaces;
 using Votify.Persistencia.Repositories;
+using Votify.LógicaNegocio.Observador;
+using Votify.LógicaNegocio.Observador.Observers;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMemoryCache();
@@ -38,6 +41,16 @@ builder.Services.AddScoped<IEventoVotanteService, EventoVotanteService>();
 builder.Services.AddScoped<IEventoJuradoService, EventoJuradoService>();
 builder.Services.AddScoped<IInvitacionService, InvitacionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<EventoSujeto>();
+
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+
+builder.Services.AddScoped<ObservadorParticipantes>();
+builder.Services.AddScoped<ObservadorVotantes>();
+builder.Services.AddScoped<ObservadorJurado>();
+builder.Services.AddScoped<ObservadorFinalizacion>();
+
+builder.Services.AddScoped<EventoFaseService>();
 
 builder.Services.AddScoped<JwtService>();
 

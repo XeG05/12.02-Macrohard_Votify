@@ -1,3 +1,438 @@
 ﻿@page "/notificacion"
+@rendermode InteractiveServer
+@inject Votify.Auth.ApiClient ApiClient
+@inject NavigationManager Nav
 
-<!-- A desarrollar para el Sprint2 -->
+<div class="notificaciones-wrapper">
+
+    <div class="notificaciones-header">
+        <div>
+            <div class="header-kicker">Centro de avisos</div>
+            <h1>Notificaciones</h1>
+            <p>Revisa los avisos importantes de tus eventos, entregas, votaciones y evaluaciones.</p>
+        </div>
+
+        <div class="header-actions">
+            @if (NoLeidas > 0)
+            {
+                <button class="btn-secundario" @onclick="MarcarTodasComoLeidas" disabled="@procesando">
+                    Marcar todas como leídas
+                </button>
+            }
+
+            <button class="btn-refrescar" @onclick="CargarNotificaciones" disabled="@cargando">
+                ↻ Actualizar
+            </button>
+        </div>
+    </div>
+
+    <div class="resumen-grid">
+        <div class="resumen-card">
+            <span class="resumen-label">Total</span>
+            <strong>@notificaciones.Count</strong>
+        </div>
+
+        <div class="resumen-card destacada">
+            <span class="resumen-label">Sin leer</span>
+            <strong>@NoLeidas</strong>
+        </div>
+
+        <div class="resumen-card">
+            <span class="resumen-label">Leídas</span>
+            <strong>@Leidas</strong>
+        </div>
+    </div>
+
+    <div class="filtros-card">
+        <button class="filtro-btn @(filtroActual == FiltroNotificaciones.Todas ? "activo" : "")"
+                @onclick="() => CambiarFiltro(FiltroNotificaciones.Todas)">
+            Todas
+        </button>
+
+        <button class="filtro-btn @(filtroActual == FiltroNotificaciones.NoLeidas ? "activo" : "")"
+                @onclick="() => CambiarFiltro(FiltroNotificaciones.NoLeidas)">
+            No leídas
+        </button>
+
+        <button class="filtro-btn @(filtroActual == FiltroNotificaciones.Leidas ? "activo" : "")"
+                @onclick="() => CambiarFiltro(FiltroNotificaciones.Leidas)">
+            Leídas
+        </button>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando notificaciones...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="error-state">
+            <span>⚠️</span>
+            <div>
+                <h3>No se pudieron cargar las notificaciones</h3>
+                <p>@error</p>
+            </div>
+        </div>
+    }
+    else if (!NotificacionesFiltradas.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <h3>No tienes notificaciones</h3>
+            <p>Cuando haya avisos importantes de tus eventos, aparecerán aquí.</p>
+        </div>
+    }
+    else
+    {
+        <section class="notificaciones-lista">
+            @foreach (var notificacion in NotificacionesFiltradas)
+            {
+                <article class="notificacion-card @(notificacion.Leida ? "leida" : "no-leida")">
+                    <div class="notificacion-icono @GetTipoClass(notificacion.Tipo)">
+                        @GetTipoIcono(notificacion.Tipo)
+                    </div>
+
+                    <div class="notificacion-contenido">
+                        <div class="notificacion-top">
+                            <div>
+                                <div class="notificacion-titulo-linea">
+                                    <h2>@notificacion.Titulo</h2>
+
+                                    @if (!notificacion.Leida)
+                                    {
+                                        <span class="badge-nueva">Nueva</span>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(notificacion.NombreEvento))
+                                {
+                                    <span class="evento-nombre">@notificacion.NombreEvento</span>
+                                }
+                            </div>
+
+                            <span class="fecha">@FormatearFecha(notificacion.FechaCreacion)</span>
+                        </div>
+
+                        <p>@notificacion.Contenido</p>
+
+                        <div class="notificacion-footer">
+                            <span class="tipo-pill @GetTipoClass(notificacion.Tipo)">
+                                @GetTipoTexto(notificacion.Tipo)
+                            </span>
+
+                            <div class="acciones">
+                                @if (!notificacion.Leida)
+                                {
+                                    <button class="accion-link" @onclick="() => MarcarComoLeida(notificacion.Id)">
+                                        Marcar leída
+                                    </button>
+                                }
+
+                                @if (notificacion.IdEvento.HasValue)
+                                {
+                                    <button class="accion-link principal" @onclick="() => IrAlEvento(notificacion)">
+                                        Ver evento
+                                    </button>
+                                }
+
+                                <button class="accion-link peligro" @onclick="() => Eliminar(notificacion.Id)">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private List<NotificacionViewModel> notificaciones = new();
+
+    private bool cargando = true;
+    private bool procesando = false;
+    private string? error;
+
+    private FiltroNotificaciones filtroActual = FiltroNotificaciones.Todas;
+
+    private int NoLeidas => notificaciones.Count(n => !n.Leida);
+    private int Leidas => notificaciones.Count(n => n.Leida);
+
+    private IEnumerable<NotificacionViewModel> NotificacionesFiltradas =>
+        filtroActual switch
+        {
+            FiltroNotificaciones.NoLeidas => notificaciones.Where(n => !n.Leida),
+            FiltroNotificaciones.Leidas => notificaciones.Where(n => n.Leida),
+            _ => notificaciones
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarNotificaciones();
+    }
+
+    private async Task CargarNotificaciones()
+    {
+        cargando = true;
+        error = null;
+
+        try
+        {
+            var resultado = await ApiClient.GetFromJsonAsync<List<NotificacionViewModel>>("api/notificaciones");
+            notificaciones = resultado ?? new List<NotificacionViewModel>();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void CambiarFiltro(FiltroNotificaciones filtro)
+    {
+        filtroActual = filtro;
+    }
+
+    private async Task MarcarComoLeida(long id)
+    {
+        procesando = true;
+
+        try
+        {
+            var response = await ApiClient.PutAsync($"api/notificaciones/{id}/leer", new StringContent(""));
+
+            if (response.IsSuccessStatusCode)
+            {
+                var notificacion = notificaciones.FirstOrDefault(n => n.Id == id);
+
+                if (notificacion != null)
+                {
+                    notificacion.Leida = true;
+                }
+            }
+            else
+            {
+                error = await ApiClient.LeerError(response);
+            }
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    private async Task MarcarTodasComoLeidas()
+    {
+        procesando = true;
+
+        try
+        {
+            var response = await ApiClient.PutAsync("api/notificaciones/leer-todas", new StringContent(""));
+
+            if (response.IsSuccessStatusCode)
+            {
+                foreach (var notificacion in notificaciones)
+                {
+                    notificacion.Leida = true;
+                }
+            }
+            else
+            {
+                error = await ApiClient.LeerError(response);
+            }
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    private async Task Eliminar(long id)
+    {
+        procesando = true;
+
+        try
+        {
+            var response = await ApiClient.DeleteAsync($"api/notificaciones/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                notificaciones.RemoveAll(n => n.Id == id);
+            }
+            else
+            {
+                error = await ApiClient.LeerError(response);
+            }
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    private async Task IrAlEvento(NotificacionViewModel notificacion)
+    {
+        if (!notificacion.Leida)
+        {
+            await MarcarComoLeida(notificacion.Id);
+        }
+
+        if (!notificacion.IdEvento.HasValue)
+        {
+            return;
+        }
+
+        Nav.NavigateTo(GetRutaEvento(notificacion));
+    }
+
+    private string GetRutaEvento(NotificacionViewModel notificacion)
+    {
+        var idEvento = notificacion.IdEvento!.Value;
+        var tipo = notificacion.Tipo ?? "";
+
+        if (tipo.Contains("Entrega"))
+        {
+            return $"/eventoparticipante/{idEvento}";
+        }
+
+        if (tipo.Contains("VotacionPopular") || tipo.Contains("Votacion"))
+        {
+            return $"/listaproyectos/{idEvento}";
+        }
+
+        if (tipo.Contains("ComentariosJurado") || tipo.Contains("VotacionExperta") || tipo.Contains("Jurado"))
+        {
+            return $"/eventojurado/{idEvento}";
+        }
+
+        if (tipo.Contains("Finalizado"))
+        {
+            return $"/home";
+        }
+
+        return $"/home";
+    }
+
+    private string GetTipoTexto(string? tipo)
+    {
+        return tipo switch
+        {
+            "InicioEntrega" => "Entrega",
+            "RecordatorioFinEntrega" => "Recordatorio entrega",
+
+            "InicioVotacionPopular" => "Votación",
+            "RecordatorioFinVotacionPopular" => "Recordatorio votación",
+
+            "InicioComentariosJurado" => "Comentarios jurado",
+            "RecordatorioFinComentariosJurado" => "Recordatorio comentarios",
+
+            "InicioVotacionExperta" => "Votación experta",
+            "RecordatorioFinVotacionExperta" => "Recordatorio experto",
+
+            "EventoFinalizado" => "Finalizado",
+
+            _ => "Notificación"
+        };
+    }
+
+    private string GetTipoIcono(string? tipo)
+    {
+        return tipo switch
+        {
+            "InicioEntrega" => "📦",
+            "RecordatorioFinEntrega" => "⏰",
+
+            "InicioVotacionPopular" => "🗳️",
+            "RecordatorioFinVotacionPopular" => "⏰",
+
+            "InicioComentariosJurado" => "💬",
+            "RecordatorioFinComentariosJurado" => "⏰",
+
+            "InicioVotacionExperta" => "⚖️",
+            "RecordatorioFinVotacionExperta" => "⏰",
+
+            "EventoFinalizado" => "🏁",
+
+            _ => "🔔"
+        };
+    }
+
+    private string GetTipoClass(string? tipo)
+    {
+        return tipo switch
+        {
+            "InicioEntrega" or "RecordatorioFinEntrega" => "tipo-entrega",
+
+            "InicioVotacionPopular" or "RecordatorioFinVotacionPopular" => "tipo-votacion",
+
+            "InicioComentariosJurado" or "RecordatorioFinComentariosJurado" => "tipo-comentarios",
+
+            "InicioVotacionExperta" or "RecordatorioFinVotacionExperta" => "tipo-experta",
+
+            "EventoFinalizado" => "tipo-finalizado",
+
+            _ => "tipo-general"
+        };
+    }
+
+    private string FormatearFecha(DateTime fecha)
+    {
+        var ahora = DateTime.Now;
+        var diferencia = ahora - fecha;
+
+        if (diferencia.TotalMinutes < 1)
+        {
+            return "Ahora";
+        }
+
+        if (diferencia.TotalHours < 1)
+        {
+            return $"Hace {(int)diferencia.TotalMinutes} min";
+        }
+
+        if (diferencia.TotalDays < 1)
+        {
+            return $"Hace {(int)diferencia.TotalHours} h";
+        }
+
+        if (diferencia.TotalDays < 7)
+        {
+            return $"Hace {(int)diferencia.TotalDays} d";
+        }
+
+        return fecha.ToString("dd MMM yyyy");
+    }
+
+    private enum FiltroNotificaciones
+    {
+        Todas,
+        NoLeidas,
+        Leidas
+    }
+
+    private class NotificacionViewModel
+    {
+        public long Id { get; set; }
+
+        public long? IdEvento { get; set; }
+
+        public string Titulo { get; set; } = string.Empty;
+
+        public string Contenido { get; set; } = string.Empty;
+
+        public string Tipo { get; set; } = string.Empty;
+
+        public DateTime FechaCreacion { get; set; }
+
+        public bool Leida { get; set; }
+
+        public string? NombreEvento { get; set; }
+    }
+}
