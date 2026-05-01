@@ -105,26 +105,24 @@ else
             </div>
         </div>
         <div class="opciones">
-            <div class="opciones-privacidad">
-                <h4>Privacidad del evento</h4>
+                <h4>Privacidad</h4>
                 <hr />
 
-                <div style="display:flex; align-items:center; gap:10px;">
+                <label class="checkbox-linea">
                     <input type="checkbox" @bind="dto.EsPrivado" />
-                    <p>Evento privado (requiere contraseña para votar)</p>
-                </div>
+                    <span>Evento privado (requiere contraseña para votar)</span>
+                </label>
 
                 @if (dto.EsPrivado)
                 {
-                    <div style="margin-top:10px;">
-                        <p>Contraseña de acceso:</p>
-                        <input type="text"
-                               @bind="dto.PasswordAcceso"
+                    <div class="campo-password">
+                        <h6>Contraseña de acceso</h6>
+                        <input type="password"
+                               class="input"
                                placeholder="Introduce una contraseña"
-                               style="padding:6px; border-radius:8px; border:1px solid #ccc;" />
+                               @bind="dto.PasswordAcceso" />
                     </div>
                 }
-            </div>
             <h4>Opciones de grupo</h4>
             <hr />
             <div class="num-participantes">
