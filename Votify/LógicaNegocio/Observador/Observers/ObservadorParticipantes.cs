@@ -6,24 +6,22 @@ namespace Votify.LógicaNegocio.Observador.Observers
 {
     public class ObservadorParticipantes : IObservadorEvento
     {
-        private readonly EventoSujeto _sujeto;
+        
         private readonly INotificacionService _notificacionService;
 
-        private EstadoNotificacionEvento? _estadoObservador;
+        
 
         public ObservadorParticipantes(
-            EventoSujeto sujeto,
+            
             INotificacionService notificacionService)
         {
-            _sujeto = sujeto;
+            
             _notificacionService = notificacionService;
         }
 
-        public async Task Actualizar()
+        public async Task Actualizar(EstadoNotificacionEvento estado)
         {
-            _estadoObservador = _sujeto.GetEstado();
-
-            var estado = _estadoObservador;
+           
             var evento = estado.Evento;
 
             if (estado.TipoCambio == TipoCambioEstado.CambioFase &&
@@ -57,8 +55,8 @@ namespace Votify.LógicaNegocio.Observador.Observers
                         participante.CorreoUsuario,
                         evento.Id,
                         TipoNotificacion.RecordatorioFinEntrega,
-                        "La fase de entrega termina mañana",
-                        $"Mañana termina el plazo de entrega del evento \"{evento.Nombre}\" y todavía no has entregado tu proyecto."
+                        "El plazo de entrega está a punto de finalizar",
+                        $"El plazo de entrega del evento \"{evento.Nombre}\" está a punto de finalizar y todavía no has entregado tu proyecto."
                     );
                 }
             }

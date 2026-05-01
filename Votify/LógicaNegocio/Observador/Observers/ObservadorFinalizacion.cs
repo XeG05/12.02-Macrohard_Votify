@@ -6,24 +6,22 @@ namespace Votify.LógicaNegocio.Observador.Observers
 
     public class ObservadorFinalizacion : IObservadorEvento
     {
-        private readonly EventoSujeto _sujeto;
+       
         private readonly INotificacionService _notificacionService;
 
-        private EstadoNotificacionEvento? _estadoObservador;
+       
 
         public ObservadorFinalizacion(
-            EventoSujeto sujeto,
+           
             INotificacionService notificacionService)
         {
-            _sujeto = sujeto;
+            
             _notificacionService = notificacionService;
         }
 
-        public async Task Actualizar()
+        public async Task Actualizar(EstadoNotificacionEvento estado)
         {
-            _estadoObservador = _sujeto.GetEstado();
-
-            var estado = _estadoObservador;
+            
             var evento = estado.Evento;
 
             if (estado.TipoCambio == TipoCambioEstado.CambioFase &&

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Observador;
-using Votify.LógicaNegocio.Observador.Observers;
+using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia;
 using Votify.Persistencia.Entities;
 
@@ -11,23 +11,20 @@ namespace Votify.LógicaNegocio.Services
     public class EventoFaseService
     {
         private readonly VotifyContext _context;
-        private readonly EventoSujeto _sujeto;
+        private readonly IEventoSujeto _sujeto;
 
         public EventoFaseService(
             VotifyContext context,
-            EventoSujeto sujeto,
-            ObservadorParticipantes observadorParticipantes,
-            ObservadorVotantes observadorVotantes,
-            ObservadorJurado observadorJurado,
-            ObservadorFinalizacion observadorFinalizacion)
+            IEventoSujeto sujeto,
+            IEnumerable<IObservadorEvento> observadores)
         {
             _context = context;
             _sujeto = sujeto;
 
-            _sujeto.Attach(observadorParticipantes);
-            _sujeto.Attach(observadorVotantes);
-            _sujeto.Attach(observadorJurado);
-            _sujeto.Attach(observadorFinalizacion);
+            foreach (var observador in observadores)
+            {
+                _sujeto.Attach(observador);
+            }
         }
 
         public async Task RevisarEventosAsync()
@@ -68,10 +65,13 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (faseNueva == FasesEvento.Resultados)
                 {
-                    await _sujeto.NotificarCambioFase(
-                        evento,
-                        faseAnterior,
-                        faseNueva);
+                    await _sujeto.Notificar(new EstadoNotificacionEvento
+                    {
+                        Evento = evento,
+                        TipoCambio = TipoCambioEstado.CambioFase,
+                        FaseAnterior = faseAnterior,
+                        FaseNueva = faseNueva
+                    });
                 }
 
                 return;
@@ -79,45 +79,69 @@ namespace Votify.LógicaNegocio.Services
 
             evento.FaseActual = faseNueva;
 
-            await _sujeto.NotificarCambioFase(
-                evento,
-                faseAnterior,
-                faseNueva);
+            await _sujeto.Notificar(new EstadoNotificacionEvento
+            {
+                Evento = evento,
+                TipoCambio = TipoCambioEstado.CambioFase,
+                FaseAnterior = faseAnterior,
+                FaseNueva = faseNueva
+            });
         }
 
         private async Task RevisarRecordatoriosAsync(Evento evento)
         {
             var hoy = DateOnly.FromDateTime(DateTime.Now);
 
-            if (hoy == evento.FechaFinEntrega.AddDays(-1))
+            if (DebeEnviarRecordatorio(hoy, evento.FechaFinEntrega) &&
+                evento.FaseActual == FasesEvento.Entregas)
             {
-                await _sujeto.NotificarRecordatorio(
-                    evento,
-                    TipoRecordatorio.FinEntrega);
+                await _sujeto.Notificar(new EstadoNotificacionEvento
+                {
+                    Evento = evento,
+                    TipoCambio = TipoCambioEstado.Recordatorio,
+                    TipoRecordatorio = TipoRecordatorio.FinEntrega
+                });
             }
 
-            if (hoy == evento.FechaFinVotaciones.AddDays(-1))
+            if (DebeEnviarRecordatorio(hoy, evento.FechaFinVotaciones) &&
+                evento.FaseActual == FasesEvento.Votaciones)
             {
-                await _sujeto.NotificarRecordatorio(
-                    evento,
-                    TipoRecordatorio.FinVotacionPopular);
+                await _sujeto.Notificar(new EstadoNotificacionEvento
+                {
+                    Evento = evento,
+                    TipoCambio = TipoCambioEstado.Recordatorio,
+                    TipoRecordatorio = TipoRecordatorio.FinVotacionPopular
+                });
             }
 
-            if (hoy == evento.FechaFinEvaluacionExperta.AddDays(-1))
+            if (DebeEnviarRecordatorio(hoy, evento.FechaFinEvaluacionExperta) &&
+                evento.FaseActual == FasesEvento.EvaluacionExperta)
             {
-                await _sujeto.NotificarRecordatorio(
-                    evento,
-                    TipoRecordatorio.FinComentariosJurado);
+                await _sujeto.Notificar(new EstadoNotificacionEvento
+                {
+                    Evento = evento,
+                    TipoCambio = TipoCambioEstado.Recordatorio,
+                    TipoRecordatorio = TipoRecordatorio.FinComentariosJurado
+                });
             }
 
-            if (hoy == evento.FechaFinVotacionExperta.AddDays(-1))
+            if (DebeEnviarRecordatorio(hoy, evento.FechaFinVotacionExperta) &&
+                evento.FaseActual == FasesEvento.VotacionExperta)
             {
-                await _sujeto.NotificarRecordatorio(
-                    evento,
-                    TipoRecordatorio.FinVotacionExperta);
+                await _sujeto.Notificar(new EstadoNotificacionEvento
+                {
+                    Evento = evento,
+                    TipoCambio = TipoCambioEstado.Recordatorio,
+                    TipoRecordatorio = TipoRecordatorio.FinVotacionExperta
+                });
             }
         }
+        private static bool DebeEnviarRecordatorio(DateOnly hoy, DateOnly fechaFin)
+        {
+            var fechaInicioRecordatorio = fechaFin.AddDays(-1);
 
+            return hoy >= fechaInicioRecordatorio && hoy <= fechaFin;
+        }
         private FasesEvento CalcularFaseActual(Evento evento)
         {
             var hoy = DateOnly.FromDateTime(DateTime.Now);

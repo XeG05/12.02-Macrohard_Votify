@@ -1,8 +1,10 @@
-﻿namespace Votify.LógicaNegocio.Interfaces
+﻿using Votify.LógicaNegocio.Observador;
+
+namespace Votify.LógicaNegocio.Interfaces
 {
 
     public interface IObservadorEvento
     {
-        Task Actualizar();
+        Task Actualizar(EstadoNotificacionEvento estado);
     }
 }

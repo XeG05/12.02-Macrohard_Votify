@@ -7,24 +7,21 @@ namespace Votify.LógicaNegocio.Observador.Observers
 
     public class ObservadorVotantes : IObservadorEvento
     {
-        private readonly EventoSujeto _sujeto;
+        
         private readonly INotificacionService _notificacionService;
 
-        private EstadoNotificacionEvento? _estadoObservador;
+        
 
         public ObservadorVotantes(
-            EventoSujeto sujeto,
+            
             INotificacionService notificacionService)
         {
-            _sujeto = sujeto;
+            
             _notificacionService = notificacionService;
         }
 
-        public async Task Actualizar()
+        public async Task Actualizar(EstadoNotificacionEvento estado)
         {
-            _estadoObservador = _sujeto.GetEstado();
-
-            var estado = _estadoObservador;
             var evento = estado.Evento;
 
             if (estado.TipoCambio == TipoCambioEstado.CambioFase &&
@@ -58,8 +55,8 @@ namespace Votify.LógicaNegocio.Observador.Observers
                         votante.CorreoUsuario,
                         evento.Id,
                         TipoNotificacion.RecordatorioFinVotacionPopular,
-                        "La votación termina mañana",
-                        $"Mañana termina la votación del evento \"{evento.Nombre}\" y todavía no has votado."
+                        "La votación está a punto de finalizar",
+                        $"La votación del evento \"{evento.Nombre}\" está a punto de finalizar y todavía no has votado."
                     );
                 }
             }

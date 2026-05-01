@@ -7,24 +7,22 @@ namespace Votify.LógicaNegocio.Observador.Observers
 
     public class ObservadorJurado : IObservadorEvento
     {
-        private readonly EventoSujeto _sujeto;
+        
         private readonly INotificacionService _notificacionService;
 
-        private EstadoNotificacionEvento? _estadoObservador;
+        
 
         public ObservadorJurado(
-            EventoSujeto sujeto,
+            
             INotificacionService notificacionService)
         {
-            _sujeto = sujeto;
+            
             _notificacionService = notificacionService;
         }
 
-        public async Task Actualizar()
+        public async Task Actualizar(EstadoNotificacionEvento estado)
         {
-            _estadoObservador = _sujeto.GetEstado();
-
-            var estado = _estadoObservador;
+            
             var evento = estado.Evento;
 
             if (estado.TipoCambio == TipoCambioEstado.CambioFase &&
@@ -81,8 +79,8 @@ namespace Votify.LógicaNegocio.Observador.Observers
                     jurado.CorreoUsuario,
                     evento.Id,
                     TipoNotificacion.RecordatorioFinComentariosJurado,
-                    "La fase de comentarios termina mañana",
-                    $"Mañana termina la fase de comentarios del evento \"{evento.Nombre}\" y todavía no has comentado los proyectos."
+                   "La fase de comentarios está a punto de finalizar",
+                    $"La fase de comentarios del evento \"{evento.Nombre}\" está a punto de finalizar y todavía no has comentado los proyectos."
                 );
             }
         }
@@ -116,8 +114,8 @@ namespace Votify.LógicaNegocio.Observador.Observers
                     jurado.CorreoUsuario,
                     evento.Id,
                     TipoNotificacion.RecordatorioFinVotacionExperta,
-                    "La votación experta termina mañana",
-                    $"Mañana termina la votación experta del evento \"{evento.Nombre}\" y todavía no has votado."
+                   "La votación experta está a punto de finalizar",
+                    $"La votación experta del evento \"{evento.Nombre}\" está a punto de finalizar y todavía no has votado."
                 );
             }
         }
