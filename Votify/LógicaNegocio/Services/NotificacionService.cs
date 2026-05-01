@@ -46,9 +46,16 @@ namespace Votify.LógicaNegocio.Services
                 ClaveUnica = claveUnica
             };
 
-            _context.Notificacions.Add(notificacion);
+            try
+            {
+                _context.Notificacions.Add(notificacion);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                _context.Entry(notificacion).State = EntityState.Detached;
+            }
         }
 
         public async Task<List<NotificacionDto>> ObtenerPorUsuarioAsync(string correo)

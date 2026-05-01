@@ -1,6 +1,5 @@
-﻿using Votify.LógicaNegocio.Enums;
-using Votify.LógicaNegocio.Observador;
-using Votify.Persistencia.Entities;
+﻿using Votify.LógicaNegocio.Observador;
+
 
 namespace Votify.LógicaNegocio.Interfaces
 {

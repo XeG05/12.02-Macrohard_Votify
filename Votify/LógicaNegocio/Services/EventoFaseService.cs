@@ -63,17 +63,6 @@ namespace Votify.LógicaNegocio.Services
 
             if (faseAnterior == faseNueva)
             {
-                if (faseNueva == FasesEvento.Resultados)
-                {
-                    await _sujeto.Notificar(new EstadoNotificacionEvento
-                    {
-                        Evento = evento,
-                        TipoCambio = TipoCambioEstado.CambioFase,
-                        FaseAnterior = faseAnterior,
-                        FaseNueva = faseNueva
-                    });
-                }
-
                 return;
             }
 
