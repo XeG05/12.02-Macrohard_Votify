@@ -29,16 +29,12 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task RevisarEventosAsync()
         {
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
-
             var eventos = await _context.Eventos
-                .Where(e => e.FaseActual != FasesEvento.Resultados)
                 .Include(e => e.Roles)
                     .ThenInclude(r => r.Votos)
                 .Include(e => e.Roles)
                     .ThenInclude(r => r.Comentarios)
                 .ToListAsync();
-
             var idsGrupo = eventos
                 .SelectMany(e => e.Roles.OfType<Participante>())
                 .Select(p => p.IdGrupo)
@@ -82,7 +78,7 @@ namespace Votify.LógicaNegocio.Services
 
         private async Task RevisarRecordatoriosAsync(Evento evento)
         {
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             if (DebeEnviarRecordatorio(hoy, evento.FechaFinEntrega) &&
                 evento.FaseActual == FasesEvento.Entregas)
@@ -136,7 +132,7 @@ namespace Votify.LógicaNegocio.Services
         }
         private FasesEvento CalcularFaseActual(Evento evento)
         {
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             if (hoy <= evento.FechaFinInscripciones)
             {
