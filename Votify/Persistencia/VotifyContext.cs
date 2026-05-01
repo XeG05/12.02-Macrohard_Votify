@@ -191,6 +191,8 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.GruposCompletos).HasColumnName("grupos_completos");
             entity.Property(e => e.ParticipantesPorGrupo).HasColumnName("participantes_por_grupo");
             entity.Property(e => e.Estado).HasColumnName("estado").HasDefaultValue("Activo");
+            entity.Property(e => e.EsPrivado).HasColumnName("es_privado");
+            entity.Property(e => e.PasswordAcceso).HasColumnName("password_acceso");
             entity.Property(e => e.FaseActual).HasConversion<string>().HasColumnName("fase_actual").HasDefaultValue(FasesEvento.Inscripciones);
         });
 

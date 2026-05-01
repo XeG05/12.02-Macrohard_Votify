@@ -15,8 +15,9 @@ namespace Votify.LógicaNegocio.DTOs
         public bool TieneGrupos { get; set; }
         public bool GruposCompletos { get; set; }
         public int ParticipantesPorGrupo { get; set; }
-
         public string Estado { get; set; } = "Activo";
+        public bool EsPrivado { get; set; }
+        public string? PasswordAcceso { get; set; }
         public TipoComentario TipoComentario { get; set; }
         public TipoVotacion TipoVotacion { get; set; }
         public int NumVotarProyectos { get; set; }

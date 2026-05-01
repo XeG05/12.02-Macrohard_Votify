@@ -171,6 +171,10 @@ namespace Votify.Migrations
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
 
+                    b.Property<bool>("EsPrivado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("es_privado");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -226,6 +230,10 @@ namespace Votify.Migrations
                     b.Property<bool>("ParticipantesVotan")
                         .HasColumnType("boolean")
                         .HasColumnName("participante_votan");
+
+                    b.Property<string>("PasswordAcceso")
+                        .HasColumnType("text")
+                        .HasColumnName("password_acceso");
 
                     b.Property<int>("PuntosARepartir")
                         .HasColumnType("integer")

@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <div class="home-wrapper">
 
@@ -157,7 +158,7 @@
                     @foreach (var ev in eventosDisponibles)
                     {
                         var eventoId = ev.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoVotante(eventoId)">
+                        <div class="evento-card" @onclick="() => IrAEventoVotante(ev)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
                                 <span class="rol-badge votante-badge">Votante</span>
@@ -319,7 +320,51 @@
             Nav.NavigateTo($"/eventoparticipante/{id}");
     }
 
-    private void IrAEventoVotante(long id) => Nav.NavigateTo($"/listaproyectos/{id}");
+    private async Task IrAEventoVotante(EventoDto ev)
+    {
+        Console.WriteLine("ES PRIVADO????????????????????????????????" + ev.EsPrivado);
+        if (!ev.EsPrivado)
+        {
+            Nav.NavigateTo($"/listaproyectos/{ev.Id}");
+            return;
+        }
+
+        // Si ES privado → pedir contraseña
+        var password = await JS.InvokeAsync<string>("prompt", "Introduce la contraseña del evento:");
+
+        if (string.IsNullOrWhiteSpace(password))
+            return;
+
+        try
+        {
+            var response = await ApiClient.PostAsJsonAsync(
+                $"api/evento/{ev.Id}/validar-password",
+                password
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                var valido = await response.Content.ReadFromJsonAsync<bool>();
+
+                if (valido)
+                {
+                    Nav.NavigateTo($"/listaproyectos/{ev.Id}");
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", "Contraseña incorrecta");
+                }
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Error validando contraseña");
+            }
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("alert", "Error de conexión");
+        }
+    }
 
     private string TruncarTexto(string texto, int max)
     {

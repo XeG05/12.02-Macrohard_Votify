@@ -186,7 +186,9 @@ namespace Votify.LógicaNegocio.Services
             dto.PuntosARepartir,
             dto.TieneGrupos,
             dto.GruposCompletos,
-            dto.NumParticipantes
+            dto.NumParticipantes,
+            dto.EsPrivado,
+            dto.PasswordAcceso
         );
 
         private async Task CrearCategoriaConCriteriosYGrupos(CategoriaDto catDto, Evento evento, Usuario creador)
@@ -751,6 +753,19 @@ namespace Votify.LógicaNegocio.Services
                 total += valor * (crit.Ponderacion / 100.0);
             }
             return total;
+        }
+
+        public async Task<bool> ValidarPasswordEvento(long eventoId, string password)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId);
+
+            if (evento == null)
+                throw new Exception("Evento no encontrado");
+
+            if (!evento.EsPrivado)
+                return true; // si no es privado, pasa siempre
+
+            return evento.PasswordAcceso == password;
         }
     }
 }

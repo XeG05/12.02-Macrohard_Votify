@@ -36,5 +36,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<List<Evento>> GetEventosJurados(string correo);
 
         Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto);
+
+        Task<bool> ValidarPasswordEvento(long eventoId, string password);
     }
 }

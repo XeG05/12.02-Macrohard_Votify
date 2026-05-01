@@ -37,6 +37,10 @@ public class Evento
 
     public string Estado { get; set; } = "Activo";
 
+    public bool EsPrivado { get; set; }
+
+    public string? PasswordAcceso { get; set; }
+
     public FasesEvento FaseActual { get; set; } = FasesEvento.Inscripciones;
 
     public virtual ICollection<Categorium> Categorias { get; set; } = new List<Categorium>();
@@ -60,7 +64,10 @@ public class Evento
         int puntosARepartir,
         bool tieneGrupos,
         bool gruposCompletos,
-        int participantesPorGrupo)
+        int participantesPorGrupo,
+        bool esPrivado,
+        string passwordAcceso)
+
     {
         Nombre = nombre;
         Descripcion = descripcion;
@@ -77,6 +84,8 @@ public class Evento
         TieneGrupos = tieneGrupos;
         GruposCompletos = gruposCompletos;
         ParticipantesPorGrupo = participantesPorGrupo;
+        EsPrivado = esPrivado;
+        PasswordAcceso = passwordAcceso;
         Categorias = new List<Categorium>();
         Roles = new List<Rol>();
     }

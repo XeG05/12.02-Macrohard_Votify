@@ -12,8 +12,8 @@ using Votify.Persistencia;
 namespace Votify.Migrations
 {
     [DbContext(typeof(VotifyContext))]
-    [Migration("20260429183636_NotificacionesObserverBasico")]
-    partial class NotificacionesObserverBasico
+    [Migration("20260501131421_eventoPrivado")]
+    partial class eventoPrivado
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -174,6 +174,10 @@ namespace Votify.Migrations
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
 
+                    b.Property<bool>("EsPrivado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("es_privado");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -200,6 +204,10 @@ namespace Votify.Migrations
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_inscripciones");
 
+                    b.Property<DateOnly>("FechaFinVotacionExperta")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin_votacion_experta");
+
                     b.Property<DateOnly>("FechaFinVotaciones")
                         .HasColumnType("date")
                         .HasColumnName("fecha_fin_votaciones");
@@ -225,6 +233,10 @@ namespace Votify.Migrations
                     b.Property<bool>("ParticipantesVotan")
                         .HasColumnType("boolean")
                         .HasColumnName("participante_votan");
+
+                    b.Property<string>("PasswordAcceso")
+                        .HasColumnType("text")
+                        .HasColumnName("password_acceso");
 
                     b.Property<int>("PuntosARepartir")
                         .HasColumnType("integer")
@@ -308,6 +320,59 @@ namespace Votify.Migrations
                     b.HasIndex("ProyectoIdGrupo");
 
                     b.ToTable("imagen_proyecto", (string)null);
+                });
+
+            modelBuilder.Entity("Votify.Persistencia.Entities.InvitacionJurado", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Aceptada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aceptada");
+
+                    b.Property<string>("CorreoCreador")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("correo_creador");
+
+                    b.Property<string>("CorreoDestino")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("correo_destino");
+
+                    b.Property<DateTime>("FechaExpiracion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_expiracion");
+
+                    b.Property<long>("IdCategoria")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_categoria");
+
+                    b.Property<long>("IdEvento")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_evento");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("token");
+
+                    b.HasKey("Id")
+                        .HasName("invitacion_jurado_pkey");
+
+                    b.HasIndex("IdCategoria");
+
+                    b.HasIndex("IdEvento");
+
+                    b.ToTable("invitacion_jurado", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.InvitacionPendiente", b =>
@@ -713,6 +778,25 @@ namespace Votify.Migrations
                         .IsRequired();
 
                     b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Votify.Persistencia.Entities.InvitacionJurado", b =>
+                {
+                    b.HasOne("Votify.Persistencia.Entities.Categorium", "IdCategoriaNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdCategoria")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Votify.Persistencia.Entities.Evento", "IdEventoNavigation")
+                        .WithMany()
+                        .HasForeignKey("IdEvento")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdCategoriaNavigation");
+
+                    b.Navigation("IdEventoNavigation");
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.InvitacionPendiente", b =>

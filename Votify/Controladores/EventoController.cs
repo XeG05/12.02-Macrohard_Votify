@@ -43,6 +43,8 @@ namespace Votify.Controladores
             TipoVotacion = e.TipoVotacion,
             NumVotarProyectos = e.NumVotarProyectos,
             PuntosARepartir = e.PuntosARepartir,
+            EsPrivado = e.EsPrivado,
+            PasswordAcceso = e.PasswordAcceso
         };
 
         private static GrupoDto MapGrupo(Grupo g) => new()
@@ -367,6 +369,21 @@ namespace Votify.Controladores
             catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
+        }
+
+        [HttpPost("{eventoId}/validar-password")]
+        public async Task<IActionResult> ValidarPassword(long eventoId, [FromBody] string password)
+        {
+            try
+            {
+                var valido = await _eventoService.ValidarPasswordEvento(eventoId, password);
+
+                return Ok(valido);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

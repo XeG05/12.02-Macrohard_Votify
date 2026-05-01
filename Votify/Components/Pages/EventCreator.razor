@@ -42,8 +42,12 @@ else
                 <input type="date" @bind="fechaFinVotaciones" @bind:format="yyyy-MM-dd" />
             </div>
             <div>
-                <h6>Fin de evaluación experta:</h6>
+                <h6>Fin de opinión experta:</h6>
                 <input type="date" @bind="fechaFinExperta" @bind:format="yyyy-MM-dd" />
+            </div>
+            <div>
+                <h6>Fin de votación experta:</h6>
+                <input type="date" @bind="fechaFinVotExperta" @bind:format="yyyy-MM-dd" />
             </div>
         </div>
         <div class="opcionesVotacion">
@@ -101,6 +105,26 @@ else
             </div>
         </div>
         <div class="opciones">
+            <div class="opciones-privacidad">
+                <h4>Privacidad del evento</h4>
+                <hr />
+
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" @bind="dto.EsPrivado" />
+                    <p>Evento privado (requiere contraseña para votar)</p>
+                </div>
+
+                @if (dto.EsPrivado)
+                {
+                    <div style="margin-top:10px;">
+                        <p>Contraseña de acceso:</p>
+                        <input type="text"
+                               @bind="dto.PasswordAcceso"
+                               placeholder="Introduce una contraseña"
+                               style="padding:6px; border-radius:8px; border:1px solid #ccc;" />
+                    </div>
+                }
+            </div>
             <h4>Opciones de grupo</h4>
             <hr />
             <div class="num-participantes">
@@ -398,6 +422,12 @@ else
             if (todosLosCorreos.Any(c => c.Trim().Equals(correo, StringComparison.OrdinalIgnoreCase)))
             {
                 mensaje = "No puedes añadirte a ti mismo como participante.";
+                error = true;
+                return;
+            }
+            if (dto.EsPrivado && string.IsNullOrWhiteSpace(dto.PasswordAcceso))
+            {
+                mensaje = "Debes introducir una contraseña para eventos privados.";
                 error = true;
                 return;
             }
