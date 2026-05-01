@@ -9,66 +9,83 @@
 
 @if (cargando)
 {
-    <p>Verificando invitación...</p>
+    <p style="text-align:center; margin-top:50px;">Verificando invitación...</p>
 }
 else if (invitacion == null)
 {
-    <p>Esta invitación no es válida o ha caducado.</p>
+    <p style="text-align:center; margin-top:50px; color:red;">
+        Esta invitación no es válida o ha caducado.
+    </p>
 }
 else if (invitacion.Aceptada)
 {
-    <p>Esta invitación ya fue aceptada.</p>
+    <p style="text-align:center; margin-top:50px;">
+        Esta invitación ya fue aceptada.
+    </p>
 }
 else if (aceptada)
 {
-    <p>¡Bienvenido! Redirigiendo...</p>
+    <p style="text-align:center; margin-top:50px;">
+        ¡Bienvenido! Redirigiendo...
+    </p>
 }
 else
 {
-    <div class="layout">
-        <h1>Votify</h1>
-        <p>Has sido invitado al evento <strong>@invitacion.NombreEvento</strong>.</p>
+    <div class="invite-wrapper">
 
-        @if (invitacion.UsuarioExiste)
-        {
-            <p>Inicia sesión para confirmar tu participación:</p>
-            <div class="input">
-                <p>Contraseña:</p>
-                <input @bind="contraseña" type="password"
-                       placeholder="Introduce tu contraseña" />
-            </div>
-        }
-        else
-        {
-            <p>Crea tu cuenta para unirte:</p>
-            <div class="input">
-                <p>Nombre:</p>
-                <input @bind="nombre" placeholder="Tu nombre completo" />
-            </div>
-            <div class="input">
-                <p>Contraseña:</p>
-                <input @bind="contraseña" type="password" />
-            </div>
-            <div class="input">
-                <p>Repite contraseña:</p>
-                <input @bind="contraseña2" type="password" />
-            </div>
-        }
+        <div class="invite-card">
 
-        <div class="input">
-            <p>Correo:</p>
-            <input value="@invitacion.CorreoDestino" disabled />
-        </div>
+            <h1 class="logo">Votify</h1>
 
-        @if (!string.IsNullOrEmpty(error))
-        {
-            <p style="color:red">@error</p>
-        }
+            <h2>Invitación al evento</h2>
 
-        <div class="button">
-            <button @onclick="Aceptar">
+            <p class="evento-nombre">
+                @invitacion.NombreEvento
+            </p>
+
+            <div class="divider"></div>
+
+            @if (invitacion.UsuarioExiste)
+            {
+                <p class="subtext">Introduce tu contraseña para unirte</p>
+
+                <input class="input"
+                       @bind="contraseña"
+                       type="password"
+                       placeholder="Contraseña" />
+            }
+            else
+            {
+                <p class="subtext">Crea tu cuenta para participar</p>
+
+                <input class="input"
+                       @bind="nombre"
+                       placeholder="Nombre completo" />
+
+                <input class="input"
+                       @bind="contraseña"
+                       type="password"
+                       placeholder="Contraseña" />
+
+                <input class="input"
+                       @bind="contraseña2"
+                       type="password"
+                       placeholder="Repetir contraseña" />
+            }
+
+            <input class="input disabled"
+                   value="@invitacion.CorreoDestino"
+                   disabled />
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <p class="error">@error</p>
+            }
+
+            <button class="btn-main" @onclick="Aceptar">
                 @(usuarioExiste ? "Confirmar participación" : "Crear cuenta y unirme")
             </button>
+
         </div>
     </div>
 }
