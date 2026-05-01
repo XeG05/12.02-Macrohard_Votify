@@ -50,7 +50,7 @@ builder.Services.AddScoped<IObservadorEvento, ObservadorVotantes>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorJurado>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorFinalizacion>();
 
-builder.Services.AddScoped<EventoFaseService>();
+builder.Services.AddScoped<IEventoFaseService, EventoFaseService>();
 
 builder.Services.AddScoped<JwtService>();
 

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.Interfaces;
-using Votify.LógicaNegocio.Services;
+
 
 namespace Votify.Controladores
 {
@@ -13,11 +13,11 @@ namespace Votify.Controladores
     public class NotificacionController : ControllerBase
     {
         private readonly INotificacionService _notificacionService;
-        private readonly EventoFaseService _eventoFaseService;
+        private readonly IEventoFaseService _eventoFaseService;
 
         public NotificacionController(
             INotificacionService notificacionService,
-            EventoFaseService eventoFaseService)
+            IEventoFaseService eventoFaseService)
         {
             _notificacionService = notificacionService;
             _eventoFaseService = eventoFaseService;

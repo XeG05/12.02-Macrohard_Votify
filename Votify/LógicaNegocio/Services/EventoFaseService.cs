@@ -8,7 +8,7 @@ using Votify.Persistencia.Entities;
 namespace Votify.LógicaNegocio.Services
 {
 
-    public class EventoFaseService
+    public class EventoFaseService : IEventoFaseService
     {
         private readonly VotifyContext _context;
         private readonly IEventoSujeto _sujeto;
@@ -29,7 +29,10 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task RevisarEventosAsync()
         {
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+
             var eventos = await _context.Eventos
+                .Where(e => e.FaseActual != FasesEvento.Resultados)
                 .Include(e => e.Roles)
                     .ThenInclude(r => r.Votos)
                 .Include(e => e.Roles)
@@ -79,7 +82,7 @@ namespace Votify.LógicaNegocio.Services
 
         private async Task RevisarRecordatoriosAsync(Evento evento)
         {
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
 
             if (DebeEnviarRecordatorio(hoy, evento.FechaFinEntrega) &&
                 evento.FaseActual == FasesEvento.Entregas)
@@ -133,7 +136,7 @@ namespace Votify.LógicaNegocio.Services
         }
         private FasesEvento CalcularFaseActual(Evento evento)
         {
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
 
             if (hoy <= evento.FechaFinInscripciones)
             {
