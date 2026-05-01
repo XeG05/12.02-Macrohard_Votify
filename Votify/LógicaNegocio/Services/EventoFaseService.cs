@@ -29,12 +29,16 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task RevisarEventosAsync()
         {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+
             var eventos = await _context.Eventos
+                .Where(e => e.FaseActual != FasesEvento.Resultados)
                 .Include(e => e.Roles)
                     .ThenInclude(r => r.Votos)
                 .Include(e => e.Roles)
                     .ThenInclude(r => r.Comentarios)
                 .ToListAsync();
+
             var idsGrupo = eventos
                 .SelectMany(e => e.Roles.OfType<Participante>())
                 .Select(p => p.IdGrupo)

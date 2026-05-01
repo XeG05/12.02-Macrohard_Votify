@@ -14,7 +14,7 @@ public class Notificacion
 
     public string Tipo { get; set; } = null!;
 
-    public DateTime FechaCreacion { get; set; } = DateTime.Now;
+    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
     public bool Leida { get; set; } = false;
 
@@ -42,7 +42,7 @@ public class Notificacion
         Contenido = contenido;
         Tipo = tipo;
         ClaveUnica = claveUnica;
-        FechaCreacion = DateTime.Now;
+        FechaCreacion = DateTime.UtcNow;
         Leida = false;
     }
 }
