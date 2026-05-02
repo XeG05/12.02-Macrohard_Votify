@@ -37,6 +37,31 @@ else
         <p>@categoria?.Descripcion</p>
     </div>
 
+    @if (categoria?.CorreosJurados != null && categoria.CorreosJurados.Any())
+    {
+        <div style="margin-bottom:25px;
+                        background:#f1f5f9;
+                        padding:16px;
+                        border-radius:12px;
+                        border:1px solid #e2e8f0;">
+
+            <h3 style="margin-bottom:10px;"> Jurados de esta categoría</h3>
+
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                @foreach (var jurado in categoria.CorreosJurados)
+                {
+                    <span style="background:#2563eb;
+                                         color:white;
+                                         padding:6px 12px;
+                                         border-radius:999px;
+                                         font-size:13px;">
+                        @jurado
+                    </span>
+                }
+            </div>
+        </div>
+    }
+
     @if (faseActual?.Fase == "Inscripciones")
     {
         <button @onclick="CrearGrupo"

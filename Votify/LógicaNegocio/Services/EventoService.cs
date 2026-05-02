@@ -364,6 +364,7 @@ namespace Votify.LógicaNegocio.Services
             return await _categoriumRepo.AsQueryable()
                 .Where(c => c.IdEvento == idEvento)
                 .Include(c => c.Criterios)
+                .Include(c => c.Jurados) 
                 .ToListAsync();
         }
 

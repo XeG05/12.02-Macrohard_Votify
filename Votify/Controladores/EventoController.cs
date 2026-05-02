@@ -63,13 +63,18 @@ namespace Votify.Controladores
             PonderacionPopular = c.PonderacionPopular,
             PonderacionExperto = c.PonderacionExperto,
             CriteriosSonPorcentaje = c.CriteriosSonPorcentaje,
+
             Criterios = c.Criterios?.Select(cr => new CriterioDto
             {
                 Id = cr.Id,
                 Nombre = cr.Nombre,
                 Descripcion = cr.Descripcion ?? "",
                 Ponderacion = cr.Ponderacion
-            }).ToList() ?? new()
+            }).ToList() ?? new(),
+
+            CorreosJurados = c.Jurados?
+                .Select(j => j.CorreoUsuario)
+                .ToList() ?? new()
         };
 
         private static ProyectoDto MapProyecto(Proyecto p) => new()
@@ -229,7 +234,11 @@ namespace Votify.Controladores
             try
             {
                 var categorias = await _eventoService.CategoriasDelEvento(eventoId);
+
+
                 return Ok(categorias.Select(MapCategoria));
+
+
             }
             catch (NotFoundException ex) { return NotFound(new ErrorDto { Error = ex.Message }); }
             catch (Exception ex) { return BadRequest(new ErrorDto { Error = ex.Message }); }
