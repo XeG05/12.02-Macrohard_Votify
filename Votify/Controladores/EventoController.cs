@@ -385,5 +385,19 @@ namespace Votify.Controladores
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("{eventoId}/ranking")]
+        public async Task<ActionResult<List<RankingDto>>> ObtenerRanking(long eventoId)
+        {
+            try
+            {
+                var ranking = await _eventoService.ObtenerRankingEvento(eventoId);
+                return Ok(ranking);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

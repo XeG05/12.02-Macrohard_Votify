@@ -164,25 +164,5 @@ else
     {
         Nav.NavigateTo($"/eventoadmin/{EventoId}");
     }
-    /*protected override async Task OnInitializedAsync()
-    {
-        var entrada = await EventoService.EntrarEvento("ana@gmail.com", 1000);
 
-        if (entrada.Evento is EventoAdministrador admin)
-        {
-            eventoAdmin = admin;
-
-            var categorias = await admin.VerCategoria();
-            var categoria = categorias.FirstOrDefault(c => c.Id == idCategoria);
-
-            nombreCategoria = categoria?.Nombre ?? "Categoría";
-
-            var proyectos = await admin.VerProyectosCategoria(idCategoria);
-            numeroProyectos = proyectos.Count;
-
-            totalVotos = await admin.TotalVotosCategoria(idCategoria);
-
-            resumen = await admin.ObtenerResultadosCategoria(idCategoria);
-        }
-    }*/
 }

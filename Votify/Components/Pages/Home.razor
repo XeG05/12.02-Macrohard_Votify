@@ -52,7 +52,7 @@
                     @foreach (var ev in eventosCreados)
                     {
                         var eventoId = ev.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoAdmin(eventoId)">
+                        <div class="evento-card" @onclick="() => IrAEventoAdmin(ev)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
                                 <span class="rol-badge admin-badge">Administrador</span>
@@ -105,7 +105,7 @@
                         var ev = part.Evento;
                         var rolTxt = part.Rol;
                         var grupoId = part.Grupo?.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoParticipante(eventoId, grupoId)">
+                        <div class="evento-card" @onclick="() => IrAEventoParticipante(ev, grupoId)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
                                 <span class="rol-badge participante-badge">@rolTxt</span>
@@ -211,7 +211,7 @@
                         var eventoId = jur.Evento.Id;
                         var ev = jur.Evento;
 
-                        <div class="evento-card" @onclick="() => IrAEventoJurado(eventoId)">
+                        <div class="evento-card" @onclick="() => IrAEventoJurado(ev)">
                             <div class="evento-card-top">
                                 <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
                                 <span class="rol-badge jurado-badge">Jurado</span>
@@ -309,24 +309,47 @@
         if (hoy <= ev.FechaFinVotExperta) return "fase-votación-experta";
         return "fase-finalizado";
     }
-
-    private void IrAEventoAdmin(long id) => Nav.NavigateTo($"/eventoadmin/{id}");
-
-    private void IrAEventoParticipante(long id, long? grupoId)
+    private bool EsFinalizado(EventoDto ev)
     {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        return hoy > ev.FechaFinVotExperta;
+    }
+    private void IrAEventoAdmin(EventoDto ev)
+    {
+        if (EsFinalizado(ev))
+        {
+            Nav.NavigateTo($"/evento-dashboard/{ev.Id}");
+            return;
+        }
+
+        Nav.NavigateTo($"/eventoadmin/{ev.Id}");
+    }
+
+    private void IrAEventoParticipante(EventoDto ev, long? grupoId)
+    {
+        if (EsFinalizado(ev))
+        {
+            Nav.NavigateTo($"/evento-dashboard/{ev.Id}");
+            return;
+        }
+
         if (grupoId.HasValue)
-            Nav.NavigateTo($"/eventoparticipante/{id}/{grupoId.Value}");
+            Nav.NavigateTo($"/eventoparticipante/{ev.Id}/{grupoId.Value}");
         else
-            Nav.NavigateTo($"/eventoparticipante/{id}");
+            Nav.NavigateTo($"/eventoparticipante/{ev.Id}");
     }
 
     private async Task IrAEventoVotante(EventoDto ev)
     {
-        Console.WriteLine("ES PRIVADO????????????????????????????????" + ev.EsPrivado);
-        if (!ev.EsPrivado)
+        if (!ev.EsPrivado && EsFinalizado(ev))
+        {
+            Nav.NavigateTo($"/evento-dashboard/{ev.Id}");
+
+            return;
+        }
+        else if (!ev.EsPrivado)
         {
             Nav.NavigateTo($"/listaproyectos/{ev.Id}");
-            return;
         }
 
         // Si ES privado → pedir contraseña
@@ -346,7 +369,12 @@
             {
                 var valido = await response.Content.ReadFromJsonAsync<bool>();
 
-                if (valido)
+                if (valido && EsFinalizado(ev))
+                {
+                    Nav.NavigateTo($"/evento-dashboard/{ev.Id}");
+
+                }
+                else if (valido)
                 {
                     Nav.NavigateTo($"/listaproyectos/{ev.Id}");
                 }
@@ -372,8 +400,14 @@
         return texto.Length <= max ? texto : texto[..max] + "…";
     }
 
-    private void IrAEventoJurado(long id)
+    private void IrAEventoJurado(EventoDto ev)
     {
-        Nav.NavigateTo($"/eventojurado/{id}");
+        if (EsFinalizado(ev))
+        {
+            Nav.NavigateTo($"/evento-dashboard/{ev.Id}");
+            return;
+        }
+
+        Nav.NavigateTo($"/eventojurado/{ev.Id}");
     }
 }

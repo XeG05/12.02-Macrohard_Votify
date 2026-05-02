@@ -1,0 +1,204 @@
+﻿@page "/evento-dashboard/{EventoId:long}"
+@rendermode InteractiveServer
+
+@inject ApiClient ApiClient
+@inject BlazorAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+@if (cargando)
+{
+    <p style="text-align:center; margin-top:50px;">Cargando resultados...</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <p style="text-align:center; color:red;">@error</p>
+}
+else
+{
+    <!-- PANCARTA -->
+    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+
+        <button @onclick="VolverHome"
+                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
+            ← Volver
+        </button>
+
+        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
+        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
+
+        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
+            Fase actual: @faseActual?.Fase
+        </span>
+    </div>
+    <div class="dashboard-container">
+
+        <!-- CABECERA -->
+        <div class="header">
+            <h1>@evento?.Nombre</h1>
+            <p class="sub">Resultados finales del evento</p>
+        </div>
+
+        <!-- CATEGORÍAS -->
+        @foreach (var categoria in categoriasRanking)
+        {
+            <div class="categoria-card">
+
+                <h2 class="categoria-title">@categoria.NombreCategoria</h2>
+
+                @if (categoria.Proyectos != null && categoria.Proyectos.Any())
+                {
+                    var top3 = categoria.Proyectos.Take(3).ToList();
+                    var resto = categoria.Proyectos.Skip(3).ToList();
+
+                    <!-- 🏆 PODIO -->
+                    <div class="podio">
+
+                        @for (int i = 0; i < top3.Count; i++)
+                        {
+                            var p = top3[i];
+
+                            <div class="podio-item pos-@(i + 1)">
+                                <div class="medalla">
+                                    @(i == 0 ? "🥇" : i == 1 ? "🥈" : "🥉")
+                                </div>
+
+                                <div class="podio-nombre">@p.NombreProyecto</div>
+                                <div class="podio-grupo">@p.NombreGrupo</div>
+                                <div class="podio-puntos">@p.PuntuacionMedia</div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- 📊 RANKING RESTO -->
+                    <div class="ranking-list">
+
+                        @{
+                            var max = categoria.Proyectos.Max(p => p.PuntuacionMedia);
+                        }
+
+                        @foreach (var item in resto.Select((v, i) => new { v, i }))
+                        {
+                            var porcentaje = max > 0 ? (item.v.PuntuacionMedia / max) * 100 : 0;
+
+                            <div class="ranking-item">
+
+                                <div class="pos">#@(item.i + 4)</div>
+
+                                <div class="info">
+                                    <strong>@item.v.NombreProyecto</strong>
+                                    <span>@item.v.NombreGrupo</span>
+
+                                    <!-- barra -->
+                                    <div class="barra">
+                                        <div class="barra-fill"
+                                             style="width:@($"{porcentaje}%")"></div>
+                                    </div>
+                                </div>
+
+                                <div class="pts">
+                                    @item.v.PuntuacionMedia
+                                </div>
+
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- BOTÓN -->
+        <div class="volver">
+            <button @onclick="IrAVistaOriginal">
+                Volver a mi vista del evento
+            </button>
+        </div>
+
+    </div>
+}
+
+@code {
+    [Parameter] public long EventoId { get; set; }
+
+    EventoDto? evento;
+    List<RankingCategoriaDto> categoriasRanking = new();
+    FaseDto? faseActual;
+
+    string rol = "";
+    bool cargando = true;
+    string error = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        if (!AuthProvider.EstaAutenticado)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            var entrada = await ApiClient.GetFromJsonAsync<EntradaEventoRespuestaDto>(
+                $"api/evento/{EventoId}");
+
+            if (entrada == null)
+            {
+                error = "No se pudo cargar el evento";
+                return;
+            }
+
+            evento = entrada.Evento;
+
+            if (entrada.Rol.EsAdministrador) rol = "Admin";
+            else if (entrada.Rol.EsParticipante) rol = "Participante";
+            else if (entrada.Rol.EsJurado) rol = "Jurado";
+            else rol = "Votante";
+
+            var ranking = await ApiClient.GetFromJsonAsync<List<RankingCategoriaDto>>(
+                $"api/evento/{EventoId}/ranking");
+
+            faseActual = await ApiClient.GetFromJsonAsync<FaseDto>($"api/administrador/{EventoId}/fase");
+
+            if (ranking != null)
+                categoriasRanking = ranking;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private void IrAVistaOriginal()
+    {
+        switch (rol)
+        {
+            case "Admin":
+                Nav.NavigateTo($"/eventoadmin/{EventoId}");
+                break;
+
+            case "Participante":
+                Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+                break;
+
+            case "Jurado":
+                Nav.NavigateTo($"/eventojurado/{EventoId}");
+                break;
+
+            default:
+                Nav.NavigateTo($"/listaproyectos/{EventoId}");
+                break;
+        }
+    }
+
+    void VolverHome()
+    {
+        Nav.NavigateTo("/home");
+    }
+}

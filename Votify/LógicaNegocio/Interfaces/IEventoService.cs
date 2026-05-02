@@ -38,5 +38,9 @@ namespace Votify.LógicaNegocio.Interfaces
         Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto);
 
         Task<bool> ValidarPasswordEvento(long eventoId, string password);
+
+        Task<List<RankingCategoriaDto>> ObtenerRankingEvento(long eventoId);
+
+        Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria);
     }
 }

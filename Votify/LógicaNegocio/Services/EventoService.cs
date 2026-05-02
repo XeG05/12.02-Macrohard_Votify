@@ -767,5 +767,113 @@ namespace Votify.LógicaNegocio.Services
 
             return evento.PasswordAcceso == password;
         }
+
+        public async Task<List<RankingCategoriaDto>> ObtenerRankingEvento(long eventoId)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(eventoId)
+                ?? throw new NotFoundException("Evento no encontrado.");
+
+            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            if (hoy <= evento.FechaFinVotacionExperta)
+                throw new Exception("El evento aún no ha finalizado");
+
+            // 🔹 obtener categorías del evento
+            var categorias = await _categoriumRepo.FindAsync(c => c.IdEvento == eventoId);
+
+            var resultado = new List<RankingCategoriaDto>();
+
+            foreach (var categoria in categorias)
+            {
+
+                var proyectosOrdenados = await ObtenerResultadosCategoria(categoria.Id);
+
+                resultado.Add(new RankingCategoriaDto
+                {
+                    IdCategoria = categoria.Id,
+                    NombreCategoria = categoria.Nombre,
+                    Proyectos = proyectosOrdenados
+                });
+            }
+
+            return resultado;
+        }
+
+        public async Task<List<ProyectoResultadosDto>> ObtenerResultadosCategoria(long idCategoria)
+        {
+            var categoria = await _categoriumRepo.GetByIdAsync(idCategoria)
+                ?? throw new NotFoundException("Categoría no encontrada.");
+
+            var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
+                ?? throw new NotFoundException("Evento no encontrado.");
+
+            var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
+            var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == idCategoria);
+
+            var resultado = new List<ProyectoResultadosDto>();
+
+            foreach (var g in grupos)
+            {
+                var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == g.Id)).FirstOrDefault();
+
+                if (proyecto == null)
+                    continue;
+
+                var votosProyecto = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
+
+                double puntuacion = 0;
+
+                var resultadosCriterios = new List<ResultadoCriterioDto>();
+
+                foreach (var criterio in criterios)
+                {
+                    var votosCriterio = votosProyecto.Where(v => v.IdCriterio == criterio.Id).ToList();
+                    double ponderacion = criterio.Ponderacion / 100.0;
+                    double? mediaNota = null;
+                    double? totalPuntos = null;
+
+                    switch (evento.TipoVotacion)
+                    {
+                        case TipoVotacion.Simple:
+                            puntuacion += ponderacion * votosCriterio.Count;
+                            break;
+
+                        case TipoVotacion.Nota:
+                            if (votosCriterio.Any())
+                            {
+                                mediaNota = votosCriterio.Average(v => (double)(v.Nota ?? 0));
+                                puntuacion += ponderacion * mediaNota.Value;
+                            }
+                            break;
+
+                        case TipoVotacion.Puntos:
+                            totalPuntos = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
+                            puntuacion += ponderacion * totalPuntos.Value;
+                            break;
+                    }
+
+                    resultadosCriterios.Add(new ResultadoCriterioDto
+                    {
+                        NombreCriterio = criterio.Nombre,
+                        Ponderacion = criterio.Ponderacion,
+                        CantidadVotos = votosCriterio.Count,
+                        MediaNota = mediaNota,
+                        TotalPuntos = totalPuntos
+                    });
+                }
+
+                resultado.Add(new ProyectoResultadosDto
+                {
+                    NombreProyecto = proyecto.Nombre,
+                    NombreGrupo = g.Nombre,
+                    CantidadVotos = votosProyecto.Count,
+                    PuntuacionMedia = Math.Round(puntuacion, 2),
+                    ResultadosPorCriterio = resultadosCriterios
+                });
+            }
+
+            return resultado
+                .OrderByDescending(r => r.PuntuacionMedia)
+                .ToList();
+        }
     }
 }
