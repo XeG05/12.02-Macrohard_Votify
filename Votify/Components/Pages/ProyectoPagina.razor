@@ -384,7 +384,7 @@ else {
             IdEvento = idEvento,
             IdProyecto = idProyecto,
             IdCriterio = idCriterio,
-            ComentarioDto = texto
+            Comentario = texto
         };
 
         var response = await ApiClient.PostAsJsonAsync("api/evento/proyecto/comentar", peticion);
