@@ -293,3 +293,24 @@
     color: #166534;
     border: 1px solid #bbf7d0;
 }
+
+/* Nueva alerta de advertencia para fases tempranas */
+.ejp-alert-warning {
+    background-color: #fffbeb; /* Fondo ámbar muy claro */
+    color: #92400e; /* Texto marrón/ámbar oscuro */
+    border: 1px solid #fde68a; /* Borde ámbar suave */
+    padding: 1.25rem;
+    border-radius: 12px; /* Match con las tarjetas de categoría */
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.05); /* Sombra muy sutil */
+}
+
+    .ejp-alert-warning svg {
+        flex-shrink: 0; /* Evita que el icono se encoja si el texto es largo */
+        color: #f59e0b; /* Color del icono */
+    }
