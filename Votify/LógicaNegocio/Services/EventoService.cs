@@ -666,7 +666,7 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto)
         {
-            // 1. Obtener el contexto del proyecto y su categoría
+            // 1. Obtener el contexto del proyecto y su categoría con sus criterios
             var proyectoApp = await _proyectoRepo.AsQueryable()
                 .Include(p => p.IdGrupoNavigation)
                     .ThenInclude(g => g.IdCategoriaNavigation)
@@ -678,65 +678,67 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
                 ?? throw new NotFoundException("Evento no encontrado.");
 
-            // 2. Obtener TODOS los proyectos de esta categoría para calcular el ranking
+            // 2. Obtener los proyectos de la categoría para el ranking
             var proyectosCategoria = await _proyectoRepo.AsQueryable()
                 .Where(p => p.IdGrupoNavigation.IdCategoria == categoria.Id)
                 .ToListAsync();
 
-            // 3. Obtener TODOS los votos de la categoría de una sola vez (más óptimo que ir uno a uno)
-            var todosLosVotos = await _votoRepo.AsQueryable()
-                .Where(v => v.IdCriterioNavigation.IdCategoria == categoria.Id)
+            // 3. Obtener votos exclusivos de Votantes (No Jurados)
+            var todosLosVotosVotantes = await _votoRepo.AsQueryable()
+                .Where(v => v.IdCriterioNavigation.IdCategoria == categoria.Id
+                         && !(v.Rol is Jurado))
                 .ToListAsync();
 
-            // 4. Calcular puntajes de todos los proyectos para poder rankear
+            // 4. Calcular ranking (Pasamos solo la lista de criterios, ya no hace falta la categoría)
+            var listaCriterios = categoria.Criterios.ToList();
             var tablaPuntuaciones = proyectosCategoria.Select(p => new
             {
                 Id = p.Id,
-                Puntaje = CalcularPuntajeTotal(p.Id, categoria.Criterios.ToList(), todosLosVotos, evento.TipoVotacion)
+                Puntaje = CalcularPuntajeTotal(p.Id, listaCriterios, todosLosVotosVotantes, evento.TipoVotacion)
             })
             .OrderByDescending(x => x.Puntaje)
             .ToList();
 
-            // 5. Preparar el DTO del proyecto solicitado
-            var votosProyecto = todosLosVotos.Where(v => v.IdProyectoGru == idProyecto).ToList();
-            var desgloseCriterios = new Dictionary<string, long>();
+            // 5. Preparar desglose y resultado final
+            var votosProyecto = todosLosVotosVotantes.Where(v => v.IdProyectoGru == idProyecto).ToList();
+            var desgloseCriterios = new Dictionary<string, double>();
             double resultadoFinalGlobal = 0;
 
-            foreach (var criterio in categoria.Criterios)
+            foreach (var criterio in listaCriterios)
             {
                 var votosCriterio = votosProyecto.Where(v => v.IdCriterio == criterio.Id).ToList();
-                double valorCriterio = 0;
+                double valorCrudo = 0;
 
                 switch (evento.TipoVotacion)
                 {
                     case TipoVotacion.Simple:
-                        valorCriterio = votosCriterio.Count;
+                        valorCrudo = (double)votosCriterio.Count;
                         break;
                     case TipoVotacion.Nota:
-                        valorCriterio = votosCriterio.Any() ? votosCriterio.Average(v => (double)(v.Nota ?? 0)) : 0;
+                        valorCrudo = votosCriterio.Any() ? votosCriterio.Average(v => (double)(v.Nota ?? 0)) : 0;
                         break;
                     case TipoVotacion.Puntos:
-                        valorCriterio = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
+                        valorCrudo = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
                         break;
                 }
 
-                // Guardamos en el diccionario (Nombre Criterio -> Valor obtenido sin ponderar)
-                desgloseCriterios[criterio.Nombre] = (long)Math.Round(valorCriterio);
+                // CÁLCULO: Solo Valor * Ponderación del Criterio
+                double pesoCriterio = (double)criterio.Ponderacion / 100.0;
+                double valorPonderado = valorCrudo * pesoCriterio;
 
-                // Sumamos al total aplicando la ponderación
-                resultadoFinalGlobal += valorCriterio * (criterio.Ponderacion / 100.0);
+                desgloseCriterios[criterio.Nombre] = valorPonderado;
+                resultadoFinalGlobal += valorPonderado;
             }
 
             return new ResultadoProyectoDto
             {
                 TotalVotos = votosProyecto.Count,
-                ResultadoVotos = (long)Math.Round(resultadoFinalGlobal),
+                ResultadoVotos = resultadoFinalGlobal, // Se mantiene en double para evitar el error de conversión
                 VotosPorCriterio = desgloseCriterios,
                 PosicionRanking = tablaPuntuaciones.FindIndex(x => x.Id == idProyecto) + 1
             };
         }
 
-        // Método privado auxiliar para calcular el puntaje de cualquier proyecto de la categoría
         private double CalcularPuntajeTotal(long idPr, List<Criterio> criterios, List<Voto> votosTotales, TipoVotacion tipo)
         {
             double total = 0;
@@ -745,13 +747,14 @@ namespace Votify.LógicaNegocio.Services
             foreach (var crit in criterios)
             {
                 var vCrit = votosProyecto.Where(v => v.IdCriterio == crit.Id).ToList();
-                double valor = 0;
+                double valorCrudo = 0;
 
-                if (tipo == TipoVotacion.Simple) valor = vCrit.Count;
-                else if (tipo == TipoVotacion.Nota) valor = vCrit.Any() ? vCrit.Average(v => (double)(v.Nota ?? 0)) : 0;
-                else if (tipo == TipoVotacion.Puntos) valor = vCrit.Sum(v => (double)(v.Nota ?? 0));
+                if (tipo == TipoVotacion.Simple) valorCrudo = (double)vCrit.Count;
+                else if (tipo == TipoVotacion.Nota) valorCrudo = vCrit.Any() ? vCrit.Average(v => (double)(v.Nota ?? 0)) : 0;
+                else if (tipo == TipoVotacion.Puntos) valorCrudo = vCrit.Sum(v => (double)(v.Nota ?? 0));
 
-                total += valor * (crit.Ponderacion / 100.0);
+                // Solo multiplicamos por el peso del criterio
+                total += valorCrudo * ((double)crit.Ponderacion / 100.0);
             }
             return total;
         }

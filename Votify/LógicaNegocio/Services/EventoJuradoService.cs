@@ -156,8 +156,11 @@ namespace Votify.LógicaNegocio.Services
 
             if (categoria != null && categoria.Criterios != null && categoria.Criterios.Any())
             {
+
                 var comentarios = await _comentarioRepo.AsQueryable()
-                                                .Where(c => c.IdProyectoGru == idGrupo && c.CorreoRol != correoJurado)
+                                                .Where(c => c.IdProyectoGru == idGrupo
+                                                       && c.CorreoRol != correoJurado
+                                                       && c.Rol is Jurado) 
                                                 .ToListAsync();
 
                 foreach (var crit in categoria.Criterios)
@@ -166,7 +169,10 @@ namespace Votify.LógicaNegocio.Services
                     {
                         CriterioId = crit.Id,
                         NombreCriterio = crit.Nombre,
-                        Comentarios = comentarios.Where(c => c.IdCriterio == crit.Id).Select(c => c.Contenido).ToList()
+                        Comentarios = comentarios
+                                        .Where(c => c.IdCriterio == crit.Id)
+                                        .Select(c => c.Contenido)
+                                        .ToList()
                     });
                 }
             }

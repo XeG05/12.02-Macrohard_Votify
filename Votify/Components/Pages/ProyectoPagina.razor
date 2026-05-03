@@ -78,7 +78,7 @@
             {
                 puedeVotarSegunFase = true;
             }
-            else if (esJurado && faseActual == "evaluacion") 
+            else if (esJurado && faseActual == "votacion-experta")
             {
                 puedeVotarSegunFase = true;
             }
@@ -377,7 +377,7 @@ else {
         if (evento == null || proyecto == null) return;
         if (!comentariosPorCriterio.TryGetValue(idCriterio, out var texto) || string.IsNullOrWhiteSpace(texto)) return;
         var faseActual = GetFaseClass(evento);
-        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
+        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "votacion-experta")) return;
 
         var peticion = new
         {
@@ -556,6 +556,7 @@ else {
         if (hoy <= ev.FechaFinEntrega) return "entregas";
         if (hoy <= ev.FechaFinVotaciones) return "votaciones";
         if (hoy <= ev.FechaFinEvaluacionExperta) return "evaluacion";
+        if (hoy <= ev.FechaFinVotExperta) return "votacion-experta";
         return "resultados";
     }
 }

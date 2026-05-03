@@ -4,9 +4,9 @@
     {
         public int TotalVotos { get; set; }
 
-        public long ResultadoVotos { get; set; }
+        public double ResultadoVotos { get; set; }
         public int PosicionRanking { get; set; }
 
-        public Dictionary<string, long> VotosPorCriterio { get; set; } = new Dictionary<string, long>();
+        public Dictionary<string, double> VotosPorCriterio { get; set; } = new Dictionary<string, double>();
     }
 }

@@ -9,7 +9,7 @@
     <div class="ejc-hero-comentarios">
         <button class="ejc-btn-volver" @onclick="Volver" title="Volver a los proyectos">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
             </svg>
         </button>
         <h2 class="ejc-titulo-comentarios">Resultado de la votación popular</h2>
@@ -28,77 +28,76 @@
     }
     else
     {
-                    <!-- Caja superior de informacion -->
-            <div class="erp-info-box">
-                <h3 class="erp-proyecto-titulo">@proyectoNombre</h3>
+        <!-- Caja superior de informacion -->
+        <div class="erp-info-box">
+            <h3 class="erp-proyecto-titulo">@proyectoNombre</h3>
 
-                <div class="erp-stats-row">
-                    <div class="erp-stat-pill">
-                        <i class="bi bi-trophy"></i> Ranking: @(posicionRanking > 0 ? $"#{posicionRanking}" : "---")
-                    </div>
-                    <div class="erp-stat-pill">
-                        <i class="bi bi-people"></i> Votos: @votosRecibidos
-                    </div>
-                    <!-- NUEVA PILL: Nota Media / Resultado Global -->
-                    <div class="erp-stat-pill erp-stat-destacado">
-                        <i class="bi bi-star-fill"></i> Puntaje Global: @resultadoVotos
-                    </div>
+            <div class="erp-stats-row">
+                <div class="erp-stat-pill">
+                    <i class="bi bi-trophy"></i> Ranking: @(posicionRanking > 0 ? $"#{posicionRanking}" : "---")
+                </div>
+                <div class="erp-stat-pill">
+                    <i class="bi bi-people"></i> Votos: @votosRecibidos
+                </div>
+                <div class="erp-stat-pill erp-stat-destacado">
+                    <!-- Formato 0.## aplicado al Total -->
+                    <i class="bi bi-star-fill"></i> Puntaje Global: @resultadoVotos.ToString("0.##")
                 </div>
             </div>
+        </div>
 
-            <h2 class="ejc-titulo-comentarios mt-4">Comentarios por Criterio</h2>
-            <hr class="ejc-divider-comentarios" />
+        <h2 class="ejc-titulo-comentarios mt-4">Comentarios por Criterio</h2>
+        <hr class="ejc-divider-comentarios" />
 
-            <!-- Comentarios (Acordeon) -->
-            @if (criterios != null && criterios.Any())
-            {
-                <div class="ej-comentarios-container">
-                    @foreach (var criterio in criterios)
-                    {
-                        var isExpanded = expandedState.ContainsKey(criterio.CriterioId) && expandedState[criterio.CriterioId];
-            
-                        // Obtenemos el puntaje del diccionario usando el nombre del criterio
-                        var puntajeCriterio = votosPorCriterio.ContainsKey(criterio.NombreCriterio) 
-                                              ? votosPorCriterio[criterio.NombreCriterio].ToString() 
-                                              : "0";
+        <!-- Comentarios (Acordeon) -->
+        @if (criterios != null && criterios.Any())
+        {
+            <div class="ej-comentarios-container">
+                @foreach (var criterio in criterios)
+                {
+                    var isExpanded = expandedState.ContainsKey(criterio.CriterioId) && expandedState[criterio.CriterioId];
+        
+                    // Formato 0.## aplicado al puntaje de cada criterio
+                    var puntajeCriterio = votosPorCriterio.ContainsKey(criterio.NombreCriterio)
+                                          ? votosPorCriterio[criterio.NombreCriterio].ToString("0.##")
+                                          : "0";
 
-                        <div class="ej-accordion-item">
-                            <div class="ej-accordion-header" @onclick="() => ToggleAccordion(criterio.CriterioId)">
-                                <!-- MODIFICADO: Nombre - Puntaje -->
-                                <h3>@criterio.NombreCriterio - <span class="erp-nota-criterio">@puntajeCriterio pts</span></h3>
-                                <button class="ej-accordion-btn">
-                                    <svg class="@(isExpanded ? "rotate-icon" : "")" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                      <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            @if (isExpanded)
-                            {
-                                <div class="ej-accordion-body">
-                                    @if (criterio.Comentarios != null && criterio.Comentarios.Any())
-                                    {
-                                        @foreach (var comentario in criterio.Comentarios)
-                                        {
-                                            <div class="ej-comentario-box">
-                                                <p>@comentario</p>
-                                            </div>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <p class="ej-no-comments">No hay comentarios de votantes para este criterio.</p>
-                                    }
-                                </div>
-                            }
+                    <div class="ej-accordion-item">
+                        <div class="ej-accordion-header" @onclick="() => ToggleAccordion(criterio.CriterioId)">
+                            <h3>@criterio.NombreCriterio - <span class="erp-nota-criterio">@puntajeCriterio pts</span></h3>
+                            <button class="ej-accordion-btn">
+                                <svg class="@(isExpanded ? "rotate-icon" : "")" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                                </svg>
+                            </button>
                         </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <p style="color:#6b7280; font-style:italic;">No se encontraron criterios ni comentarios.</p>
-            }
+
+                        @if (isExpanded)
+                        {
+                            <div class="ej-accordion-body">
+                                @if (criterio.Comentarios != null && criterio.Comentarios.Any())
+                                {
+                                    @foreach (var comentario in criterio.Comentarios)
+                                    {
+                                        <div class="ej-comentario-box">
+                                            <p>@comentario</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="ej-no-comments">No hay comentarios de votantes para este criterio.</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p style="color:#6b7280; font-style:italic;">No se encontraron criterios ni comentarios.</p>
+        }
     }
 </div>
 
@@ -113,9 +112,9 @@
 
     private int posicionRanking = 0;
     private int votosRecibidos = 0;
-    private long resultadoVotos = 0;
+    private double resultadoVotos = 0;
 
-    private Dictionary<string, long> votosPorCriterio = new();
+    private Dictionary<string, double> votosPorCriterio = new();
     private List<CriterioComentariosDto> criterios = new();
     private Dictionary<long, bool> expandedState = new();
 
@@ -130,22 +129,19 @@
 
         try
         {
-            // 1. Cargar datos básicos del proyecto
             var proyecto = await ApiClient.GetFromJsonAsync<ProyectoDto>($"api/evento/proyecto/{ProyectoId}");
             proyectoNombre = proyecto?.Nombre ?? "Proyecto";
 
-            // 2. Cargar Comentarios (Trae la lista de CriterioComentariosDto)
             var comentarios = await ApiClient.GetFromJsonAsync<List<CriterioComentariosDto>>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyecto/{ProyectoId}/comentariosPopulares");
             if (comentarios != null) criterios = comentarios;
 
-            // 3. Cargar Resultados (Trae el DTO optimizado que hicimos antes)
             var resultado = await ApiClient.GetFromJsonAsync<ResultadoProyectoDto>($"api/jurado/{EventoId}/categoria/{CategoriaId}/proyecto/{ProyectoId}/resultados");
 
             if (resultado != null)
             {
                 posicionRanking = resultado.PosicionRanking;
                 votosRecibidos = resultado.TotalVotos;
-                resultadoVotos = resultado.ResultadoVotos; // Esta es la "Nota Media" ponderada
+                resultadoVotos = resultado.ResultadoVotos;
                 votosPorCriterio = resultado.VotosPorCriterio ?? new();
             }
         }
@@ -156,7 +152,6 @@
         }
         finally
         {
-            // Inicializar estados de acordeón
             foreach (var c in criterios) expandedState[c.CriterioId] = false;
             if (criterios.Any()) expandedState[criterios.First().CriterioId] = true;
             
