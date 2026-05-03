@@ -144,7 +144,11 @@ else
 
     private void IrACategoria(long idCategoria)
     {
-        Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{idCategoria}");
+        var fase = GetFaseClass(evento);
+        if (fase == "fase-evaluacion-experta" || fase == "fase-votacion-experta")
+        {
+            Nav.NavigateTo($"/eventojurado/{EventoId}/categoria/{idCategoria}");
+        }
     }
 
     private string GetFaseClass(EventoDto ev)
@@ -154,6 +158,7 @@ else
         if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
         if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion-experta";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votacion-experta";
         return "fase-finalizado";
     }
 
