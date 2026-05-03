@@ -404,7 +404,25 @@ else {
     private async Task DescargarProyecto()
     {
         if (proyecto != null && proyecto.TieneArchivo)
-            await JS.InvokeVoidAsync("open", $"/api/evento/proyecto/{idProyecto}/descargar", "_blank");
+            {
+            var response = await ApiClient.GetAsync($"api/evento/proyecto/{idProyecto}/descargar");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentBytes = await response.Content.ReadAsByteArrayAsync();
+                var nombreArchivo = response.Content.Headers.ContentDisposition?.FileNameStar 
+                                    ?? response.Content.Headers.ContentDisposition?.FileName 
+                                    ?? $"{proyecto.Nombre}.zip";
+
+                nombreArchivo = nombreArchivo.Trim('"');
+
+                using var streamRef = new DotNetStreamReference(new MemoryStream(contentBytes));
+                await JS.InvokeVoidAsync("downloadFileFromStream", nombreArchivo, streamRef);
+            }
+            else
+            {
+                errorMessage = "Error al descargar el proyecto. Código: " + response.StatusCode;
+            }
+        }
     }
 
     private void VolverAtras()
