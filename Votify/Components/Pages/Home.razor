@@ -350,6 +350,7 @@
         else if (!ev.EsPrivado)
         {
             Nav.NavigateTo($"/listaproyectos/{ev.Id}");
+            return;
         }
 
         // Si ES privado → pedir contraseña
