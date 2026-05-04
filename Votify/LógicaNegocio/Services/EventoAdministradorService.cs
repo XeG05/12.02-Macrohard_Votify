@@ -23,6 +23,8 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Rol> _rolRepo;
         private readonly IRepository<Administrador> _administradorRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
+        private readonly IRepository<Jurado> _juradoRepo;
+        private readonly IRepository<Votante> _votanteRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
@@ -39,6 +41,8 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Rol> rolRepo,
             IRepository<Administrador> administradorRepo,
             IRepository<Usuario> usuarioRepo,
+            IRepository<Jurado> juradoRepo,
+            IRepository<Votante> votanteRepo,
         IUnitOfWork unitOfWork,
             IEmailService emailService,
             IConfiguration config,
@@ -55,6 +59,8 @@ namespace Votify.LógicaNegocio.Services
             _rolRepo = rolRepo;
             _administradorRepo = administradorRepo;
             _usuarioRepo = usuarioRepo;
+            _juradoRepo = juradoRepo;
+            _votanteRepo = votanteRepo;
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _config = config;
@@ -117,6 +123,12 @@ namespace Votify.LógicaNegocio.Services
             var grupos = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
             var criterios = await _criterioRepo.FindAsync(c => c.IdCategoria == idCategoria);
 
+            var jurados = await _juradoRepo.FindAsync(j => j.IdEvento == evento.Id);
+            var votantes = await _votanteRepo.FindAsync(v => v.IdEvento == evento.Id);
+
+            var setJurados = jurados.Select(j => j.CorreoUsuario).ToHashSet();
+            var setVotantes = votantes.Select(v => v.CorreoUsuario).ToHashSet();
+
             var resultado = new List<ProyectoResultadosDto>();
 
             foreach (var g in grupos)
@@ -139,23 +151,60 @@ namespace Votify.LógicaNegocio.Services
                     double? mediaNota = null;
                     double? totalPuntos = null;
 
+                    //DIFERENCIAR ENTRE VOTANTE O JURADO
+                    var votosVotantes = votosCriterio
+                        .Where(v => setVotantes.Contains(v.CorreoRol))
+                        .ToList();
+
+                    var votosJurados = votosCriterio
+                        .Where(v => setJurados.Contains(v.CorreoRol))
+                        .ToList();
+
+                    double pesoPopular = categoria.PonderacionPopular / 100.0;
+                    double pesoExperto = categoria.PonderacionExperto / 100.0;
+
                     switch (evento.TipoVotacion)
                     {
                         case TipoVotacion.Simple:
-                            puntuacion += ponderacion * votosCriterio.Count;
+
+                            puntuacion += ponderacion * (
+                                votosVotantes.Count * pesoPopular +
+                                votosJurados.Count * pesoExperto
+                            );
+
                             break;
 
                         case TipoVotacion.Nota:
-                            if (votosCriterio.Any())
-                            {
-                                mediaNota = votosCriterio.Average(v => (double)(v.Nota ?? 0));
-                                puntuacion += ponderacion * mediaNota.Value;
-                            }
+
+                            double mediaVotantes = votosVotantes.Any()
+                                ? votosVotantes.Average(v => (double)(v.Nota ?? 0))
+                                : 0;
+
+                            double mediaJurados = votosJurados.Any()
+                                ? votosJurados.Average(v => (double)(v.Nota ?? 0))
+                                : 0;
+
+                            puntuacion += ponderacion * (
+                                mediaVotantes * pesoPopular +
+                                mediaJurados * pesoExperto
+                            );
+
+                            mediaNota = (mediaVotantes + mediaJurados) / 2;
+
                             break;
 
                         case TipoVotacion.Puntos:
-                            totalPuntos = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
-                            puntuacion += ponderacion * totalPuntos.Value;
+
+                            double puntosVotantes = votosVotantes.Sum(v => (double)(v.Nota ?? 0));
+                            double puntosJurados = votosJurados.Sum(v => (double)(v.Nota ?? 0));
+
+                            puntuacion += ponderacion * (
+                                puntosVotantes * pesoPopular +
+                                puntosJurados * pesoExperto
+                            );
+
+                            totalPuntos = puntosVotantes + puntosJurados;
+
                             break;
                     }
 

@@ -108,6 +108,7 @@ else
 
     List<ProyectoResultadosDto>? resumen;
 
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -140,6 +141,7 @@ else
                 numeroProyectos = proyectos.Count;
 
                 totalVotos = await ApiClient.GetFromJsonAsync<int>($"api/administrador/categoria/{idCategoria}/votos");
+
 
                 resumen = await ApiClient.GetFromJsonAsync<List<ProyectoResultadosDto>>($"api/administrador/categoria/{idCategoria}/resultados");
             }
