@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using System.Net.Http.Headers;
-using Votify.LógicaNegocio.DTOs;
+using System.Text.Json;
 
 namespace Votify.Auth
 {
@@ -20,8 +20,53 @@ namespace Votify.Auth
         {
             try
             {
-                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
-                return err?.Error;
+                var raw = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(raw))
+                    return $"Error {(int)response.StatusCode}";
+
+                using var doc = JsonDocument.Parse(raw);
+                var root = doc.RootElement;
+
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    if (root.TryGetProperty("error", out var errorProp) &&
+                        errorProp.ValueKind == JsonValueKind.String)
+                    {
+                        var msg = errorProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            return msg;
+                    }
+
+                    if (root.TryGetProperty("errors", out var errorsProp) &&
+                        errorsProp.ValueKind == JsonValueKind.Object)
+                    {
+                        var mensajes = new List<string>();
+                        foreach (var campo in errorsProp.EnumerateObject())
+                        {
+                            if (campo.Value.ValueKind == JsonValueKind.Array)
+                            {
+                                foreach (var item in campo.Value.EnumerateArray())
+                                {
+                                    var texto = item.GetString();
+                                    if (!string.IsNullOrWhiteSpace(texto))
+                                        mensajes.Add(texto);
+                                }
+                            }
+                        }
+                        if (mensajes.Count > 0)
+                            return string.Join(" · ", mensajes);
+                    }
+
+                    if (root.TryGetProperty("title", out var titleProp) &&
+                        titleProp.ValueKind == JsonValueKind.String)
+                    {
+                        var titulo = titleProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(titulo))
+                            return titulo;
+                    }
+                }
+
+                return $"Error {(int)response.StatusCode}";
             }
             catch
             {
