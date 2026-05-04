@@ -40,7 +40,6 @@ namespace Votify.Auth
                     if (root.TryGetProperty("errors", out var errorsProp) &&
                         errorsProp.ValueKind == JsonValueKind.Object)
                     {
-                        var mensajes = new List<string>();
                         foreach (var campo in errorsProp.EnumerateObject())
                         {
                             if (campo.Value.ValueKind == JsonValueKind.Array)
@@ -49,12 +48,10 @@ namespace Votify.Auth
                                 {
                                     var texto = item.GetString();
                                     if (!string.IsNullOrWhiteSpace(texto))
-                                        mensajes.Add(texto);
+                                        return texto;
                                 }
                             }
                         }
-                        if (mensajes.Count > 0)
-                            return string.Join(" · ", mensajes);
                     }
 
                     if (root.TryGetProperty("title", out var titleProp) &&
