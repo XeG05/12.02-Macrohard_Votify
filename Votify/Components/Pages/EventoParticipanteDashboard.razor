@@ -14,25 +14,25 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else if (dashboard != null)
 {
-    <!-- HEADER -->
-    <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
-        
-        <button @onclick="VolverEvento" style="background:none;border:none;color:#9ca3af;cursor:pointer;">
-            ← Volver a evento
+
+
+    <!-- PANCARTA -->
+    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+
+        <button @onclick="VolverEvento"
+                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
+            ← Volver
         </button>
 
-        <h1 style="margin:10px 0;">Dashboard del evento</h1>
+        <h1 style="margin:10px 0;">Tu Dashboard</h1>
         <p style="color:#cbd5f5;">Resultados finales de tu participación</p>
 
-        <div style="margin-top:10px;">
-            <span style="background:#22c55e; padding:5px 10px; border-radius:10px; margin-right:10px;">
-                Participante
-            </span>
-            <span style="background:#64748b; padding:5px 10px; border-radius:10px;">
-                Finalizado
-            </span>
-        </div>
+        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
+            Fase actual: @faseActual?.Fase
+        </span>
     </div>
+
+
 
     <!-- INFO PROYECTO -->
     <div style="display:flex; gap:20px; flex-wrap:wrap;">
@@ -100,6 +100,7 @@ else
 
     EventoDto? evento;
     DashboardParticipanteDto? dashboard;
+    FaseDto? faseActual;
 
     bool cargando = true;
     string error = "";
@@ -126,6 +127,8 @@ else
             if (entradaEvento.Rol.EsParticipante)
             {
                 evento = entradaEvento.Evento;
+
+                faseActual = await ApiClient.GetFromJsonAsync<FaseDto>($"api/administrador/{EventoId}/fase");
 
                 dashboard = await ApiClient.GetFromJsonAsync<DashboardParticipanteDto>($"api/participante/{EventoId}/dashboard/{CategoriaId}");
             }
