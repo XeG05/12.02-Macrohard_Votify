@@ -72,18 +72,29 @@
         @if (esVotante || esJurado)
         {
             bool puedeVotarSegunFase = false;
+            bool puedeComentarSegunFase = false;
             var faseActual = GetFaseClass(evento);
 
             if (esVotante && faseActual == "votaciones")
             {
                 puedeVotarSegunFase = true;
+                puedeComentarSegunFase = true;
             }
-            else if (esJurado && faseActual == "votacion-experta")
+            else if (esJurado)
             {
-                puedeVotarSegunFase = true;
+                if (faseActual == "votacion-experta")
+                {
+                    puedeVotarSegunFase = true;
+                    puedeComentarSegunFase = false;
+                }
+                else if (faseActual == "evaluacion")
+                {
+                    puedeVotarSegunFase = false;
+                    puedeComentarSegunFase = true;
+                }
             }
 
-            @if (puedeVotarSegunFase)
+            @if (puedeVotarSegunFase || puedeComentarSegunFase)
             {
                 <div class="votacion-criterios">
                     <h3>Votación</h3>
@@ -116,70 +127,73 @@
                             @if (abierto)
                             {
                                 <div class="criterio-voto-body">
-                                    @if (comentarioObligatorioFaltante)
+                                    @if (puedeVotarSegunFase && comentarioObligatorioFaltante)
                                     {
                                         <div class="aviso-comentario-obligatorio">
                                             Envía tu comentario antes de votar en este criterio.
                                         </div>
                                     }
-                                    @if (evento!.TipoVotacion == TipoVotacion.Simple)
+                                    @if (puedeVotarSegunFase)
                                     {
-                                        <div class="criterio-voto-footer">
-                                            <label class="checkbox-votar">
-                                                <input type="checkbox"
-                                                       checked="@info.HaVotado"
-                                                       disabled="@(info.HaVotado || info.VotosRestantes <= 0 || comentarioObligatorioFaltante)" )"
-                                                       @onchange="e => EmitirVotoSimple(e, criterio.Id)" />
-                                                Votar por el proyecto
-                                            </label>
-                                            <span class="votos-restantes">
-                                                @info.VotosRestantes / @evento.NumVotarProyectos votos restantes
-                                            </span>
-                                        </div>
-                                    }
-                                    else if (evento!.TipoVotacion == TipoVotacion.Nota)
-                                    {
-                                        <div class="criterio-voto-footer">
-                                            <label>Nota (1 - 10):</label>
-                                            <input type="number" min="1" max="10"
-                                                   value="@ObtenerValorPendiente(criterio.Id, info)"
-                                                   @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
-                                            <button class="btn-secundario"
-                                                    disabled="@comentarioObligatorioFaltante"
-                                                    @onclick="() => EmitirVotoNota(criterio.Id)">
-                                                @(info.HaVotado ? "Actualizar nota" : "Guardar nota")
-                                            </button>
-                                            @if (info.HaVotado)
-                                            {
-                                                <span class="votos-restantes">Nota actual: @info.NotaDada</span>
-                                            }
-                                        </div>
-                                    }
-                                    else if (evento!.TipoVotacion == TipoVotacion.Puntos)
-                                    {
-                                        <div class="criterio-voto-footer">
-                                            <label>Puntos a asignar:</label>
-                                            <input type="number" min="0"
-                                                   max="@((info.PuntosAsignados ?? 0) + (info.PuntosRestantes ?? 0))"
-                                                   value="@ObtenerValorPendiente(criterio.Id, info)"
-                                                   @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
-                                            <button class="btn-secundario"
-                                                    disabled="@comentarioObligatorioFaltante"
-                                                    @onclick="() => EmitirVotoPuntos(criterio.Id)">
-                                                Asignar puntos
-                                            </button>
-                                        </div>
-                                        <div class="puntos-criterio-detalle">
-                                            <span class="puntos-asignados-proyecto">
-                                                Este proyecto: <b>@(info.PuntosAsignados ?? 0)</b> pts
-                                            </span>
-                                            <span class="puntos-restantes-criterio @(info.PuntosRestantes == 0 ? "agotado" : "")">
-                                                Restantes: <b>@(info.PuntosRestantes ?? evento!.PuntosARepartir)</b> / @evento!.PuntosARepartir
-                                            </span>
-                                        </div>
+                                        @if (evento!.TipoVotacion == TipoVotacion.Simple)
+                                        {
+                                            <div class="criterio-voto-footer">
+                                                <label class="checkbox-votar">
+                                                    <input type="checkbox"
+                                                           checked="@info.HaVotado"
+                                                           disabled="@(info.HaVotado || info.VotosRestantes <= 0 || comentarioObligatorioFaltante)" )"
+                                                           @onchange="e => EmitirVotoSimple(e, criterio.Id)" />
+                                                    Votar por el proyecto
+                                                </label>
+                                                <span class="votos-restantes">
+                                                    @info.VotosRestantes / @evento.NumVotarProyectos votos restantes
+                                                </span>
+                                            </div>
+                                        }
+                                        else if (evento!.TipoVotacion == TipoVotacion.Nota)
+                                        {
+                                            <div class="criterio-voto-footer">
+                                                <label>Nota (1 - 10):</label>
+                                                <input type="number" min="1" max="10"
+                                                       value="@ObtenerValorPendiente(criterio.Id, info)"
+                                                       @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
+                                                <button class="btn-secundario"
+                                                        disabled="@comentarioObligatorioFaltante"
+                                                        @onclick="() => EmitirVotoNota(criterio.Id)">
+                                                    @(info.HaVotado ? "Actualizar nota" : "Guardar nota")
+                                                </button>
+                                                @if (info.HaVotado)
+                                                {
+                                                    <span class="votos-restantes">Nota actual: @info.NotaDada</span>
+                                                }
+                                            </div>
+                                        }
+                                        else if (evento!.TipoVotacion == TipoVotacion.Puntos)
+                                        {
+                                            <div class="criterio-voto-footer">
+                                                <label>Puntos a asignar:</label>
+                                                <input type="number" min="0"
+                                                       max="@((info.PuntosAsignados ?? 0) + (info.PuntosRestantes ?? 0))"
+                                                       value="@ObtenerValorPendiente(criterio.Id, info)"
+                                                       @onchange="e => ActualizarValorPendiente(criterio.Id, e)" />
+                                                <button class="btn-secundario"
+                                                        disabled="@comentarioObligatorioFaltante"
+                                                        @onclick="() => EmitirVotoPuntos(criterio.Id)">
+                                                    Asignar puntos
+                                                </button>
+                                            </div>
+                                            <div class="puntos-criterio-detalle">
+                                                <span class="puntos-asignados-proyecto">
+                                                    Este proyecto: <b>@(info.PuntosAsignados ?? 0)</b> pts
+                                                </span>
+                                                <span class="puntos-restantes-criterio @(info.PuntosRestantes == 0 ? "agotado" : "")">
+                                                    Restantes: <b>@(info.PuntosRestantes ?? evento!.PuntosARepartir)</b> / @evento!.PuntosARepartir
+                                                </span>
+                                            </div>
+                                        }
                                     }
 
-                                    @if (evento!.TipoComentario != TipoComentario.SinComentarios)
+                                    @if (puedeComentarSegunFase && evento!.TipoComentario != TipoComentario.SinComentarios)
                                     {
                                         var textoComentario = comentariosPorCriterio.TryGetValue(criterio.Id, out var tc) ? tc : "";
                                         var enviado = comentariosEnviados.TryGetValue(criterio.Id, out var ce) && ce;
@@ -377,7 +391,7 @@ else {
         if (evento == null || proyecto == null) return;
         if (!comentariosPorCriterio.TryGetValue(idCriterio, out var texto) || string.IsNullOrWhiteSpace(texto)) return;
         var faseActual = GetFaseClass(evento);
-        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "votacion-experta")) return;
+        if ((esVotante && faseActual != "votaciones") || (esJurado && faseActual != "evaluacion")) return;
 
         var peticion = new
         {
