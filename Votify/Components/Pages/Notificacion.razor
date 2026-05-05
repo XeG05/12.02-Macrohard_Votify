@@ -384,8 +384,11 @@
 
     private string FormatearFecha(DateTime fecha)
     {
-        var ahora = DateTime.Now;
-        var diferencia = ahora - fecha;
+        var fechaUtc = fecha.Kind == DateTimeKind.Utc
+            ? fecha
+            : DateTime.SpecifyKind(fecha, DateTimeKind.Utc);
+
+        var diferencia = DateTime.UtcNow - fechaUtc;
 
         if (diferencia.TotalMinutes < 1)
         {

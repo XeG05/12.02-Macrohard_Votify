@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Votify.LógicaNegocio.Interfaces;
-
+using Microsoft.EntityFrameworkCore;
+using Votify.LógicaNegocio.Enums;
+using Votify.Persistencia;
 
 namespace Votify.Controladores
 {
@@ -13,14 +15,23 @@ namespace Votify.Controladores
     public class NotificacionController : ControllerBase
     {
         private readonly INotificacionService _notificacionService;
-        private readonly IEventoFaseService _eventoFaseService;
+        private readonly IEventoSujeto _eventoSujeto;
+        private readonly VotifyContext _context;
 
         public NotificacionController(
             INotificacionService notificacionService,
-            IEventoFaseService eventoFaseService)
+            IEventoSujeto eventoSujeto,
+            IEnumerable<IObservadorEvento> observadores,
+             VotifyContext context)
         {
             _notificacionService = notificacionService;
-            _eventoFaseService = eventoFaseService;
+            _eventoSujeto = eventoSujeto;
+            _context = context;
+
+            foreach (var observador in observadores)
+            {
+                _eventoSujeto.Attach(observador);
+            }
         }
 
         [HttpGet]
@@ -33,11 +44,26 @@ namespace Votify.Controladores
                 return Unauthorized();
             }
 
-            await _eventoFaseService.RevisarEventosAsync();
+            await RevisarEventosAsync();
 
             var notificaciones = await _notificacionService.ObtenerPorUsuarioAsync(correo);
 
             return Ok(notificaciones);
+        }
+
+        private async Task RevisarEventosAsync()
+        {
+            var eventos = await _context.Eventos
+                .Where(e => e.FaseActual != FasesEvento.Resultados)
+                .Include(e => e.Roles)
+                .ToListAsync();
+
+            foreach (var evento in eventos)
+            {
+                await _eventoSujeto.SetEstadoAsync(evento);
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         [HttpPut("{id:long}/leer")]
