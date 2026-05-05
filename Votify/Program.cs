@@ -14,8 +14,9 @@ using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
 using Votify.Persistencia.Interfaces;
 using Votify.Persistencia.Repositories;
-using Votify.LógicaNegocio.Observador;
 using Votify.LógicaNegocio.Observador.Observers;
+using Votify.LógicaNegocio.Observador.Sujetos;
+using Votify.LógicaNegocio.Observador.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);

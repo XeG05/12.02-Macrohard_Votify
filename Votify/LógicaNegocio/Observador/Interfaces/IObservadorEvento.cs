@@ -1,4 +1,4 @@
-﻿namespace Votify.LógicaNegocio.Interfaces
+﻿namespace Votify.LógicaNegocio.Observador.Interfaces
 {
     public interface IObservadorEvento
     {

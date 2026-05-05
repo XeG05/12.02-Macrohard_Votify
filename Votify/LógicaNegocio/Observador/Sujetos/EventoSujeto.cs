@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
 using Votify.LógicaNegocio.Enums;
-using Votify.LógicaNegocio.Interfaces;
+using Votify.LógicaNegocio.Observador.Interfaces;
 using Votify.Persistencia.Entities;
 
-namespace Votify.LógicaNegocio.Observador
+namespace Votify.LógicaNegocio.Observador.Sujetos
 {
     public class EventoSujeto : IEventoSujeto
     {

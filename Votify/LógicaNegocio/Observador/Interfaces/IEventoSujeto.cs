@@ -1,7 +1,7 @@
 ﻿using Votify.LógicaNegocio.Enums;
 using Votify.Persistencia.Entities;
 
-namespace Votify.LógicaNegocio.Interfaces
+namespace Votify.LógicaNegocio.Observador.Interfaces
 {
     public interface IEventoSujeto
     {

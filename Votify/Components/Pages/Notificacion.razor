@@ -291,33 +291,32 @@
 
         Nav.NavigateTo(GetRutaEvento(notificacion));
     }
-
     private string GetRutaEvento(NotificacionViewModel notificacion)
     {
         var idEvento = notificacion.IdEvento!.Value;
         var tipo = notificacion.Tipo ?? "";
-
-        if (tipo.Contains("Entrega"))
-        {
-            return $"/eventoparticipante/{idEvento}";
-        }
-
-        if (tipo.Contains("VotacionPopular") || tipo.Contains("Votacion"))
-        {
-            return $"/listaproyectos/{idEvento}";
-        }
 
         if (tipo.Contains("ComentariosJurado") || tipo.Contains("VotacionExperta") || tipo.Contains("Jurado"))
         {
             return $"/eventojurado/{idEvento}";
         }
 
-        if (tipo.Contains("Finalizado"))
+        if (tipo.Contains("Entrega"))
         {
-            return $"/home";
+            return $"/eventoparticipante/{idEvento}";
         }
 
-        return $"/home";
+        if (tipo.Contains("VotacionPopular"))
+        {
+            return $"/listaproyectos/{idEvento}";
+        }
+
+        if (tipo.Contains("Finalizado"))
+        {
+            return "/home";
+        }
+
+        return "/home";
     }
 
     private string GetTipoTexto(string? tipo)
@@ -325,19 +324,10 @@
         return tipo switch
         {
             "InicioEntrega" => "Entrega",
-            "RecordatorioFinEntrega" => "Recordatorio entrega",
-
             "InicioVotacionPopular" => "Votación",
-            "RecordatorioFinVotacionPopular" => "Recordatorio votación",
-
             "InicioComentariosJurado" => "Comentarios jurado",
-            "RecordatorioFinComentariosJurado" => "Recordatorio comentarios",
-
             "InicioVotacionExperta" => "Votación experta",
-            "RecordatorioFinVotacionExperta" => "Recordatorio experto",
-
             "EventoFinalizado" => "Finalizado",
-
             _ => "Notificación"
         };
     }
@@ -347,19 +337,10 @@
         return tipo switch
         {
             "InicioEntrega" => "📦",
-            "RecordatorioFinEntrega" => "⏰",
-
             "InicioVotacionPopular" => "🗳️",
-            "RecordatorioFinVotacionPopular" => "⏰",
-
             "InicioComentariosJurado" => "💬",
-            "RecordatorioFinComentariosJurado" => "⏰",
-
             "InicioVotacionExperta" => "⚖️",
-            "RecordatorioFinVotacionExperta" => "⏰",
-
             "EventoFinalizado" => "🏁",
-
             _ => "🔔"
         };
     }
@@ -368,16 +349,11 @@
     {
         return tipo switch
         {
-            "InicioEntrega" or "RecordatorioFinEntrega" => "tipo-entrega",
-
-            "InicioVotacionPopular" or "RecordatorioFinVotacionPopular" => "tipo-votacion",
-
-            "InicioComentariosJurado" or "RecordatorioFinComentariosJurado" => "tipo-comentarios",
-
-            "InicioVotacionExperta" or "RecordatorioFinVotacionExperta" => "tipo-experta",
-
+            "InicioEntrega" => "tipo-entrega",
+            "InicioVotacionPopular" => "tipo-votacion",
+            "InicioComentariosJurado" => "tipo-comentarios",
+            "InicioVotacionExperta" => "tipo-experta",
             "EventoFinalizado" => "tipo-finalizado",
-
             _ => "tipo-general"
         };
     }

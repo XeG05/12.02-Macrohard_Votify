@@ -5,6 +5,7 @@ using Votify.LógicaNegocio.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Votify.LógicaNegocio.Enums;
 using Votify.Persistencia;
+using Votify.LógicaNegocio.Observador.Interfaces;
 
 namespace Votify.Controladores
 {
