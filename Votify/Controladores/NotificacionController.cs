@@ -22,17 +22,11 @@ namespace Votify.Controladores
         public NotificacionController(
             INotificacionService notificacionService,
             IEventoSujeto eventoSujeto,
-            IEnumerable<IObservadorEvento> observadores,
              VotifyContext context)
         {
             _notificacionService = notificacionService;
             _eventoSujeto = eventoSujeto;
             _context = context;
-
-            foreach (var observador in observadores)
-            {
-                _eventoSujeto.Attach(observador);
-            }
         }
 
         [HttpGet]

@@ -17,9 +17,10 @@ namespace Votify.LógicaNegocio.Observador.Sujetos
         public FasesEvento FaseActual => Evento.FaseActual;
 
 
-        public EventoSujeto(ILogger<EventoSujeto> logger)
+        public EventoSujeto(ILogger<EventoSujeto> logger, IEnumerable<IObservadorEvento> observadores)
         {
             _logger = logger;
+            _observadores = observadores.ToList();
         }
 
         public void Attach(IObservadorEvento observador)
