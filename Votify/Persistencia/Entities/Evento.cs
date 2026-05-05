@@ -89,4 +89,17 @@ public class Evento
         Categorias = new List<Categorium>();
         Roles = new List<Rol>();
     }
+
+    public FasesEvento CalcularFaseActual()
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+
+        if (hoy <= FechaFinInscripciones) return FasesEvento.Inscripciones;
+        if (hoy <= FechaFinEntrega) return FasesEvento.Entregas;
+        if (hoy <= FechaFinVotaciones) return FasesEvento.Votaciones;
+        if (hoy <= FechaFinEvaluacionExperta) return FasesEvento.EvaluacionExperta;
+        if (hoy <= FechaFinVotacionExperta) return FasesEvento.VotacionExperta;
+
+        return FasesEvento.Resultados;
+    }
 }

@@ -38,7 +38,7 @@ namespace Votify.LógicaNegocio.Observador.Sujetos
 
         public async Task SetEstadoAsync(Evento evento)
         {
-            var faseNueva = CalcularFaseActual(evento);
+            var faseNueva = evento.CalcularFaseActual();
 
             if (evento.FaseActual == faseNueva)
             {
@@ -76,38 +76,6 @@ namespace Votify.LógicaNegocio.Observador.Sujetos
                     );
                 }
             }
-        }
-
-        private static FasesEvento CalcularFaseActual(Evento evento)
-        {
-            var hoy = DateOnly.FromDateTime(DateTime.Today);
-
-            if (hoy <= evento.FechaFinInscripciones)
-            {
-                return FasesEvento.Inscripciones;
-            }
-
-            if (hoy <= evento.FechaFinEntrega)
-            {
-                return FasesEvento.Entregas;
-            }
-
-            if (hoy <= evento.FechaFinVotaciones)
-            {
-                return FasesEvento.Votaciones;
-            }
-
-            if (hoy <= evento.FechaFinEvaluacionExperta)
-            {
-                return FasesEvento.EvaluacionExperta;
-            }
-
-            if (hoy <= evento.FechaFinVotacionExperta)
-            {
-                return FasesEvento.VotacionExperta;
-            }
-
-            return FasesEvento.Resultados;
         }
     }
 }
