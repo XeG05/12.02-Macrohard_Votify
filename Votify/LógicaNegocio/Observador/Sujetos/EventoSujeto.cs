@@ -38,22 +38,18 @@ namespace Votify.LógicaNegocio.Observador.Sujetos
 
         public async Task SetEstadoAsync(Evento evento)
         {
-            var faseNueva = evento.CalcularFaseActual();
+            var faseAnterior = evento.FaseActual;
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
 
-            if (evento.FaseActual == faseNueva)
+            var haCambiado = evento.ActualizarFaseSiCorresponde();
+
+            if (!haCambiado)
             {
                 return;
             }
 
             _evento = evento;
-            FaseAnterior = evento.FaseActual;
-
-            evento.FaseActual = faseNueva;
-
-            if (faseNueva == FasesEvento.Resultados)
-            {
-                evento.Estado = "Finalizado";
-            }
+            FaseAnterior = faseAnterior;
 
             await NotificarAsync();
         }

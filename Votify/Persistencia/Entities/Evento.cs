@@ -102,4 +102,22 @@ public class Evento
 
         return FasesEvento.Resultados;
     }
+    public bool ActualizarFaseSiCorresponde()
+    {
+        var faseNueva = CalcularFaseActual();
+
+        if (FaseActual == faseNueva)
+        {
+            return false;
+        }
+
+        FaseActual = faseNueva;
+
+        if (faseNueva == FasesEvento.Resultados)
+        {
+            Estado = "Finalizado";
+        }
+
+        return true;
+    }
 }
