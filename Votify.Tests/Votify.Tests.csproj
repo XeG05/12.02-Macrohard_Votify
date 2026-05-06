@@ -24,4 +24,12 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestResults\Deploy ganen 20260506T154835_9988\In\DESKTOP-P77IIDU\" />
+    <Folder Include="TestResults\Deploy ganen 20260506T155024_26752\In\DESKTOP-P77IIDU\" />
+    <Folder Include="TestResults\Deploy ganen 20260506T155034_5740\In\DESKTOP-P77IIDU\" />
+    <Folder Include="TestResults\Deploy ganen 20260506T155043_23792\In\DESKTOP-P77IIDU\" />
+    <Folder Include="TestResults\Deploy ganen 20260506T155053_17084\In\DESKTOP-P77IIDU\" />
+  </ItemGroup>
+
 </Project>

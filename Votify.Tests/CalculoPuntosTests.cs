@@ -47,6 +47,8 @@ namespace Votify.Tests
                 new Repository<Rol>(_context),
                 new Repository<Administrador>(_context),
                 new Repository<Usuario>(_context),
+                new Repository<Jurado>(_context),
+                new Repository<Votante>(_context),
                 uowMock.Object,
                 emailMock.Object,
                 configMock.Object,
@@ -113,7 +115,7 @@ namespace Votify.Tests
             };
 
             var usuarioNav = new Usuario { Correo = "voto@test.com", Nombre = "Votante", Contraseña = "123" };
-            
+
             var rolVotante = new Votante { CorreoUsuario = "voto@test.com", IdEvento = 1 };
 
             var proyecto = new Proyecto
@@ -137,6 +139,7 @@ namespace Votify.Tests
             await _context.Grupos.AddAsync(grupo);
             await _context.Proyectos.AddAsync(proyecto);
             await _context.Usuarios.AddAsync(usuarioNav);
+            await _context.Votantes.AddAsync(rolVotante); // necesario para que el servicio lo clasifique como votante popular
             await _context.Votos.AddRangeAsync(votoC1, votoC2);
             await _context.SaveChangesAsync();
 
@@ -146,20 +149,20 @@ namespace Votify.Tests
             // Assert
             Assert.IsNotNull(resultados);
             Assert.AreEqual(1, resultados.Count);
-            
+
             var resultadoProyecto = resultados.First();
-            
+
             // Verificamos los resultados devueltos
             Assert.AreEqual("Proyecto Innovador", resultadoProyecto.NombreProyecto);
-            
-            // Calculo esperado: 
-            // C1: 70 puntos * 50% (0.5) = 35
-            // C2: 30 puntos * 50% (0.5) = 15
-            // Total Puntuacion: 35 + 15 = 50
-            Assert.AreEqual(50.0, resultadoProyecto.PuntuacionMedia, delta: 0.01, "La puntuación media de los puntos por criterio debería ser 50.");
-            
+
+            // Calculo esperado (el servicio aplica pesoPopular y pesoExperto por separado):
+            // C1: ponderacion(0.5) × (puntosVotantes(70) × pesoPopular(0.5) + puntosJurados(0) × pesoExperto(0.5)) = 0.5 × 35 = 17.5
+            // C2: ponderacion(0.5) × (puntosVotantes(30) × pesoPopular(0.5) + puntosJurados(0) × pesoExperto(0.5)) = 0.5 × 15 = 7.5
+            // Total Puntuacion: 17.5 + 7.5 = 25.0
+            Assert.AreEqual(25.0, resultadoProyecto.PuntuacionMedia, delta: 0.01, "La puntuación media de los puntos por criterio debería ser 25.");
+
             Assert.AreEqual(2, resultadoProyecto.ResultadosPorCriterio.Count);
-            
+
             var resC1 = resultadoProyecto.ResultadosPorCriterio.FirstOrDefault(c => c.NombreCriterio == "Criterio 1");
             Assert.IsNotNull(resC1);
             Assert.AreEqual(70, resC1.TotalPuntos);
