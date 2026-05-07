@@ -194,9 +194,9 @@ namespace Votify.Tests
                 ]
             });
 
-            ConflictException? ex = null;
+            ValidationException? ex = null;
             try { await _servicio.CrearEvento("creador@test.com", dto); }
-            catch (ConflictException e) { ex = e; }
+            catch (ValidationException e) { ex = e; }
 
             Assert.IsNotNull(ex, "Se esperaba ConflictException");
         }

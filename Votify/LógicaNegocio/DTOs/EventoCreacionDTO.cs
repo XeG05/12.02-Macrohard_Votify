@@ -68,6 +68,10 @@ namespace Votify.LógicaNegocio.DTOs
             if (TipoVotacion == TipoVotacion.Puntos && PuntosARepartir < 1)
                 return (false, "Los puntos a repartir deben ser al menos 1");
 
+            var errorGrupos = ValidarCorreosDuplicados();
+            if (!string.IsNullOrEmpty(errorGrupos))
+                return (false, errorGrupos);
+
             foreach (var cat in Categorias)
             {
                 if (cat.PonderacionPopular + cat.PonderacionExperto != 100)
@@ -88,6 +92,25 @@ namespace Votify.LógicaNegocio.DTOs
             }
 
             return (true, "");
+        }
+
+        private string ValidarCorreosDuplicados()
+        {
+            if (!TieneGrupos) return string.Empty;
+
+            var duplicados = Categorias
+                .SelectMany(c => c.Grupos)
+                .SelectMany(g => g.CorreosParticipantes)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicados.Any())
+                return $"Correos duplicados entre grupos: {string.Join(", ", duplicados)}";
+
+            return string.Empty;
         }
     }
 }

@@ -31,6 +31,9 @@ namespace Votify.LógicaNegocio.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IUnitOfWork _uow;
+
+        private const int DIAS_EXPIRACION_INVITACION = 7;
+
         public EventoService(AdministradorCreator adminC,
             VotanteCreator votanteC,
             IRepository<Evento> eventoRepo,
@@ -156,23 +159,6 @@ namespace Votify.LógicaNegocio.Services
             return rol ?? await _votanteCreator.CrearAsync(correo, idEvento);
         }
 
-        private void ValidarCorreosDuplicados(EventoCreacionDto dto)
-        {
-            if (!dto.TieneGrupos) return;
-
-            var duplicados = dto.Categorias
-                .SelectMany(c => c.Grupos)
-                .SelectMany(g => g.CorreosParticipantes)
-                .Where(c => !string.IsNullOrWhiteSpace(c))
-                .GroupBy(c => c)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
-                .ToList();
-
-            if (duplicados.Any())
-                throw new ConflictException($"Correos duplicados entre grupos: {string.Join(", ", duplicados)}");
-        }
-
         private Evento CrearEntidadEvento(EventoCreacionDto dto) => new Evento(
             dto.Nombre,
             dto.Descripcion,
@@ -246,8 +232,6 @@ namespace Votify.LógicaNegocio.Services
                 .FirstOrDefault()
                 ?? throw new NotFoundException("Usuario no encontrado");
 
-            ValidarCorreosDuplicados(dto);
-
             var evento = CrearEntidadEvento(dto);
             await _eventoRepo.AddAsync(evento);
             await _adminCreator.CrearAsync(correoCreador, evento.Id);
@@ -280,7 +264,7 @@ namespace Votify.LógicaNegocio.Services
                 IdGrupo = idGrupo,
                 IdEvento = evento.Id,
                 Aceptada = false,
-                FechaExpiracion = DateTime.UtcNow.AddDays(7),
+                FechaExpiracion = DateTime.UtcNow.AddDays(DIAS_EXPIRACION_INVITACION),
                 CorreoCreador = creador.Correo
             };
             await _invitacionRepo.AddAsync(invitacion);
@@ -314,7 +298,7 @@ namespace Votify.LógicaNegocio.Services
                 IdCategoria = categoria.Id,
                 IdEvento = evento.Id,
                 Aceptada = false,
-                FechaExpiracion = DateTime.UtcNow.AddDays(7),
+                FechaExpiracion = DateTime.UtcNow.AddDays(DIAS_EXPIRACION_INVITACION),
                 CorreoCreador = creador.Correo
             };
             await _invitacionJuradoRepo.AddAsync(invitacion);
