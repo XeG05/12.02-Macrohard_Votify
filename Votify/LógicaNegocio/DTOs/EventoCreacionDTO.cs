@@ -44,20 +44,11 @@ namespace Votify.LógicaNegocio.DTOs
             if (Descripcion.Length > 120)
                 return (false, "La descripción no puede superar los 120 caracteres");
 
-            if (FechaFinInscripciones == null || FechaFinEntrega == null || FechaFinVotaciones == null || FechaFinExperta == null)
+            if (FaltanFechasObligatorias())
                 return (false, "Todas las fechas son obligatorias");
 
-            if (FechaFinInscripciones >= FechaFinEntrega)
-                return (false, "La fecha de fin de inscripciones debe ser anterior al fin de entrega");
-
-            if (FechaFinEntrega >= FechaFinVotaciones)
-                return (false, "La fecha de fin de entrega debe ser anterior al fin de votaciones (votación popular)");
-
-            if (FechaFinVotaciones >= FechaFinExperta)
-                return (false, "La fecha de fin de votaciones debe ser anterior al final de la evaluación experta");
-
-            if (FechaFinInscripciones < DateOnly.FromDateTime(DateTime.Today))
-                return (false, "La fecha de fin de inscripciones no puede ser en el pasado");
+            if (HayIncoherenciaEnFechasSecuenciales(out string errorFechas))
+                return (false, errorFechas);
 
             if (TieneGrupos && NumParticipantes < 1)
                 return (false, "El número de participantes por grupo debe ser al menos 1");
@@ -111,6 +102,45 @@ namespace Votify.LógicaNegocio.DTOs
                 return $"Correos duplicados entre grupos: {string.Join(", ", duplicados)}";
 
             return string.Empty;
+        }
+
+        private bool FaltanFechasObligatorias()
+        {
+            return FechaFinInscripciones == null ||
+                   FechaFinEntrega == null ||
+                   FechaFinVotaciones == null ||
+                   FechaFinExperta == null;
+        }
+
+        private bool HayIncoherenciaEnFechasSecuenciales(out string error)
+        {
+            error = "";
+
+            if (FechaFinInscripciones >= FechaFinEntrega)
+            {
+                error = "La fecha de fin de inscripciones debe ser anterior al fin de entrega";
+                return true;
+            }
+
+            if (FechaFinEntrega >= FechaFinVotaciones)
+            {
+                error = "La fecha de fin de entrega debe ser anterior al fin de votaciones (votación popular)";
+                return true;
+            }
+
+            if (FechaFinVotaciones >= FechaFinExperta)
+            {
+                error = "La fecha de fin de votaciones debe ser anterior al final de la evaluación experta";
+                return true;
+            }
+
+            if (FechaFinInscripciones < DateOnly.FromDateTime(DateTime.Today))
+            {
+                error = "La fecha de fin de inscripciones no puede ser en el pasado";
+                return true;
+            }
+
+            return false;
         }
     }
 }
