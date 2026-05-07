@@ -175,15 +175,19 @@ namespace Votify.Controladores
                     }
                 }
 
-                await _participanteService.CrearProyecto(
-                    nombreProyecto,
-                    descripcionBreve ?? "",
-                    descripcionCompleta ?? "",
-                    archivoBytes,
-                    imagenesBytes,
-                    correo,
-                    eventoId,
-                    grupoId);
+                var request = new CrearProyectoRequest
+                {
+                    Correo = correo,
+                    IdEvento = eventoId,
+                    GrupoIdActivo = grupoId,
+                    NombreProyecto = nombreProyecto,
+                    DescripcionBreve = descripcionBreve ?? "",
+                    DescripcionCompleta = descripcionCompleta ?? "",
+                    Archivo = archivoBytes,
+                    Imagenes = imagenesBytes
+                };
+
+                await _participanteService.CrearProyecto(request);
 
                 return Created(string.Empty, new { mensaje = "Proyecto entregado correctamente" });
             }

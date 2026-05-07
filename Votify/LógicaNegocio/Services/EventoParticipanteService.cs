@@ -126,26 +126,20 @@ namespace Votify.LógicaNegocio.Services
             return proyecto != null;
         }
 
-        public async Task CrearProyecto(
-            string nombreProyecto,
-            string descripcionBreve,
-            string descripcionCompleta,
-            byte[] archivo,
-            List<byte[]> imagenes,
-            string correo, long idEvento, long? grupoIdActivo)
+        public async Task CrearProyecto(CrearProyectoRequest request)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(nombreProyecto))
+                if (string.IsNullOrWhiteSpace(request.NombreProyecto))
                     throw new ValidationException("El nombre del proyecto es obligatorio.");
 
-                var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
+                var participante = await ObtenerRegistroParticipante(request.Correo, request.IdEvento, request.GrupoIdActivo);
                 var grupo = await _grupoRepo.GetByIdAsync(participante.IdGrupo)
                     ?? throw new NotFoundException("No se ha encontrado el grupo del participante.");
 
                 var categoria = (await _categoriumRepo.FindAsync(c =>
                     c.Id == grupo.IdCategoria &&
-                    c.IdEvento == idEvento))
+                    c.IdEvento == request.IdEvento))
                     .FirstOrDefault() ?? throw new ConflictException("La categoría del grupo no pertenece al evento.");
 
                 var proyectoExistente = (await _proyectoRepo.FindAsync(p =>
@@ -157,32 +151,32 @@ namespace Votify.LógicaNegocio.Services
 
 
                 string descBreve;
-                if (descripcionBreve == null)
+                if (request.DescripcionBreve == null)
                     descBreve = string.Empty;
                 else
-                    descBreve = descripcionBreve.Trim();
+                    descBreve = request.DescripcionBreve.Trim();
 
                 string descCompleta;
-                if (descripcionCompleta == null)
+                if (request.DescripcionCompleta == null)
                     descCompleta = string.Empty;
                 else
-                    descCompleta = descripcionCompleta.Trim();
+                    descCompleta = request.DescripcionCompleta.Trim();
 
                 var nuevoProyecto = new Proyecto(
-                    nombreProyecto.Trim(),
+                    request.NombreProyecto.Trim(),
                     grupo.Id,
                     null!, // No asignar la navegación aquí para evitar que EF intente insertar el grupo
                     descBreve,
                     descCompleta
                 )
                 {
-                    Archivo = archivo,
+                    Archivo = request.Archivo,
                     Imagenes = new List<ImagenProyecto>()
                 };
 
-                if (imagenes != null && imagenes.Any())
+                if (request.Imagenes != null && request.Imagenes.Any())
                 {
-                    var imagenesProyecto = imagenes.Select(img => new ImagenProyecto
+                    var imagenesProyecto = request.Imagenes.Select(img => new ImagenProyecto
                     {
                         Archivo = img
                     }).ToList();
