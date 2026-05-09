@@ -1,3 +1,4 @@
+
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -96,6 +97,14 @@ builder.Services.AddRazorComponents()
 builder.Services.AddDbContext<VotifyContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
+
+builder.Services.AddHttpClient<Votify.LógicaNegocio.Services.SíntesisFeedbackService>(client =>
+{
+    // Configuraciones del cliente (si es necesario)
+})
+.AddTypedClient<Votify.LógicaNegocio.Services.SíntesisFeedbackService>(httpClient =>
+    new Votify.LógicaNegocio.Services.SíntesisFeedbackService(httpClient, geminiApiKey));
 var app = builder.Build();
 
 // Resincronizar la secuencia de la tabla Proyecto automáticamente

@@ -29,6 +29,7 @@ public partial class VotifyContext : DbContext
     public virtual DbSet<InvitacionPendiente> InvitacionesPendientes { get; set; }
     public virtual DbSet<ImagenProyecto> ImagenProyecto { get; set; }
     public virtual DbSet<InvitacionJurado> InvitacionesJurado { get; set; }
+    public virtual DbSet<SintesisJuradoCriterio> SintesisJuradoCriterios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -271,12 +272,31 @@ public partial class VotifyContext : DbContext
             entity.Property(e => e.Nombre).HasMaxLength(50).HasColumnName("nombre");
             entity.Property(e => e.Descripcion).HasColumnName("descripcion");
             entity.Property(e => e.DescripcionBreve).HasColumnName("descripcion_breve");
+            entity.Property(e => e.SintesisVotantes).HasColumnName("sintesis_votantes");
             entity.Property(e => e.Archivo).IsRequired().HasColumnType("bytea").HasColumnName("archivo");
 
             entity.HasOne(d => d.IdGrupoNavigation).WithOne(p => p.Proyecto)
                 .HasForeignKey<Proyecto>(d => d.IdGrupo)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("id_grupoFK");
+        });
+
+        modelBuilder.Entity<SintesisJuradoCriterio>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("sintesis_jurado_criterio_pkey");
+            entity.ToTable("sintesis_jurado_criterio");
+
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("id");
+            entity.Property(e => e.IdProyecto).HasColumnName("id_proyecto");
+            entity.Property(e => e.IdCriterio).HasColumnName("id_criterio");
+            entity.Property(e => e.Sintesis).HasColumnName("sintesis");
+
+            // Configuración de la relación con Proyecto para la propiedad de navegación
+            entity.HasOne(d => d.Proyecto)
+                .WithMany(p => p.SintesisCriteriosJurado)
+                .HasForeignKey(d => d.IdProyecto)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("id_proyecto_sintesis_juradoFK");
         });
 
         modelBuilder.Entity<Reclamacion>(entity =>

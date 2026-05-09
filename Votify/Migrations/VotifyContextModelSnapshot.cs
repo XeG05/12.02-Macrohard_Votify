@@ -525,6 +525,10 @@ namespace Votify.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("nombre");
 
+                    b.Property<string>("SintesisVotantes")
+                        .HasColumnType("text")
+                        .HasColumnName("sintesis_votantes");
+
                     b.HasKey("Id")
                         .HasName("proyecto_pkey");
 
@@ -577,6 +581,36 @@ namespace Votify.Migrations
                     b.ToTable("rol", (string)null);
 
                     b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("Votify.Persistencia.Entities.SintesisJuradoCriterio", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("IdCriterio")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_criterio");
+
+                    b.Property<long>("IdProyecto")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_proyecto");
+
+                    b.Property<string>("Sintesis")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sintesis");
+
+                    b.HasKey("Id")
+                        .HasName("sintesis_jurado_criterio_pkey");
+
+                    b.HasIndex("IdProyecto");
+
+                    b.ToTable("sintesis_jurado_criterio", (string)null);
                 });
 
             modelBuilder.Entity("Votify.Persistencia.Entities.Usuario", b =>
@@ -886,6 +920,18 @@ namespace Votify.Migrations
                     b.Navigation("IdEventoNavigation");
                 });
 
+            modelBuilder.Entity("Votify.Persistencia.Entities.SintesisJuradoCriterio", b =>
+                {
+                    b.HasOne("Votify.Persistencia.Entities.Proyecto", "Proyecto")
+                        .WithMany("SintesisCriteriosJurado")
+                        .HasForeignKey("IdProyecto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("id_proyecto_sintesis_juradoFK");
+
+                    b.Navigation("Proyecto");
+                });
+
             modelBuilder.Entity("Votify.Persistencia.Entities.Voto", b =>
                 {
                     b.HasOne("Votify.Persistencia.Entities.Criterio", "IdCriterioNavigation")
@@ -995,6 +1041,8 @@ namespace Votify.Migrations
                     b.Navigation("Comentarios");
 
                     b.Navigation("Imagenes");
+
+                    b.Navigation("SintesisCriteriosJurado");
 
                     b.Navigation("Votos");
                 });

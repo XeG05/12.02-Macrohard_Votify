@@ -21,6 +21,12 @@ public class Proyecto
 
     public virtual ICollection<Voto> Votos { get; set; } = new List<Voto>();
 
+    // Almacena la síntesis general de los comentarios de los votantes
+    public string? SintesisVotantes { get; set; }
+
+    // Almacena las síntesis de los comentarios de los jurados asociadas a los criterios
+    public virtual ICollection<SintesisJuradoCriterio> SintesisCriteriosJurado { get; set; } = new List<SintesisJuradoCriterio>();
+
     public Proyecto()
     {
         Comentarios = new List<Comentario>();
