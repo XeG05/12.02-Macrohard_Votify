@@ -95,5 +95,49 @@ namespace Votify.LógicaNegocio.Services
                 throw;
             }
         }
+
+        public async Task EnviarCertificadoAsync(string correoDestino, string nombreEvento,
+                                                  string nombreParticipante, byte[] pdf, string nombreArchivo)
+        {
+            try
+            {
+                var smtp = new SmtpClient(_config["Email:Host"])
+                {
+                    Port = int.Parse(_config["Email:Port"]!),
+                    Credentials = new NetworkCredential(
+                        _config["Email:Usuario"],
+                        _config["Email:Contraseña"]),
+                    EnableSsl = true
+                };
+
+                var mensaje = new MailMessage
+                {
+                    From = new MailAddress(_config["Email:Usuario"]!),
+                    Subject = $"Tu certificado del evento: {nombreEvento}",
+                    Body = $"""
+                    Hola {nombreParticipante},
+
+                    El evento "{nombreEvento}" ha finalizado. Adjuntamos tu certificado de participación
+                    con tus resultados.
+
+                    ¡Gracias por participar!
+
+                    — Equipo Votify
+                    """,
+                    IsBodyHtml = false
+                };
+                mensaje.To.Add(correoDestino);
+
+                var adjunto = new Attachment(new MemoryStream(pdf), nombreArchivo, "application/pdf");
+                mensaje.Attachments.Add(adjunto);
+
+                await smtp.SendMailAsync(mensaje);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EMAIL ERROR] {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

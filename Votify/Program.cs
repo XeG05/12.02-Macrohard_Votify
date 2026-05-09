@@ -43,6 +43,7 @@ builder.Services.AddScoped<IEventoVotanteService, EventoVotanteService>();
 builder.Services.AddScoped<IEventoJuradoService, EventoJuradoService>();
 builder.Services.AddScoped<IInvitacionService, InvitacionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ICertificadoService, CertificadoService>();
 builder.Services.AddScoped<IEventoSujeto, EventoSujeto>();
 
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
@@ -51,6 +52,7 @@ builder.Services.AddScoped<IObservadorEvento, ObservadorParticipantes>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorVotantes>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorJurado>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorFinalizacion>();
+builder.Services.AddScoped<IObservadorEvento, ObservadorCertificados>();
 
 
 builder.Services.AddScoped<JwtService>();

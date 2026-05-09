@@ -6,6 +6,7 @@
         InicioVotacionPopular,
         InicioComentariosJurado,
         InicioVotacionExperta,
-        EventoFinalizado
+        EventoFinalizado,
+        CertificadoEnviado
     }
 }
