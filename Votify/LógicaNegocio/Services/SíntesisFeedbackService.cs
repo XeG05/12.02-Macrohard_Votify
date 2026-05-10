@@ -20,8 +20,8 @@ namespace Votify.LógicaNegocio.Services
         {
             _httpClient = httpClient;
             _apiKey = apiKey;
-            // Endpoint de la API de Gemini
-            _apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key={_apiKey}";
+            // Usando la versión Gemini 2.5 Flash oficial listada en tu tenant
+            _apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
         }
 
         public async Task<string> SintetizarCriterio(string[] comments)
@@ -35,9 +35,10 @@ namespace Votify.LógicaNegocio.Services
             // Evitar pasarnos si son demasiados comentarios (Fallback crudo: 4 chars aprox 1 token)
             mergedComments = TruncateByTokensFallback(mergedComments, 2000); 
 
-            var prompt = "Sintetiza de manera objetiva y concisa la siguiente lista de comentarios para un solo criterio. No incluyas introducciones ni conclusiones. Solo los puntos o el párrafo de síntesis.";
+            var prompt = "Sintetiza de manera objetiva, detallada y completa la siguiente lista de comentarios para un solo criterio. No incluyas introducciones ni conclusiones. Genera un párrafo o puntos clave con suficiente nivel de detalle.";
 
-            return await RealizarPeticionGemini(prompt, mergedComments, maxTokens: 150);
+            // Aumentado maxTokens drásticamente 5 veces la cantidad anterior
+            return await RealizarPeticionGemini(prompt, mergedComments, maxTokens: 2000);
         }
 
         public async Task<string> SintetizarCategoria(string[] votanteComments)
@@ -50,23 +51,30 @@ namespace Votify.LógicaNegocio.Services
 
             mergedSummaries = TruncateByTokensFallback(mergedSummaries, 3000);
 
-            var prompt = "Genera una síntesis global para este proyecto destacando los puntos clave generales mencionados en los comentarios. Retorna solo el texto abstracto sin introducciones ni despedidas.";
+            var prompt = "Genera una síntesis global, detallada y completa para este proyecto destacando los puntos clave generales mencionados en los comentarios. Retorna solo el texto abstracto sin introducciones ni despedidas, asegurándote de cubrir todos los aspectos importantes.";
 
-            return await RealizarPeticionGemini(prompt, mergedSummaries, maxTokens: 300);
+            // Aumentado maxTokens drásticamente 5 veces la cantidad anterior
+            return await RealizarPeticionGemini(prompt, mergedSummaries, maxTokens: 4000);
         }
 
         public async Task<string> ObtenerSintesisCriterioAsync(Votify.Persistencia.Entities.Proyecto proyecto, long idCriterio, string[] comments)
         {
-            var sintesisExistente = proyecto.SintesisCriteriosJurado.FirstOrDefault(s => s.IdCriterio == idCriterio);
+            var sintesisExistente = proyecto.SintesisCriteriosJurado?.FirstOrDefault(s => s.IdCriterio == idCriterio);
             if (sintesisExistente != null && !string.IsNullOrEmpty(sintesisExistente.Sintesis))
             {
+                Console.WriteLine($"[SintesisFeedbackService] Sintesis EXISTENTE encontrada para criterio {idCriterio}. Devolviendo cache.");
                 return sintesisExistente.Sintesis;
             }
 
+            Console.WriteLine($"[SintesisFeedbackService] Sintesis NO existe para criterio {idCriterio}. Generando nueva...");
             var nuevaSintesis = await SintetizarCriterio(comments);
 
             if (!string.IsNullOrEmpty(nuevaSintesis))
             {
+                // Asegurar que la colección esté inicializada
+                if (proyecto.SintesisCriteriosJurado == null)
+                    proyecto.SintesisCriteriosJurado = new List<Votify.Persistencia.Entities.SintesisJuradoCriterio>();
+
                 if (sintesisExistente != null)
                 {
                     sintesisExistente.Sintesis = nuevaSintesis;
@@ -132,6 +140,8 @@ namespace Votify.LógicaNegocio.Services
 
         private async Task<string> RealizarPeticionGemini(string systemPrompt, string userContent, int maxTokens)
         {
+            Console.WriteLine($"[SintesisFeedbackService] Contenido enviado: {userContent}");
+
             var requestBody = new
             {
                 contents = new[]
@@ -155,15 +165,25 @@ namespace Votify.LógicaNegocio.Services
             var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
             request.Content = JsonContent.Create(requestBody);
 
+            Console.WriteLine($"[SintesisFeedbackService] Realizando peticion a Gemini para url: {_apiUrl.Substring(0, Math.Min(_apiUrl.Length, 50))}...");
             var response = await _httpClient.SendAsync(request);
+
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<GeminiResponse>(responseContent);
+
+                // Configurar JsonSerializer para ignorar mayúsculas/minúsculas en JSON property names (Gemini a veces devuelve en camelCase sin guion bajo, etc)
+                var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<GeminiResponse>(responseContent, jsonOptions);
 
                 var message = result?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
-
+                Console.WriteLine($"[SintesisFeedbackService] Peticion OK. Sintesis generada de {message?.Length ?? 0} caracteres.");
                 return message?.Trim() ?? string.Empty;
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[SintesisFeedbackService] Petición fallida. StatusCode: {response.StatusCode}. Detalle: {errorContent}");
             }
 
             // Manejo de error o log

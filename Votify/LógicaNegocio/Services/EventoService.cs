@@ -316,7 +316,10 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<Proyecto> RecuperarProyecto(long idProyecto)
         {
-            Proyecto? pr = await _proyectoRepo.AsQueryable().Include(p => p.Imagenes).FirstOrDefaultAsync(p => p.Id == idProyecto);
+            Proyecto? pr = await _proyectoRepo.AsQueryable()
+                                            .Include(p => p.Imagenes)
+                                            .Include(p => p.SintesisCriteriosJurado)
+                                            .FirstOrDefaultAsync(p => p.Id == idProyecto);
             return pr;
         }
 
