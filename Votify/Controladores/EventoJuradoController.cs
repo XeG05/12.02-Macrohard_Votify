@@ -16,15 +16,18 @@ namespace Votify.Controladores
         private readonly IEventoJuradoService _eventoJuradoService;
         private readonly IEventoService _eventoService;
         private readonly SíntesisFeedbackService _sintesisFeedbackService;
+        private readonly Votify.Persistencia.Interfaces.IUnitOfWork _uow;
 
         public EventoJuradoController(
             IEventoJuradoService eventoJuradoService, 
             IEventoService eventoService,
-            SíntesisFeedbackService sintesisFeedbackService)
+            SíntesisFeedbackService sintesisFeedbackService,
+            Votify.Persistencia.Interfaces.IUnitOfWork uow)
         {
             _eventoJuradoService = eventoJuradoService;
             _eventoService = eventoService;
             _sintesisFeedbackService = sintesisFeedbackService;
+            _uow = uow;
         }
 
         private string? ObtenerCorreo()
@@ -113,6 +116,8 @@ namespace Votify.Controladores
 
                 if (proyecto != null)
                 {
+                    bool requiresSave = false;
+
                     // Añadir la síntesis a cada criterio
                     foreach (var cr in comentarios)
                     {
@@ -120,9 +125,23 @@ namespace Votify.Controladores
                         if (comentariosArray.Any())
                         {
                             Console.WriteLine($"[EventoJuradoController] Procesando sintesis para criterio {cr.CriterioId} ({cr.NombreCriterio}) con {comentariosArray.Length} comentarios");
+
+                            // Check if it already exists before calling
+                            var sintesisExistente = proyecto.SintesisCriteriosJurado?.FirstOrDefault(s => s.IdCriterio == cr.CriterioId);
+                            if (sintesisExistente == null || string.IsNullOrEmpty(sintesisExistente.Sintesis))
+                            {
+                                requiresSave = true;
+                            }
+
                             var sintesis = await _sintesisFeedbackService.ObtenerSintesisCriterioAsync(proyecto, cr.CriterioId, comentariosArray);
                             cr.Sintesis = sintesis;
                         }
+                    }
+
+                    if (requiresSave)
+                    {
+                        await _uow.SaveChangesAsync();
+                        Console.WriteLine("[EventoJuradoController] Cambios en la síntesis guardados en BD.");
                     }
                 }
 

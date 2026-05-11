@@ -28,6 +28,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Comentario> _comentarioRepo;
         private readonly IRepository<InvitacionPendiente> _invitacionRepo;
         private readonly IRepository<InvitacionJurado> _invitacionJuradoRepo;
+        private readonly IRepository<SintesisJuradoCriterio> _sintesisCriterioRepo;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IUnitOfWork _uow;
@@ -51,6 +52,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Comentario> comentarioRepo,
             IRepository<InvitacionPendiente> invitacionRepo,
             IRepository<InvitacionJurado> invitacionJuradoRepo,
+            IRepository<SintesisJuradoCriterio> sintesisCriterioRepo,
             IEmailService emailService,
             IConfiguration config,
             IUnitOfWork uow) : base(eventoRepo, uow)
@@ -72,6 +74,7 @@ namespace Votify.LógicaNegocio.Services
             _comentarioRepo = comentarioRepo;
             _invitacionRepo = invitacionRepo;
             _invitacionJuradoRepo = invitacionJuradoRepo;
+            _sintesisCriterioRepo = sintesisCriterioRepo;
             _emailService = emailService;
             _config = config;
             _uow = uow;
@@ -381,6 +384,20 @@ namespace Votify.LógicaNegocio.Services
             {
                 var nuevo = new Comentario(idEvento, correo, comentario, pr.Id, idCriterio, pr, rol, criterio);
                 await _comentarioRepo.AddAsync(nuevo);
+            }
+
+            // Invalida la síntesis del criterio correspondiente al actualizarse un comentario
+            var sintesisCriterio = (await _sintesisCriterioRepo.FindAsync(s => s.IdProyecto == idProyecto && s.IdCriterio == idCriterio)).FirstOrDefault();
+            if (sintesisCriterio != null)
+            {
+                await _sintesisCriterioRepo.DeleteAsync(sintesisCriterio);
+            }
+
+            // También podemos invalidar la general
+            if (!string.IsNullOrEmpty(pr.SintesisVotantes))
+            {
+                pr.SintesisVotantes = null;
+                await _proyectoRepo.UpdateAsync(pr);
             }
 
             await _uow.SaveChangesAsync();

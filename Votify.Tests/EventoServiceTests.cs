@@ -61,6 +61,7 @@ namespace Votify.Tests
                 new Repository<Comentario>(_context),
                 new Repository<InvitacionPendiente>(_context),
                 new Repository<InvitacionJurado>(_context),
+                new Repository<Votify.Persistencia.Entities.SintesisJuradoCriterio>(_context),
                 _emailMock.Object,
                 configMock.Object,
                 uowMock.Object
