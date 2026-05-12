@@ -10,6 +10,8 @@
         public double PuntuacionMedia { get; set; }
 
         public List<ResultadoCriterioDto> ResultadosPorCriterio { get; set; } = new();
+
+        public List<VotoDetalleDto> VotosDetalle { get; set; } = new();
     }
 
     public class ResultadoCriterioDto
@@ -19,5 +21,14 @@
         public int CantidadVotos { get; set; }
         public double? MediaNota { get; set; }
         public double? TotalPuntos { get; set; }
+    }
+
+    public class VotoDetalleDto
+    {
+        public string CorreoUsuario { get; set; } = "";
+
+        public string NombreCriterio { get; set; } = "";
+
+        public double Nota { get; set; }
     }
 }

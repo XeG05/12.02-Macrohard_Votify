@@ -140,6 +140,14 @@ namespace Votify.LógicaNegocio.Services
 
                 var votosProyecto = await _votoRepo.FindAsync(v => v.IdProyectoGru == proyecto.Id);
 
+                var detallesVotos = votosProyecto.Select(v => new VotoDetalleDto
+                {
+                    CorreoUsuario = v.CorreoRol,
+                    Nota = v.Nota ?? 0,
+                    NombreCriterio = criterios
+        .FirstOrDefault(c => c.Id == v.IdCriterio)?.Nombre ?? ""
+                }).ToList();
+
                 double puntuacion = 0;
 
                 var resultadosCriterios = new List<ResultadoCriterioDto>();
@@ -224,7 +232,8 @@ namespace Votify.LógicaNegocio.Services
                     NombreGrupo = g.Nombre,
                     CantidadVotos = votosProyecto.Count,
                     PuntuacionMedia = Math.Round(puntuacion, 2),
-                    ResultadosPorCriterio = resultadosCriterios
+                    ResultadosPorCriterio = resultadosCriterios,
+                    VotosDetalle = detallesVotos
                 });
             }
 
