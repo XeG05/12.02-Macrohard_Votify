@@ -5,10 +5,30 @@
 <div class="nav-scrollable" >
     <nav class="nav flex-column">
         <div class="events">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="home" Match="NavLinkMatch.All">
+            <div class="nav-item px-3" style="pointer-events: none;">
+                <div class="nav-link" style="color: white;">
                     <span class="bi bi-event-calendar-nav-menu" aria-hidden="true"></span>
                     <span class="menu-text">Eventos</span>
+                </div>
+            </div>
+            <div class="nav-item px-3 pl-4" style="margin-left: 15px; font-size: 0.9em;">
+                <NavLink class="nav-link" href="home/votante">
+                    <span class="menu-text">En los que votas</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 pl-4" style="margin-left: 15px; font-size: 0.9em;">
+                <NavLink class="nav-link" href="home/participando">
+                    <span class="menu-text">En los que participas</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 pl-4" style="margin-left: 15px; font-size: 0.9em;">
+                <NavLink class="nav-link" href="home/admin">
+                    <span class="menu-text">Mis eventos</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 pl-4" style="margin-left: 15px; font-size: 0.9em;">
+                <NavLink class="nav-link" href="home/jurado">
+                    <span class="menu-text">En los que eres jurado</span>
                 </NavLink>
             </div>
         </div>

@@ -1,4 +1,5 @@
-﻿@page "/home"
+﻿@page "/home/{Vista}"
+@page "/home"
 @rendermode InteractiveServer
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
@@ -10,12 +11,22 @@
     <div class="home-header">
         <div class="home-header-text">
             <h1>Bienvenido, <span class="nombre-usuario">@nombre</span></h1>
-            <p>Gestiona tus eventos o únete a los de tu comunidad</p>
+            <p>@MensajeSubtitulo</p>
         </div>
-        <a class="btn-crear" href="EventCreator">
-            <span class="btn-crear-icon">＋</span>
-            Crear evento
-        </a>
+        <div class="d-flex align-items-center" style="gap: 15px;">
+            <div class="search-container" style="position: relative;">
+                <input type="text" class="form-control event-search-input" placeholder="Busca un evento..." @bind="busquedaEventos" @bind:event="oninput" style="border-radius: 20px; padding: 5px 35px 5px 15px; width: 300px;" />
+                <img src="/images/lupa.png" alt="Buscar" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;" />
+            </div>
+            <button class="btn info-rol-btn" style="background-color: #1a237e; color: white; border-radius: 20px; padding: 8px 18px; border: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <img src="/images/infoIcono.png" alt="Info" style="width: 26px; height: 26px; display: block; margin: 0;" />
+                <span style="line-height: 1; margin: 0; padding: 0; display: inline-block;">Info. del rol</span>
+            </button>
+            <a class="btn-crear" href="EventCreator">
+                <span class="btn-crear-icon">＋</span>
+                Crear evento
+            </a>
+        </div>
     </div>
 
     @if (cargando)
@@ -31,229 +42,476 @@
     }
     else
     {
-        <section class="seccion">
-            <div class="seccion-header">
-                <div class="seccion-indicador admin-color"></div>
-                <h2>Mis eventos</h2>
-                <span class="badge">@eventosCreados.Count</span>
-            </div>
-
-            @if (eventosCreados.Count == 0)
-            {
-                <div class="empty-state">
-                    <span class="empty-icon">📋</span>
-                    <p>Todavía no has creado ningún evento.</p>
-                    <a href="EventCreator" class="link-accion">Crea tu primer evento →</a>
+        @if (Vista == "votante")
+        {
+            <section id="votante" class="seccion">
+                <div class="seccion-header">
+                    <div class="seccion-indicador votante-color"></div>
+                    <h2>Eventos en los que votas</h2>
+                    <span class="badge">@EventosVotanteActivos.Count</span>
                 </div>
-            }
-            else
-            {
-                <div class="eventos-grid">
-                    @foreach (var ev in eventosCreados)
-                    {
-                        var eventoId = ev.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoAdmin(ev)">
-                            <div class="evento-card-top">
-                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge admin-badge">Administrador</span>
-                            </div>
-                            <h3 class="evento-nombre">@ev.Nombre</h3>
-                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
-                            <div class="evento-fechas">
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Inscripciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                @if (EventosVotanteActivos.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">🔍</span>
+                        <p>No existe ningún evento más actualmente o que coincida con la búsqueda.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="eventos-grid">
+                        @foreach (var ev in EventosVotanteActivos)
+                        {
+                            var eventoId = ev.Id;
+                            <div class="evento-card" @onclick="() => IrAEventoVotante(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge votante-badge">Votante</span>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                <h3 class="evento-nombre">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                                <div class="evento-fechas">
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Inscripciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones Expertas</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                    </div>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones Expertas</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                <div class="evento-footer">
+                                    <span class="ver-mas">Ver evento →</span>
                                 </div>
                             </div>
-                            <div class="evento-footer">
-                                <span class="ver-mas">Ver evento →</span>
+                        }
+                    </div>
+                }
+
+                @if (EventosInscripcionPosible.Count > 0)
+                {
+                    <hr style="margin: 2rem 0; border-top: 2px solid #e5e7eb;" />
+                    <div class="seccion-header">
+                        <div class="seccion-indicador votante-color" style="background: linear-gradient(180deg, #9ca3af, #d1d5db);"></div>
+                        <h2>Para registrarse</h2>
+                        <span class="badge">@EventosInscripcionPosible.Count</span>
+                    </div>
+
+                    <div class="eventos-grid">
+                        @foreach (var ev in EventosInscripcionPosible)
+                        {
+                            var eventoId = ev.Id;
+                            <div class="evento-card" @onclick="() => IrAEventoVotante(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge votante-badge">Sin rol (Registrable)</span>
+                                </div>
+                                <h3 class="evento-nombre">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                                <div class="evento-fechas">
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Inscripciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones Expertas</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                </div>
+                                <div class="evento-footer">
+                                    <span class="ver-mas" style="color: #6b7280;">Unirse como votante →</span>
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
+                }
+
+                @if (EventosVotanteFinalizados.Count > 0)
+                {
+                    <hr style="margin: 2rem 0; border-top: 2px solid #e5e7eb;" />
+                    <div class="seccion-header">
+                        <div class="seccion-indicador" style="background: #9ca3af;"></div>
+                        <h2>Eventos finalizados</h2>
+                        <span class="badge">@EventosVotanteFinalizados.Count</span>
+                    </div>
+
+                    <div class="eventos-grid">
+                        @foreach (var ev in EventosVotanteFinalizados)
+                        {
+                            var eventoId = ev.Id;
+                            <div class="evento-card finalizado-card" @onclick="() => IrAEventoVotante(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge votante-badge" style="background: #f3f4f6; color: #6b7280; border-color: #d1d5db;">Votante</span>
+                                </div>
+                                <h3 class="evento-nombre" style="color: #6b7280;">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                                <div class="evento-footer" style="padding-top: 10px; border-top: 1px solid #f3f4f6;">
+                                    <span class="ver-mas" style="color: #6b7280;">Ir a dashboard →</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
+        @if (Vista == "participando")
+        {
+            <section id="participando" class="seccion">
+                <div class="seccion-header">
+                    <div class="seccion-indicador participante-color"></div>
+                    <h2>Participando en</h2>
+                    <span class="badge">@EventoParticipandoActivos.Count</span>
                 </div>
-            }
-        </section>
 
-        <section class="seccion">
-            <div class="seccion-header">
-                <div class="seccion-indicador participante-color"></div>
-                <h2>Participando en</h2>
-                <span class="badge">@eventoParticipando.Count</span>
-            </div>
+                @if (EventoParticipandoActivos.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">🔍</span>
+                        <p>No estás participando en ningún evento o no hay coincidencias con la búsqueda.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="eventos-grid">
+                        @foreach (var part in EventoParticipandoActivos)
+                        {
+                            var eventoId = part.Evento.Id;
+                            var ev = part.Evento;
+                            var rolTxt = part.Rol;
+                            var grupoId = part.Grupo?.Id;
+                            <div class="evento-card" @onclick="() => IrAEventoParticipante(ev, grupoId)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge participante-badge">@rolTxt</span>
+                                </div>
+                                <h3 class="evento-nombre">@ev.Nombre</h3>
+                                @if (part.Grupo != null)
+                                {
+                                    <p class="evento-desc" style="font-weight: 500; font-size: 0.9em; color: var(--text-2); margin-bottom: 2px;">Grupo: @part.Grupo.Nombre</p>
+                                }
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 70)</p>
+                                <div class="evento-fechas">
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Inscripciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones Expertas</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                </div>
+                                <div class="evento-footer">
+                                    <span class="ver-mas">Ver evento →</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
 
-            @if (eventoParticipando.Count == 0)
-            {
-                <div class="empty-state">
-                    <span class="empty-icon">🔍</span>
-                    <p>No estás participando en ningún evento actualmente.</p>
+                @if (EventoParticipandoFinalizados.Count > 0)
+                {
+                    <hr style="margin: 2rem 0; border-top: 2px solid #e5e7eb;" />
+                    <div class="seccion-header">
+                        <div class="seccion-indicador" style="background: #9ca3af;"></div>
+                        <h2>Finalizados</h2>
+                        <span class="badge">@EventoParticipandoFinalizados.Count</span>
+                    </div>
+
+                    <div class="eventos-grid">
+                        @foreach (var part in EventoParticipandoFinalizados)
+                        {
+                            var eventoId = part.Evento.Id;
+                            var ev = part.Evento;
+                            var rolTxt = part.Rol;
+                            var grupoId = part.Grupo?.Id;
+                            <div class="evento-card finalizado-card" @onclick="() => IrAEventoParticipante(ev, grupoId)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge participante-badge" style="background: #f3f4f6; color: #6b7280; border-color: #d1d5db;">@rolTxt</span>
+                                </div>
+                                <h3 class="evento-nombre" style="color: #6b7280;">@ev.Nombre</h3>
+                                @if (part.Grupo != null)
+                                {
+                                    <p class="evento-desc" style="font-weight: 500; font-size: 0.9em; color: var(--text-2); margin-bottom: 2px;">Grupo: @part.Grupo.Nombre</p>
+                                }
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 70)</p>
+                                <div class="evento-footer" style="padding-top: 10px; border-top: 1px solid #f3f4f6;">
+                                    <span class="ver-mas" style="color: #6b7280;">Ir a dashboard →</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
+        @if (Vista == "admin")
+        {
+            <section id="admin" class="seccion">
+                <div class="seccion-header">
+                    <div class="seccion-indicador admin-color"></div>
+                    <h2>Mis eventos</h2>
+                    <span class="badge">@EventosCreadosActivos.Count</span>
                 </div>
-            }
-            else
-            {
-                <div class="eventos-grid">
-                    @foreach (var part in eventoParticipando)
-                    {
-                        var eventoId = part.Evento.Id;
-                        var ev = part.Evento;
-                        var rolTxt = part.Rol;
-                        var grupoId = part.Grupo?.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoParticipante(ev, grupoId)">
-                            <div class="evento-card-top">
-                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge participante-badge">@rolTxt</span>
-                            </div>
-                            <h3 class="evento-nombre">@ev.Nombre</h3>
-                            @if (part.Grupo != null)
-                            {
-                                <p class="evento-desc" style="font-weight: 500; font-size: 0.9em; color: var(--text-2); margin-bottom: 2px;">Grupo: @part.Grupo.Nombre</p>
-                            }
-                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 70)</p>
-                            <div class="evento-fechas">
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Inscripciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+
+                @if (eventosCreados.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">📋</span>
+                        <p>Todavía no has creado ningún evento.</p>
+                        <a href="EventCreator" class="link-accion">Crea tu primer evento →</a>
+                    </div>
+                }
+                else if (EventosCreadosActivos.Count == 0)
+                {
+                     <div class="empty-state">
+                        <span class="empty-icon">📋</span>
+                        <p>Ningún evento activo coincide con la búsqueda.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="eventos-grid">
+                        @foreach (var ev in EventosCreadosActivos)
+                        {
+                            var eventoId = ev.Id;
+                            <div class="evento-card" @onclick="() => IrAEventoAdmin(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge admin-badge">Administrador</span>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                <h3 class="evento-nombre">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                                <div class="evento-fechas">
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Inscripciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones Expertas</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                    </div>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones Expertas</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                <div class="evento-footer">
+                                    <span class="ver-mas">Ver evento →</span>
                                 </div>
                             </div>
-                            <div class="evento-footer">
-                                <span class="ver-mas">Ver evento →</span>
+                        }
+                    </div>
+                }
+
+                @if (EventosCreadosFinalizados.Count > 0)
+                {
+                    <hr style="margin: 2rem 0; border-top: 2px solid #e5e7eb;" />
+                    <div class="seccion-header">
+                        <div class="seccion-indicador" style="background: #9ca3af;"></div>
+                        <h2>Finalizados</h2>
+                        <span class="badge">@EventosCreadosFinalizados.Count</span>
+                    </div>
+
+                    <div class="eventos-grid">
+                        @foreach (var ev in EventosCreadosFinalizados)
+                        {
+                            var eventoId = ev.Id;
+                            <div class="evento-card finalizado-card" @onclick="() => IrAEventoAdmin(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge admin-badge" style="background: #f3f4f6; color: #6b7280; border-color: #d1d5db;">Administrador</span>
+                                </div>
+                                <h3 class="evento-nombre" style="color: #6b7280;">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+                                <div class="evento-footer" style="padding-top: 10px; border-top: 1px solid #f3f4f6;">
+                                    <span class="ver-mas" style="color: #6b7280;">Ir a dashboard →</span>
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
+                }
+            </section>
+        }
+
+        @if (Vista == "jurado")
+        {
+            <section id="jurado" class="seccion">
+                <div class="seccion-header">
+                    <div class="seccion-indicador jurado-color"></div>
+                    <h2>Eventos como jurado</h2>
+                    <span class="badge">@EventosJuradoActivos.Count</span>
                 </div>
-            }
-        </section>
 
-        <section class="seccion">
-            <div class="seccion-header">
-                <div class="seccion-indicador votante-color"></div>
-                <h2>Otros eventos</h2>
-                <span class="badge">@eventosDisponibles.Count</span>
-            </div>
-            @if (eventosDisponibles.Count == 0)
-            {
-                <div class="empty-state">
-                    <span class="empty-icon">🔍</span>
-                    <p>No existe ningún evento más actualmente.</p>
-                </div>
-            }
-            else
-            {
-                <div class="eventos-grid">
-                    @foreach (var ev in eventosDisponibles)
-                    {
-                        var eventoId = ev.Id;
-                        <div class="evento-card" @onclick="() => IrAEventoVotante(ev)">
-                            <div class="evento-card-top">
-                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge votante-badge">Votante</span>
-                            </div>
-                            <h3 class="evento-nombre">@ev.Nombre</h3>
-                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
-                            <div class="evento-fechas">
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Inscripciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                @if (eventosJurado.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">⚖️</span>
+                        <p>No tienes eventos asignados como jurado.</p>
+                    </div>
+                }
+                else if (EventosJuradoActivos.Count == 0)
+                {
+                     <div class="empty-state">
+                        <span class="empty-icon">⚖️</span>
+                        <p>Ningún evento activo como jurado coincide con la búsqueda.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="eventos-grid">
+                        @foreach (var jur in EventosJuradoActivos)
+                        {
+
+                            var eventoId = jur.Evento.Id;
+                            var ev = jur.Evento;
+
+                            <div class="evento-card" @onclick="() => IrAEventoJurado(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge jurado-badge">Jurado</span>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+
+                                <h3 class="evento-nombre">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+
+                                <div class="evento-fechas">
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Inscripciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                    <div class="fecha-item">
+                                        <span class="fecha-label">Votaciones Expertas</span>
+                                        <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                    </div>
                                 </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones Expertas</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
-                                </div>
-                            </div>
-                            <div class="evento-footer">
-                                <span class="ver-mas">Ver evento →</span>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-        </section>
 
-        <section class="seccion">
-            <div class="seccion-header">
-                <div class="seccion-indicador jurado-color"></div>
-                <h2>Eventos como jurado</h2>
-                <span class="badge">@eventosJurado.Count</span>
-            </div>
-
-            @if (eventosJurado.Count == 0)
-            {
-                <div class="empty-state">
-                    <span class="empty-icon">⚖️</span>
-                    <p>No tienes eventos asignados como jurado.</p>
-                </div>
-            }
-            else
-            {
-                <div class="eventos-grid">
-                    @foreach (var jur in eventosJurado)
-                    {
-
-                        var eventoId = jur.Evento.Id;
-                        var ev = jur.Evento;
-
-                        <div class="evento-card" @onclick="() => IrAEventoJurado(ev)">
-                            <div class="evento-card-top">
-                                <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                <span class="rol-badge jurado-badge">Jurado</span>
-                            </div>
-
-                            <h3 class="evento-nombre">@ev.Nombre</h3>
-                            <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
-
-                            <div class="evento-fechas">
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Inscripciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinInscripciones.ToString("dd MMM yyyy")</span>
-                                </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotaciones.ToString("dd MMM yyyy")</span>
-                                </div>
-                                <div class="fecha-item">
-                                    <span class="fecha-label">Votaciones Expertas</span>
-                                    <span class="fecha-valor">@ev.FechaFinVotExperta.ToString("dd MMM yyyy")</span>
+                                <div class="evento-footer">
+                                    <span class="ver-mas">Evaluar →</span>
                                 </div>
                             </div>
+                        }
+                    </div>
+                }
 
-                            <div class="evento-footer">
-                                <span class="ver-mas">Evaluar →</span>
+                @if (EventosJuradoFinalizados.Count > 0)
+                {
+                    <hr style="margin: 2rem 0; border-top: 2px solid #e5e7eb;" />
+                    <div class="seccion-header">
+                        <div class="seccion-indicador" style="background: #9ca3af;"></div>
+                        <h2>Finalizados</h2>
+                        <span class="badge">@EventosJuradoFinalizados.Count</span>
+                    </div>
+
+                    <div class="eventos-grid">
+                        @foreach (var jur in EventosJuradoFinalizados)
+                        {
+                            var eventoId = jur.Evento.Id;
+                            var ev = jur.Evento;
+
+                            <div class="evento-card finalizado-card" @onclick="() => IrAEventoJurado(ev)">
+                                <div class="evento-card-top">
+                                    <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
+                                    <span class="rol-badge jurado-badge" style="background: #f3f4f6; color: #6b7280; border-color: #d1d5db;">Jurado</span>
+                                </div>
+
+                                <h3 class="evento-nombre" style="color: #6b7280;">@ev.Nombre</h3>
+                                <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
+
+                                <div class="evento-footer" style="padding-top: 10px; border-top: 1px solid #f3f4f6;">
+                                    <span class="ver-mas" style="color: #6b7280;">Ir a dashboard →</span>
+                                </div>
                             </div>
-                        </div>
-                    }
-                </div>
-            }
-        </section>
+                        }
+                    </div>
+                }
+            </section>
+        }
     }
 </div>
 
 @code {
+    [Parameter]
+    public string? Vista { get; set; }
+
     private string nombre = "";
     private string error = "";
     private bool cargando = true;
+    private string busquedaEventos = "";
+
     private List<EventoDto> eventosCreados = new();
     private List<EventoParticipanteDto> eventoParticipando = new();
     private List<EventoDto> eventosDisponibles = new();
     private List<EventoJuradoDto> eventosJurado = new();
+
+    private string MensajeSubtitulo => Vista switch
+    {
+        "votante" => "Descubre y únete a eventos de tu comunidad.",
+        "participando" => "Sigue de cerca los eventos en los que estás participando.",
+        "admin" => "Administra y gestiona los eventos que has creado.",
+        "jurado" => "Evalúa y vota en los eventos donde eres jurado experto.",
+        _ => "Gestiona tus eventos o únete a los de tu comunidad"
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrEmpty(Vista))
+        {
+            Vista = "votante";
+        }
+    }
+
+    private List<EventoDto> EventosCreadosFiltrados => string.IsNullOrWhiteSpace(busquedaEventos) 
+        ? eventosCreados 
+        : eventosCreados.Where(e => e.Nombre.Contains(busquedaEventos, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private List<EventoParticipanteDto> EventoParticipandoFiltrados => string.IsNullOrWhiteSpace(busquedaEventos) 
+        ? eventoParticipando 
+        : eventoParticipando.Where(p => p.Evento.Nombre.Contains(busquedaEventos, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private List<EventoDto> EventosDisponiblesFiltrados => string.IsNullOrWhiteSpace(busquedaEventos) 
+        ? eventosDisponibles 
+        : eventosDisponibles.Where(e => e.Nombre.Contains(busquedaEventos, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private List<EventoJuradoDto> EventosJuradoFiltrados => string.IsNullOrWhiteSpace(busquedaEventos) 
+        ? eventosJurado 
+        : eventosJurado.Where(j => j.Evento.Nombre.Contains(busquedaEventos, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private List<EventoDto> EventosCreadosActivos => EventosCreadosFiltrados.Where(e => !EsFinalizado(e)).ToList();
+    private List<EventoDto> EventosCreadosFinalizados => EventosCreadosFiltrados.Where(EsFinalizado).ToList();
+
+    private List<EventoParticipanteDto> EventoParticipandoActivos => EventoParticipandoFiltrados.Where(p => !EsFinalizado(p.Evento)).ToList();
+    private List<EventoParticipanteDto> EventoParticipandoFinalizados => EventoParticipandoFiltrados.Where(p => EsFinalizado(p.Evento)).ToList();
+
+    // Votante
+    // Nota: Suponemos que api/evento/disponibles devuelve eventos a los que se puede unir O en los que ya es votante, 
+    // pero si lo es se le deben dar opciones diferentes. Sin más información de la API, y dado que la vista los pide juntos:
+    // "Eventos en los que votas": Todos los que permitan votación hoy? O la API te dice si eres votante?
+    // Seguiremos asumiendo que eventos donde puede VOTAR
+    private List<EventoDto> EventosVotanteActivos => EventosDisponiblesFiltrados.Where(e => !EsFinalizado(e) && DateOnly.FromDateTime(DateTime.Now) > e.FechaFinInscripciones).ToList();
+    private List<EventoDto> EventosInscripcionPosible => EventosDisponiblesFiltrados.Where(e => !EsFinalizado(e) && DateOnly.FromDateTime(DateTime.Now) <= e.FechaFinInscripciones).ToList();
+    private List<EventoDto> EventosVotanteFinalizados => EventosDisponiblesFiltrados.Where(EsFinalizado).ToList();
+
+    private List<EventoJuradoDto> EventosJuradoActivos => EventosJuradoFiltrados.Where(j => !EsFinalizado(j.Evento)).ToList();
+    private List<EventoJuradoDto> EventosJuradoFinalizados => EventosJuradoFiltrados.Where(j => EsFinalizado(j.Evento)).ToList();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

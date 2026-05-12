@@ -184,10 +184,15 @@ namespace Votify.LógicaNegocio.Services
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"[SintesisFeedbackService] Petición fallida. StatusCode: {response.StatusCode}. Detalle: {errorContent}");
-            }
 
-            // Manejo de error o log
-            return string.Empty;
+                // Si la cuota de la API se ha agotado o hay algún error similar (como 'ResourceExhausted' / 429), retornar un mensaje de fallback amigable
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests || response.StatusCode == System.Net.HttpStatusCode.PaymentRequired)
+                {
+                    return "Temporalmente no se puede generar la síntesis automática para estos comentarios debido a que se ha alcanzado el límite de peticiones del proveedor de IA. Inténtalo de nuevo más tarde.";
+                }
+
+                return "No hemos podido generar la síntesis para este criterio en este momento debido a un problema técnico con la integración de IA.";
+            }
         }
 
         private class GeminiResponse
