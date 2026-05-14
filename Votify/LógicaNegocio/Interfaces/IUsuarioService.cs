@@ -16,7 +16,8 @@ namespace Votify.LógicaNegocio.Interfaces
             string nombre,
             string? nuevaContraseña,
             string? repetirContraseña,
-            Microsoft.AspNetCore.Http.IFormFile? imagen
+            Microsoft.AspNetCore.Http.IFormFile? imagen,
+            bool eliminarImagen = false
         );
     }
 }

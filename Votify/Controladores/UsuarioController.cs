@@ -115,7 +115,8 @@ namespace Votify.Controladores
                     dto.Nombre,
                     dto.NuevaContraseña,
                     dto.RepetirContraseña,
-                    dto.Imagen
+                    dto.Imagen,
+                    dto.EliminarImagen
                 );
 
                 var token = _jwtService.GenerateToken(usuario!);

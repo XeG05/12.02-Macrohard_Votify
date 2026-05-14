@@ -25,13 +25,26 @@
         </div>
         @if (editando)
         {
-            <div class="btn-cambiar-imagen">
-                <label for="upload-imagen" class="btn-cambiar-imagen-label">Cambiar Imagen</label>
-                <InputFile id="upload-imagen" OnChange="OnImagenSeleccionada" accept="image/jpeg, image/png" style="display: none;" />
+            <div class="botones-imagen-edicion">
+                <div class="btn-cambiar-imagen">
+                    <label for="upload-imagen" class="btn-cambiar-imagen-label">Cambiar Imagen</label>
+                    <InputFile id="upload-imagen" OnChange="OnImagenSeleccionada" accept="image/jpeg, image/png" style="display: none;" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(imagenPerfilBase64) || archivoImagen != null)
+                {
+                    <button class="btn-eliminar-imagen-pequeno" @onclick="ConfirmarEliminarImagen" title="Eliminar imagen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                        </svg>
+                        Quitar
+                    </button>
+                }
             </div>
             @if (nombreImagenSeleccionada != null)
             {
-                <span style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">@nombreImagenSeleccionada</span>
+                <span class="nombre-archivo-imagen">@nombreImagenSeleccionada</span>
             }
         }
     </div>
@@ -73,7 +86,7 @@
 
             <div class="botones-edicion">
                 <button class="btn-primario" @onclick="GuardarCambios" 
-                        disabled="@(cargando || (nombre == nombreOriginal && string.IsNullOrWhiteSpace(nuevaContraseña) && archivoImagen == null))">
+                        disabled="@(cargando || (nombre == nombreOriginal && string.IsNullOrWhiteSpace(nuevaContraseña) && archivoImagen == null && !quitarImagen))">
                     @(cargando ? "Guardando..." : "Confirmar cambios")
                 </button>
 
@@ -114,13 +127,29 @@
     </div>
 }
 
+@if (mostrarModalEliminarImagen)
+{
+    <div class="modal-overlay">
+        <div class="modal-contenido">
+            <h3>Quitar imagen</h3>
+            <p>¿Estás seguro de que deseas quitar tu imagen de perfil?</p>
+            <div class="modal-botones">
+                <button class="btn-secundario" @onclick="CancelarEliminarImagen">Cancelar</button>
+                <button class="btn-peligro" @onclick="EjecutarEliminarImagen">Quitar imagen</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private string nombre = "";
     private string nombreOriginal = "";
     private string correo = "";
     private string? imagenPerfilBase64 = null;
+    private string? imagenPerfilBase64Original = null;
     private IBrowserFile? archivoImagen = null;
     private string? nombreImagenSeleccionada = null;
+    private bool quitarImagen = false;
 
     private string nuevaContraseña = "";
     private string repetirContraseña = "";
@@ -130,6 +159,7 @@
     private bool editando = false;
     private bool cargando = false;
     private bool mostrarModalLogout = false;
+    private bool mostrarModalEliminarImagen = false;
 
     private void ConfirmarCerrarSesion()
     {
@@ -146,6 +176,25 @@
         mostrarModalLogout = false;
         await AuthProvider.MarcarDesconectado();
         NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private void ConfirmarEliminarImagen()
+    {
+        mostrarModalEliminarImagen = true;
+    }
+
+    private void CancelarEliminarImagen()
+    {
+        mostrarModalEliminarImagen = false;
+    }
+
+    private void EjecutarEliminarImagen()
+    {
+        mostrarModalEliminarImagen = false;
+        quitarImagen = true;
+        archivoImagen = null;
+        nombreImagenSeleccionada = null;
+        imagenPerfilBase64 = null; 
     }
 
     protected override async Task OnInitializedAsync()
@@ -165,6 +214,7 @@
                 nombreOriginal = perfil.Nombre;
                 correo = perfil.Correo;
                 imagenPerfilBase64 = perfil.ImagenBase64;
+                imagenPerfilBase64Original = perfil.ImagenBase64;
             }
         }
         catch (Exception ex)
@@ -181,6 +231,7 @@
         error = false;
         nuevaContraseña = "";
         repetirContraseña = "";
+        quitarImagen = false;
     }
 
     private void CancelarEdicion()
@@ -191,6 +242,8 @@
         repetirContraseña = "";
         archivoImagen = null;
         nombreImagenSeleccionada = null;
+        quitarImagen = false;
+        imagenPerfilBase64 = imagenPerfilBase64Original;
         mensaje = "";
         error = false;
     }
@@ -199,6 +252,7 @@
     {
         archivoImagen = e.File;
         nombreImagenSeleccionada = e.File.Name;
+        quitarImagen = false;
     }
 
     private async Task GuardarCambios()
@@ -248,6 +302,8 @@
                 content.Add(new StringContent(repetirContraseña), "RepetirContraseña");
             }
 
+            content.Add(new StringContent(quitarImagen.ToString()), "EliminarImagen");
+
             if (archivoImagen != null)
             {
                 var maxFileSize = 10 * 1024 * 1024;
@@ -270,6 +326,7 @@
                 {
                     await AuthProvider.MarcarAutenticado(auth.Token);
                     imagenPerfilBase64 = auth.ImagenBase64;
+                    imagenPerfilBase64Original = auth.ImagenBase64;
                 }
 
                 nombreOriginal = nombre;
@@ -277,6 +334,7 @@
                 repetirContraseña = "";
                 archivoImagen = null;
                 nombreImagenSeleccionada = null;
+                quitarImagen = false;
                 editando = false;
 
                 error = false;

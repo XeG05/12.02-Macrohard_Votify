@@ -9,5 +9,7 @@
         public string? RepetirContraseña { get; set; }
 
         public Microsoft.AspNetCore.Http.IFormFile? Imagen { get; set; }
+
+        public bool EliminarImagen { get; set; }
     }
 }

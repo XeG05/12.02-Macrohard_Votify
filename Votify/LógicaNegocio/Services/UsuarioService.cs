@@ -58,7 +58,8 @@ namespace Votify.LógicaNegocio.Services
             string nombre,
             string? nuevaContraseña,
             string? repetirContraseña,
-            Microsoft.AspNetCore.Http.IFormFile? imagen
+            Microsoft.AspNetCore.Http.IFormFile? imagen,
+            bool eliminarImagen = false
         )
         {
             var usuario = (await _repository.FindAsync(u => u.Correo == correo)).FirstOrDefault()
@@ -107,6 +108,10 @@ namespace Votify.LógicaNegocio.Services
                 using var ms = new MemoryStream();
                 await imagen.CopyToAsync(ms);
                 usuario.Imagen = ms.ToArray();
+            }
+            else if (eliminarImagen)
+            {
+                usuario.Imagen = null;
             }
 
             await _repository.UpdateAsync(usuario);
