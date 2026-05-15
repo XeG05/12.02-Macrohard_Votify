@@ -918,6 +918,7 @@ namespace Votify.LógicaNegocio.Services
 
                 resultado.Add(new ProyectoResultadosDto
                 {
+                    IdProyecto = proyecto.Id,
                     NombreProyecto = proyecto.Nombre,
                     NombreGrupo = g.Nombre,
                     CantidadVotos = votosProyecto.Count,

@@ -2,6 +2,7 @@
 {
     public class ProyectoResultadosDto
     {
+        public long IdProyecto { get; set; } 
         public string NombreProyecto { get; set; } = "";
         public string NombreGrupo { get; set; } = "";
 
@@ -12,6 +13,8 @@
         public List<ResultadoCriterioDto> ResultadosPorCriterio { get; set; } = new();
 
         public List<VotoDetalleDto> VotosDetalle { get; set; } = new();
+
+
     }
 
     public class ResultadoCriterioDto

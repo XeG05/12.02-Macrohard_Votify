@@ -48,8 +48,49 @@ else
                 @if (categoria.Proyectos != null && categoria.Proyectos.Any())
                 {
                     var top3 = categoria.Proyectos.Take(3).ToList();
+                    var ganador = categoria.Proyectos.First();
                     var resto = categoria.Proyectos.Skip(3).ToList();
 
+                    <!-- GANADOR -->
+                    <div style="
+                background:linear-gradient(135deg,#f59e0b,#fbbf24);
+                color:white;
+                padding:24px;
+                border-radius:18px;
+                margin-bottom:25px;
+                text-align:center;
+                box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+
+                        <div style="font-size:18px; opacity:0.9;">
+                            Ganador de la categoría
+                        </div>
+
+                        <div style="font-size:34px; font-weight:bold; margin-top:10px;">
+                            @ganador.NombreGrupo
+                        </div>
+
+                        <div style="font-size:18px; margin-top:8px;">
+                            Proyecto: <b>@ganador.NombreProyecto</b>
+                        </div>
+
+                        <div style="margin-top:12px; font-size:22px;">
+                            @ganador.PuntuacionMedia puntos
+                        </div>
+
+                        <button @onclick="() => IrAProyecto(ganador.IdProyecto)"
+                                style="
+                            margin-top:18px;
+                            background:white;
+                            color:#b45309;
+                            border:none;
+                            padding:10px 18px;
+                            border-radius:10px;
+                            font-weight:bold;
+                            cursor:pointer;">
+                            Ver proyecto
+                        </button>
+
+                    </div>
                     <!--  PODIO -->
                     <div class="podio">
 
@@ -65,6 +106,17 @@ else
                                 <div class="podio-nombre">@p.NombreProyecto</div>
                                 <div class="podio-grupo">@p.NombreGrupo</div>
                                 <div class="podio-puntos">@p.PuntuacionMedia</div>
+                                <button @onclick="() => IrAProyecto(p.IdProyecto)"
+                                        style="
+                            margin-top:10px;
+                            background:white;
+                            border:none;
+                            padding:6px 12px;
+                            border-radius:8px;
+                            cursor:pointer;
+                            font-weight:600;">
+                                    Ver proyecto
+                                </button>
                             </div>
                         }
 
@@ -96,8 +148,23 @@ else
                                     </div>
                                 </div>
 
-                                <div class="pts">
-                                    @item.v.PuntuacionMedia
+                                <div style="display:flex; align-items:center; gap:12px;">
+
+                                    <div class="pts">
+                                        @item.v.PuntuacionMedia
+                                    </div>
+
+                                    <button @onclick="() => IrAProyecto(item.v.IdProyecto)"
+                                            style="
+                                background:#2563eb;
+                                color:white;
+                                border:none;
+                                padding:6px 10px;
+                                border-radius:8px;
+                                cursor:pointer;">
+                                        Ver
+                                    </button>
+
                                 </div>
 
                             </div>
@@ -200,5 +267,10 @@ else
     void VolverHome()
     {
         Nav.NavigateTo("/home");
+    }
+
+    private void IrAProyecto(long idProyecto)
+    {
+        Nav.NavigateTo($"/{EventoId}/proyecto/{idProyecto}");
     }
 }
