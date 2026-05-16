@@ -27,9 +27,12 @@ else if (dashboard != null)
         <h1 style="margin:10px 0;">Tu Dashboard</h1>
         <p style="color:#cbd5f5;">Resultados finales de tu participación</p>
 
-        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
-            Fase actual: @faseActual?.Fase
-        </span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
+                Fase actual: @faseActual?.Fase
+            </span>
+            <button class="btn btn-warning" @onclick="AbrirReclamacion">Hacer una reclamación</button>
+        </div>
     </div>
 
 
@@ -87,6 +90,31 @@ else if (dashboard != null)
             }
         }
     </div>
+
+    <!-- MODAL RECLAMACIÓN -->
+    @if (mostrandoModalReclamacion)
+    {
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;">
+            <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:500px;">
+                <h3 style="margin-top:0;">Enviar Reclamación al Administrador</h3>
+
+                <textarea @bind="mensajeReclamacion" 
+                          rows="5" 
+                          style="width:100%;padding:10px;border-radius:5px;border:1px solid #ccc;margin-bottom:10px;"
+                          placeholder="Describe el motivo de tu reclamación..."></textarea>
+
+                @if (!string.IsNullOrEmpty(errorReclamacion)) { <p style="color:red;margin:0 0 10px 0;">@errorReclamacion</p> }
+                @if (!string.IsNullOrEmpty(exitoReclamacion)) { <p style="color:green;margin:0 0 10px 0;">@exitoReclamacion</p> }
+
+                <div style="display:flex;justify-content:flex-end;gap:10px;">
+                    <button class="btn btn-secondary" @onclick="CerrarReclamacion">Cerrar</button>
+                    <button class="btn btn-primary" @onclick="EnviarReclamacion" disabled="@enviandoReclamacion">
+                        @(enviandoReclamacion ? "Enviando..." : "Enviar")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 }
 else
 {
@@ -156,6 +184,64 @@ else
         else
         {
             Nav.NavigateTo($"/eventoparticipante/{EventoId}");
+        }
+    }
+
+    bool mostrandoModalReclamacion = false;
+    string mensajeReclamacion = "";
+    string errorReclamacion = "";
+    string exitoReclamacion = "";
+    bool enviandoReclamacion = false;
+
+    private void AbrirReclamacion()
+    {
+        mostrandoModalReclamacion = true;
+        mensajeReclamacion = "";
+        errorReclamacion = "";
+        exitoReclamacion = "";
+    }
+
+    private void CerrarReclamacion()
+    {
+        mostrandoModalReclamacion = false;
+    }
+
+    private async Task EnviarReclamacion()
+    {
+        if(string.IsNullOrWhiteSpace(mensajeReclamacion))
+        {
+            errorReclamacion = "El mensaje no puede estar vacío.";
+            return;
+        }
+
+        enviandoReclamacion = true;
+        errorReclamacion = "";
+        exitoReclamacion = "";
+
+        try
+        {
+            var reclamacionDto = new { Mensaje = mensajeReclamacion };
+            var response = await ApiClient.PostAsJsonAsync($"api/participante/{EventoId}/reclamacion", reclamacionDto);
+
+            if(response.IsSuccessStatusCode)
+            {
+                exitoReclamacion = "Reclamación enviada con éxito.";
+                mensajeReclamacion = "";
+                // Cerrar tras unos segundos o que el usuario cierre manualmente
+            }
+            else
+            {
+                errorReclamacion = "Error al enviar la reclamación.";
+            }
+        }
+        catch(Exception ex)
+        {
+            errorReclamacion = "Error de conexión: " + ex.Message;
+        }
+        finally
+        {
+            enviandoReclamacion = false;
+            StateHasChanged();
         }
     }
 }

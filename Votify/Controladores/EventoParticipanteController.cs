@@ -247,5 +247,25 @@ namespace Votify.Controladores
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpPost("{eventoId:long}/reclamacion")]
+        public async Task<IActionResult> EnviarReclamacion(long eventoId, [FromBody] ReclamacionDto reclamacion)
+        {
+            var correo = ObtenerCorreo();
+            if (string.IsNullOrEmpty(correo)) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(reclamacion.Mensaje))
+                return BadRequest(new { error = "El mensaje no puede estar vacío" });
+
+            try
+            {
+                await _participanteService.EnviarReclamacion(correo, eventoId, reclamacion.Mensaje);
+                return Ok(new { mensaje = "Reclamación enviada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

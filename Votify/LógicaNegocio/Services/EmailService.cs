@@ -139,5 +139,44 @@ namespace Votify.LógicaNegocio.Services
                 throw;
             }
         }
+
+        public async Task EnviarReclamacionAsync(string correoAdministrador, string correoParticipante, string nombreEvento, string mensajeReclamacion)
+        {
+            try
+            {
+                using var smtp = new SmtpClient(_config["Smtp:Host"], int.Parse(_config["Smtp:Port"]!))
+                {
+                    Credentials = new NetworkCredential(_config["Smtp:User"], _config["Smtp:Pass"]),
+                    EnableSsl = true
+                };
+
+                var mensaje = new MailMessage
+                {
+                    From = new MailAddress(_config["Smtp:User"]!, "Notificaciones Votify"),
+                    Subject = $"Nueva Reclamación - Evento: {nombreEvento}",
+                    Body = $"""
+                    Hola administrador,
+
+                    El participante ({correoParticipante}) ha enviado una reclamación para el evento "{nombreEvento}".
+
+                    Mensaje:
+                    {mensajeReclamacion}
+
+                    Por favor, revise esta solicitud.
+
+                    — Equipo Votify
+                    """,
+                    IsBodyHtml = false
+                };
+                mensaje.To.Add(correoAdministrador);
+
+                await smtp.SendMailAsync(mensaje);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EMAIL ERROR] {ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

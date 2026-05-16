@@ -17,6 +17,8 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Voto> _votoRepo;
         private readonly IRepository<Comentario> _comentarioRepo;
+        private readonly IRepository<Administrador> _administradorRepo;
+        private readonly IEmailService _emailService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly long? _grupoIdActivo;
 
@@ -29,6 +31,8 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Usuario> usuarioRepo,
             IRepository<Voto> votoRepo,
             IRepository<Comentario> comentarioRepo,
+            IRepository<Administrador> administradorRepo,
+            IEmailService emailService,
             IUnitOfWork unitOfWork,
             long? grupoIdActivo = null
         )
@@ -41,6 +45,8 @@ namespace Votify.LógicaNegocio.Services
             _usuarioRepo = usuarioRepo;
             _votoRepo = votoRepo;
             _comentarioRepo = comentarioRepo;
+            _administradorRepo = administradorRepo;
+            _emailService = emailService;
             _unitOfWork = unitOfWork;
             _grupoIdActivo = grupoIdActivo;
         }
@@ -302,6 +308,24 @@ namespace Votify.LógicaNegocio.Services
             if (hoy <= evento.FechaFinEntrega) return FasesEvento.Entregas;
             if (hoy <= evento.FechaFinVotaciones) return FasesEvento.Votaciones;
             return FasesEvento.Resultados;
+        }
+
+        public async Task EnviarReclamacion(string correoParticipante, long idEvento, string mensaje)
+        {
+            var evento = await _eventoRepo.GetByIdAsync(idEvento);
+            if (evento == null) throw new NotFoundException("Evento no encontrado");
+
+            var fase = ObtenerFaseActual(idEvento);
+            if(fase != FasesEvento.Resultados)
+                throw new Exception("Solo se pueden enviar reclamaciones en la fase de resultados.");
+
+            var administradores = await _administradorRepo.FindAsync(a => a.IdEvento == idEvento);
+            var administradorPricipal = administradores.FirstOrDefault();
+
+            if(administradorPricipal == null)
+                throw new Exception("No hay un administrador asignado al evento.");
+
+            await _emailService.EnviarReclamacionAsync(administradorPricipal.CorreoUsuario, correoParticipante, evento.Nombre, mensaje);
         }
     }
 }

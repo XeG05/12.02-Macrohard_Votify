@@ -9,5 +9,7 @@
 
         Task EnviarCertificadoAsync(string correoDestino, string nombreEvento, string nombreParticipante,
                                     byte[] pdf, string nombreArchivo);
+
+        Task EnviarReclamacionAsync(string correoAdministrador, string correoParticipante, string nombreEvento, string mensajeReclamacion);
     }
 }

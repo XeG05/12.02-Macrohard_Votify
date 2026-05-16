@@ -17,5 +17,6 @@ namespace Votify.LógicaNegocio.Interfaces
         Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo);
         Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria, string correo, long idEvento);
         FasesEvento ObtenerFaseActual(long idEvento);
+        Task EnviarReclamacion(string correoParticipante, long idEvento, string mensaje);
     }
 }
