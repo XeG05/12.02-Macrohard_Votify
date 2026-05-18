@@ -38,23 +38,25 @@ else
     <div class="epp-wrapper">
         <div class="epp-hero">
             <div class="epp-hero-content">
-                <div class="epp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
-
                 <div class="epp-hero-top">
-                    <div>
-                        <div class="epp-eyebrow">Panel de participante</div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="epp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
                         <h1>@evento.Nombre</h1>
-                        <p>@evento.Descripcion</p>
+                        <div style="display: flex; gap: 0.65rem;">
+                            <span class="epp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
+                        </div>
                     </div>
 
-                    <div class="epp-hero-side">
-                        <span class="epp-role-badge">Participante</span>
+                    <div class="epp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                        <p style="margin: 0; padding-top: 0;">@evento.Descripcion</p>
+                    </div>
 
-                        <span class="epp-status-badge @(tieneProyecto ? "is-ok" : "is-pending")">
+                    <div class="epp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                        <span class="epp-role-badge">Participante</span>
+                        <span class="epp-role-badge-white">Panel de participante</span>
+                        <span class='epp-status-badge @(tieneProyecto ? "is-ok" : "is-pending")'>
                             @(tieneProyecto ? "Proyecto entregado" : "Entrega disponible")
                         </span>
-
-                        <span class="epp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
                     </div>
                 </div>
             </div>

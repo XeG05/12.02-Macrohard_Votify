@@ -5,6 +5,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
+<link href="Votify.Components.Pages.EventoJuradoPagPrincipal.razor.css" rel="stylesheet" />
 
 @if (cargando)
 {
@@ -16,20 +17,25 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <!-- PANCARTA -->
-    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+    <div class="ejp-hero">
+        <div class="ejp-hero-content">
+            <div class="ejp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
 
-        <button @onclick="VolverHome"
-                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
-            ← Volver
-        </button>
+            <div class="ejp-hero-top">
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <h1>@evento?.Nombre</h1>
+                </div>
 
-        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
-        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
+                <div class="ejp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: center;">
+                    <p style="margin: 0;">@evento?.Descripcion</p>
+                </div>
 
-        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
-            Fase actual: @faseActual?.Fase
-        </span>
+                <div class="ejp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                    <span class="ejp-role-badge">Administrador</span>
+                    <span class="ejp-role-badge" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.3); color: #93c5fd;">@faseActual?.Fase</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- BOTÓN CONFIG EVENTO -->
