@@ -5,7 +5,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<link href="Votify.Components.Pages.EventoJuradoPagPrincipal.razor.css" rel="stylesheet" />
+
 
 @if (cargando)
 {
@@ -17,34 +17,39 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <div class="ejp-hero">
-        <div class="ejp-hero-content">
-            <div class="ejp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
+    <div class="eap-wrapper">
+        <div class="eap-hero">
+            <div class="eap-hero-content">
+                <div class="eap-hero-top">
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="eap-breadcrumb" @onclick="VolverHome">← Volver al home</div>
+                        <h1>@evento?.Nombre</h1>
+                        <div style="display: flex; gap: 0.65rem;">
+                            <span class="eap-phase-pill @ObtenerClaseFase(faseActual?.Fase)">@FormatearFaseLabel(faseActual?.Fase)</span>
+                        </div>
+                    </div>
 
-            <div class="ejp-hero-top">
-                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                    <h1>@evento?.Nombre</h1>
-                </div>
+                    <div class="eap-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                        <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">@evento?.Descripcion</p>
+                    </div>
 
-                <div class="ejp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: center;">
-                    <p style="margin: 0;">@evento?.Descripcion</p>
-                </div>
-
-                <div class="ejp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
-                    <span class="ejp-role-badge">Administrador</span>
-                    <span class="ejp-role-badge" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.3); color: #93c5fd;">@faseActual?.Fase</span>
+                    <div class="eap-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                        <span class="eap-role-badge">Administrador</span>
+                        <span class="eap-role-badge-white">Panel de admin</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- BOTÓN CONFIG EVENTO -->
-    <div style="margin-bottom:20px;">
-        <button @onclick="IrAConfiguracionEvento"
-                style="background:#16a34a;color:white;border:none;padding:10px 18px;border-radius:10px;">
-            ⚙️ Configuración del evento
-        </button>
-    </div>
+    <!-- CONTENIDO ADMINISTRADOR -->
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <!-- BOTÓN CONFIG EVENTO -->
+        <div style="margin-bottom:20px; display: flex; justify-content: flex-end;">
+            <button class="eap-btn-config" @onclick="IrAConfiguracionEvento">
+                <span class="eap-btn-icon">⚙️</span> Configuración del evento
+            </button>
+        </div>
 
     <h3>Categorías</h3>
 
@@ -78,6 +83,7 @@ else
             </div>
         }
     }
+    </div>
 }
 
 @code {
@@ -157,5 +163,27 @@ else
     void IrAConfiguracionEvento()
     {
         Nav.NavigateTo($"/eventoadmin/{EventoId}/configuracion");
+    }
+
+    string ObtenerClaseFase(string? fase)
+    {
+        var f = fase?.ToLower() ?? "";
+        if (f.Contains("inscrip")) return "fase-inscripciones";
+        if (f.Contains("entreg")) return "fase-entregas";
+        if (f.Contains("votacionexperta") || f.Contains("votacion experta")) return "fase-votacion-experta";
+        if (f.Contains("votac")) return "fase-votaciones";
+        return "fase-finalizado";
+    }
+
+    string FormatearFaseLabel(string? fase)
+    {
+        if (string.IsNullOrWhiteSpace(fase)) return "...";
+        var f = fase.ToLower();
+        if (f.Contains("inscrip")) return "En fase de inscripciones";
+        if (f.Contains("entreg")) return "En fase de entregas";
+        if (f.Contains("votacionexperta")) return "En fase de votación experta";
+        if (f.Contains("votacion")) return "En fase de votaciones";
+        if (f.Contains("resultados") || f.Contains("finalizad")) return "Fase finalizada";
+        return $"En fase de {fase}";
     }
 }

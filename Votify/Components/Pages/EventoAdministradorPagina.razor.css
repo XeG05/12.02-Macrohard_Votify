@@ -1,0 +1,548 @@
+.eap-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 3rem;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.eap-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 0;
+    color: #9ca3af;
+}
+
+.eap-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #6fce1a;
+    border-radius: 50%;
+    animation: eap-spin 0.75s linear infinite;
+}
+
+.eap-btn-config {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #0066FF, #2B7FFF);
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(0, 102, 255, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+@@keyframes eap-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hero */
+.eap-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 35%, #1f2937 100%);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+}
+
+    .eap-hero::before {
+        content: "";
+        position: absolute;
+        top: -80px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
+        pointer-events: none;
+    }
+
+    .eap-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -70px;
+        left: -40px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
+        pointer-events: none;
+    }
+
+.eap-hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.6rem 1.75rem 1.8rem;
+    color: white;
+}
+
+.eap-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+    .eap-breadcrumb:hover {
+        color: white;
+        transform: translateX(-2px);
+    }
+
+.eap-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.25rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+    min-height: 180px; /* Asegura que haya una altura para estirar */
+}
+
+.eap-hero-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: stretch;
+    gap: 0.7rem;
+    height: auto; /* Ocupará el espacio estirado */
+}
+
+.eap-role-badge,
+.eap-role-badge-white,
+.eap-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.eap-role-badge {
+    color: white;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.eap-role-badge-white {
+    color: #111827;
+    background: white;
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.25);
+}
+
+.eap-status-badge {
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+    .eap-status-badge.is-ok {
+        background: rgba(34, 197, 94, 0.16);
+        border-color: rgba(34, 197, 94, 0.28);
+    }
+
+    .eap-status-badge.is-pending {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.28);
+    }
+
+/* Phase pill (inscriptions / votings / finalized) */
+.eap-phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    color: #fff;
+}
+
+.fase-inscripciones {
+    background: linear-gradient(180deg, #2563eb, #1d4ed8); /* azul */
+}
+
+.fase-entregas {
+    background: linear-gradient(180deg, #f59e0b, #d97706); /* naranja */
+}
+
+.fase-votaciones {
+    background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-finalizado {
+    background: linear-gradient(180deg, #6b7280, #374151); /* gris */
+}
+
+/* Alerts */
+.eap-alert {
+    margin-bottom: 1.25rem;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    font-size: 0.96rem;
+    border: 1px solid transparent;
+}
+
+.eap-alert-ok {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.eap-alert-error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+/* Main layout */
+.eap-main-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.eap-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 1.4rem;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+}
+
+.eap-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.eap-panel-kicker {
+    display: inline-block;
+    margin-bottom: 0.35rem;
+    color: #6b7280;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.eap-panel-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+.eap-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.7rem;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.eap-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 2rem 1rem;
+    background: #fafafa;
+    border: 1px dashed #d1d5db;
+    border-radius: 18px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.eap-empty-icon {
+    font-size: 1.7rem;
+}
+
+.eap-members-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.eap-member-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #edf0f3;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfbfc);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .eap-member-card:hover {
+        transform: translateY(-2px);
+        border-color: #dbe3ea;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+.eap-member-avatar {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 20px rgba(111, 206, 26, 0.24);
+}
+
+.eap-member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+    .eap-member-info strong {
+        color: #111827;
+        font-size: 1rem;
+    }
+
+    .eap-member-info span {
+        color: #6b7280;
+        font-size: 0.92rem;
+        word-break: break-word;
+    }
+
+.eap-status-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+}
+
+    .eap-status-card.is-ok {
+        background: linear-gradient(180deg, #f0fdf4, #ffffff);
+        border-color: #bbf7d0;
+    }
+
+    .eap-status-card.is-pending {
+        background: linear-gradient(180deg, #fffaf0, #ffffff);
+        border-color: #fde68a;
+    }
+
+.eap-status-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: white;
+    font-size: 1.25rem;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.eap-status-card strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.eap-status-card p,
+.eap-tip-box p {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.55;
+}
+
+.eap-tip-box {
+    padding: 1rem;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+    .eap-tip-box strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: #0f172a;
+    }
+
+/* Actions */
+.eap-actions-section {
+    margin-top: 0.35rem;
+}
+
+.eap-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.eap-section-indicator {
+    width: 4px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #6fce1a, #a4ec66);
+}
+
+.eap-section-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.eap-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.eap-action-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.95rem;
+    padding: 1.2rem;
+    min-height: 120px;
+    border-radius: 22px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .eap-action-card:hover:not(:disabled) {
+        transform: translateY(-3px);
+        border-color: #d7dee5;
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    .eap-action-card:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+    }
+
+.eap-action-primary {
+    background: linear-gradient(180deg, #ffffff, #f8fff2);
+    border-color: #d9f0c3;
+}
+
+.eap-action-danger {
+    background: linear-gradient(180deg, #ffffff, #fff7f7);
+    border-color: #f3d3d3;
+}
+
+.eap-action-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: #f3f4f6;
+    font-size: 1.4rem;
+}
+
+.eap-action-primary .eap-action-icon {
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.eap-action-danger .eap-action-icon {
+    background: linear-gradient(135deg, #ef4444, #fca5a5);
+    color: white;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.18);
+}
+
+.eap-action-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+    .eap-action-text strong {
+        color: #111827;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .eap-action-text span {
+        color: #6b7280;
+        font-size: 0.93rem;
+        line-height: 1.5;
+    }
+
+@media (max-width: 920px) {
+    .eap-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .eap-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .eap-wrapper {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .eap-hero-content {
+        padding: 1.25rem;
+    }
+
+    .eap-panel {
+        padding: 1.05rem;
+        border-radius: 20px;
+    }
+
+    .eap-hero h1 {
+        font-size: 1.65rem;
+    }
+
+    .eap-action-card {
+        min-height: auto;
+    }
+
+    /* On small screens, make the hero side stack with left alignment */
+    .eap-hero-side {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 0.6rem;
+    }
+}

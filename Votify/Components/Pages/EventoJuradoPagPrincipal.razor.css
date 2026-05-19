@@ -1,44 +1,65 @@
-/* Contenedor principal de la página */
 .ejp-wrapper {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 2rem;
-    font-family: inherit;
+    padding: 2rem 1.5rem 3rem;
+    font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* ========================================================
-   SECCIÓN HERO (La cabecera del evento)
-======================================================== */
+.ejp-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 0;
+    color: #9ca3af;
+}
+
+.ejp-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #6fce1a;
+    border-radius: 50%;
+    animation: ejp-spin 0.75s linear infinite;
+}
+
+@@keyframes ejp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hero */
 .ejp-hero {
     position: relative;
     overflow: hidden;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     border-radius: 24px;
     background: linear-gradient(135deg, #0f172a 0%, #111827 35%, #1f2937 100%);
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
 }
 
-.ejp-hero::before {
-    content: "";
-    position: absolute;
-    top: -80px;
-    right: -60px;
-    width: 240px;
-    height: 240px;
-    background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
-    pointer-events: none;
-}
+    .ejp-hero::before {
+        content: "";
+        position: absolute;
+        top: -80px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
+        pointer-events: none;
+    }
 
-.ejp-hero::after {
-    content: "";
-    position: absolute;
-    bottom: -70px;
-    left: -40px;
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
-    pointer-events: none;
-}
+    .ejp-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -70px;
+        left: -40px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
+        pointer-events: none;
+    }
 
 .ejp-hero-content {
     position: relative;
@@ -58,259 +79,455 @@
     transition: color 0.15s ease, transform 0.15s ease;
 }
 
-.ejp-breadcrumb:hover {
-    color: white;
-    transform: translateX(-2px);
-}
+    .ejp-breadcrumb:hover {
+        color: white;
+        transform: translateX(-2px);
+    }
 
 .ejp-hero-top {
     display: flex;
     justify-content: space-between;
     gap: 1.25rem;
-    align-items: flex-start;
+    align-items: stretch;
     flex-wrap: wrap;
+    min-height: 180px; /* Asegura que haya una altura para estirar */
 }
 
-.ejp-eyebrow {
-    display: inline-block;
-    margin-bottom: 0.55rem;
-    padding: 0.3rem 0.65rem;
-    border: 1px solid rgba(255,255,255,0.12);
+.ejp-hero-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: stretch;
+    gap: 0.7rem;
+    height: auto; /* Ocupará el espacio estirado */
+}
+
+.ejp-role-badge,
+.ejp-role-badge-white,
+.ejp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.35rem 0.9rem;
     border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.ejp-role-badge {
+    color: white;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.ejp-role-badge-white {
+    color: #111827;
+    background: white;
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.25);
+}
+
+.ejp-status-badge {
+    border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+    .ejp-status-badge.is-ok {
+        background: rgba(34, 197, 94, 0.16);
+        border-color: rgba(34, 197, 94, 0.28);
+    }
+
+    .ejp-status-badge.is-pending {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.28);
+    }
+
+/* Phase pill (inscriptions / votings / finalized) */
+.ejp-phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    color: #fff;
+}
+
+.fase-inscripciones {
+    background: linear-gradient(180deg, #2563eb, #1d4ed8); /* azul */
+}
+
+.fase-entregas {
+    background: linear-gradient(180deg, #f59e0b, #d97706); /* naranja */
+}
+
+.fase-votaciones {
+    background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-finalizado {
+    background: linear-gradient(180deg, #6b7280, #374151); /* gris */
+}
+
+/* Alerts */
+.ejp-alert {
+    margin-bottom: 1.25rem;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    font-size: 0.96rem;
+    border: 1px solid transparent;
+}
+
+.ejp-alert-ok {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.ejp-alert-error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+/* Main layout */
+.ejp-main-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.ejp-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 1.4rem;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+}
+
+.ejp-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.ejp-panel-kicker {
+    display: inline-block;
+    margin-bottom: 0.35rem;
+    color: #6b7280;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
-.ejp-hero h1 {
-    margin: 0 0 0.45rem;
-    font-size: clamp(1.9rem, 3vw, 2.5rem);
-    line-height: 1.08;
+.ejp-panel-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.3rem;
     font-weight: 800;
 }
 
-.ejp-hero p {
-    max-width: 700px;
-    margin: 0;
-    color: rgba(255,255,255,0.78);
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.ejp-hero-side {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.7rem;
-}
-
-.ejp-role-badge,
-.ejp-phase-pill {
+.ejp-count-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 0.55rem 0.9rem;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.7rem;
     border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.85rem;
     font-weight: 700;
-    font-size: 0.9rem;
-    white-space: nowrap;
 }
 
-.ejp-role-badge {
-    color: white;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
-}
-
-.ejp-phase-pill {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    opacity: 0.95;
-}
-
-.fase-inscripciones {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.fase-entregas {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.fase-votaciones {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.fase-evaluacion-experta {
-    background: rgba(139, 92, 246, 0.2);
-    color: #c4b5fd;
-    border: 1px solid rgba(139, 92, 246, 0.3);
-}
-
-.fase-finalizado {
-    background: rgba(107, 114, 128, 0.2);
-    color: #d1d5db;
-    border: 1px solid rgba(107, 114, 128, 0.3);
-}
-
-/* ========================================================
-   SECCIÓN CATEGORÍAS
-======================================================== */
-.ejp-categories-section {
-    margin-top: 1rem;
-}
-
-.ejp-section-title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #222;
-}
-
-.ejp-divider {
-    border: none;
-    border-top: 2px solid #ccc;
-    margin: 0.8rem 0 2rem 0;
-}
-
-.ejp-categories-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* Separación entre cada tarjeta de categoría */
-}
-
-/* Tarjeta individual de categoría */
-.ejp-category-card {
-    border: 1px solid #aeaeae;
-    border-radius: 12px;
-    padding: 1.5rem;
-    background-color: #fff;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-    cursor: pointer;
-    position: relative;
-    /* Usamos flex de columna pero permitimos que el contenido tome el espacio arriba
-       y el badge se empuje hacia abajo a la derecha */
-    display: flex;
-    flex-direction: column;
-    min-height: 120px;
-}
-
-.ejp-category-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Sombra suave para indicar que es clickeable */
-    border-color: #666;
-}
-
-.ejp-category-content {
-    margin-bottom: 2rem; /* Espacio para que no choque con la caja de progreso */
-}
-
-.ejp-category-title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #111;
-}
-
-.ejp-category-desc {
-    margin: 0;
-    color: #666;
-    font-size: 0.95rem;
-    line-height: 1.4;
-}
-
-/* Contenedor Inferior de la Tarjeta */
-.ejp-category-footer {
-    display: flex;
-    justify-content: flex-end; /* Empuja el contenido (la pastilla) a la derecha */
-    margin-top: auto; /* Empuja este footer al fondo de la tarjeta */
-}
-
-.ejp-progress-pill {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border: 1px solid #777;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #444;
-    background-color: #f9f9f9;
-}
-
-/* Un pequeño toque extra: si el jurado evaluó todo (16/16), lo pintamos sutilmente de verde */
-.ejp-progress-pill.completado {
-    border-color: #22c55e;
-    color: #166534;
-    background-color: #f0fdf4;
-}
-
-/* ========================================================
-   UTILIDADES (Loaders y Alertas)
-======================================================== */
-.ejp-loading-state {
+.ejp-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 4rem;
-    color: #666;
+    gap: 0.55rem;
+    padding: 2rem 1rem;
+    background: #fafafa;
+    border: 1px dashed #d1d5db;
+    border-radius: 18px;
+    text-align: center;
+    color: #6b7280;
 }
 
-.ejp-spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top: 4px solid #333;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
+.ejp-empty-icon {
+    font-size: 1.7rem;
+}
+
+.ejp-members-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.ejp-member-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #edf0f3;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfbfc);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .ejp-member-card:hover {
+        transform: translateY(-2px);
+        border-color: #dbe3ea;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+.ejp-member-avatar {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 20px rgba(111, 206, 26, 0.24);
+}
+
+.ejp-member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+    .ejp-member-info strong {
+        color: #111827;
+        font-size: 1rem;
+    }
+
+    .ejp-member-info span {
+        color: #6b7280;
+        font-size: 0.92rem;
+        word-break: break-word;
+    }
+
+.ejp-status-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+}
+
+    .ejp-status-card.is-ok {
+        background: linear-gradient(180deg, #f0fdf4, #ffffff);
+        border-color: #bbf7d0;
+    }
+
+    .ejp-status-card.is-pending {
+        background: linear-gradient(180deg, #fffaf0, #ffffff);
+        border-color: #fde68a;
+    }
+
+.ejp-status-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: white;
+    font-size: 1.25rem;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.ejp-status-card strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.ejp-status-card p,
+.ejp-tip-box p {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.55;
+}
+
+.ejp-tip-box {
+    padding: 1rem;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+    .ejp-tip-box strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: #0f172a;
+    }
+
+/* Actions */
+.ejp-actions-section {
+    margin-top: 0.35rem;
+}
+
+.ejp-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 1rem;
 }
 
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.ejp-alert {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-}
-.ejp-alert-error {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-.ejp-alert-info {
-    background-color: #f0fdfa;
-    color: #166534;
-    border: 1px solid #bbf7d0;
+.ejp-section-indicator {
+    width: 4px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #6fce1a, #a4ec66);
 }
 
-/* Nueva alerta de advertencia para fases tempranas */
-.ejp-alert-warning {
-    background-color: #fffbeb; /* Fondo ámbar muy claro */
-    color: #92400e; /* Texto marrón/ámbar oscuro */
-    border: 1px solid #fde68a; /* Borde ámbar suave */
-    padding: 1.25rem;
-    border-radius: 12px; /* Match con las tarjetas de categoría */
-    margin-bottom: 2rem;
+.ejp-section-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.ejp-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.ejp-action-card {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.05); /* Sombra muy sutil */
+    align-items: flex-start;
+    gap: 0.95rem;
+    padding: 1.2rem;
+    min-height: 120px;
+    border-radius: 22px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-    .ejp-alert-warning svg {
-        flex-shrink: 0; /* Evita que el icono se encoja si el texto es largo */
-        color: #f59e0b; /* Color del icono */
+    .ejp-action-card:hover:not(:disabled) {
+        transform: translateY(-3px);
+        border-color: #d7dee5;
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
     }
+
+    .ejp-action-card:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+    }
+
+.ejp-action-primary {
+    background: linear-gradient(180deg, #ffffff, #f8fff2);
+    border-color: #d9f0c3;
+}
+
+.ejp-action-danger {
+    background: linear-gradient(180deg, #ffffff, #fff7f7);
+    border-color: #f3d3d3;
+}
+
+.ejp-action-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: #f3f4f6;
+    font-size: 1.4rem;
+}
+
+.ejp-action-primary .ejp-action-icon {
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.ejp-action-danger .ejp-action-icon {
+    background: linear-gradient(135deg, #ef4444, #fca5a5);
+    color: white;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.18);
+}
+
+.ejp-action-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+    .ejp-action-text strong {
+        color: #111827;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .ejp-action-text span {
+        color: #6b7280;
+        font-size: 0.93rem;
+        line-height: 1.5;
+    }
+
+@media (max-width: 920px) {
+    .ejp-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ejp-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .ejp-wrapper {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .ejp-hero-content {
+        padding: 1.25rem;
+    }
+
+    .ejp-panel {
+        padding: 1.05rem;
+        border-radius: 20px;
+    }
+
+    .ejp-hero h1 {
+        font-size: 1.65rem;
+    }
+
+    .ejp-action-card {
+        min-height: auto;
+    }
+
+    /* On small screens, make the hero side stack with left alignment */
+    .ejp-hero-side {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 0.6rem;
+    }
+}

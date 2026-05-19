@@ -30,18 +30,22 @@ else
 
         <div class="ejp-hero">
             <div class="ejp-hero-content">
-                <div class="ejp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
-
                 <div class="ejp-hero-top">
-                    <div>
-                        <div class="ejp-eyebrow">Panel de jurado</div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="ejp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
                         <h1>@evento.Nombre</h1>
-                        <p>@evento.Descripcion</p>
+                        <div style="display: flex; gap: 0.65rem;">
+                            <span class="ejp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
+                        </div>
                     </div>
 
-                    <div class="ejp-hero-side">
+                    <div class="ejp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                        <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">@evento.Descripcion</p>
+                    </div>
+
+                    <div class="ejp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
                         <span class="ejp-role-badge">Jurado</span>
-                        <span class="ejp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
+                        <span class="ejp-role-badge-white">Panel de jurado</span>
                     </div>
                 </div>
             </div>
@@ -185,11 +189,11 @@ else
     private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "Fase de inscripción";
-        if (hoy <= ev.FechaFinEntrega) return "Fase de entrega";
-        if (hoy <= ev.FechaFinVotaciones) return "Fase de votación";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "Fase de evaluación experta";
-        if (hoy <= ev.FechaFinVotExperta) return "Fase de votación experta";   
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        if (hoy <= ev.FechaFinVotExperta) return "En fase de votación experta";   
         return "Fase finalizada";
     }
 }

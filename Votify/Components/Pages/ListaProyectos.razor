@@ -22,23 +22,22 @@ else
     <div class="evp-wrapper">
         <div class="evp-hero">
             <div class="evp-hero-content">
-                <div class="evp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
-
-                <div class="evp-hero-top" style="display: flex; justify-content: space-between; gap: 1.25rem; align-items: stretch; flex-wrap: wrap;">
+                <div class="evp-hero-top">
                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="evp-breadcrumb" @onclick="VolverHome">← Volver al home</div>
                         <h1>@evento.Nombre</h1>
-                        <div>
+                        <div style="display: flex; gap: 0.65rem;">
                             <span class="evp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
                         </div>
                     </div>
 
-                    <div class="evp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: center;">
+                    <div class="evp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
                         <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">@evento.Descripcion</p>
                     </div>
 
-                    <div class="evp-hero-side" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.7rem; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                    <div class="evp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
                         <span class="evp-role-badge">@tipoRol</span>
-                        <span class="evp-role-badge">Panel de proyectos</span>
+                        <span class="evp-role-badge-white">Panel de proyectos</span>
                     </div>
                 </div>
             </div>

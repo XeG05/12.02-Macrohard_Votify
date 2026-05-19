@@ -1,4 +1,3 @@
-﻿/* Wrapper general unificado */
 .evp-wrapper {
     max-width: 1100px;
     margin: 0 auto;
@@ -6,7 +5,6 @@
     font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Spinner y carga */
 .evp-loading-state {
     display: flex;
     flex-direction: column;
@@ -25,57 +23,43 @@
     animation: evp-spin 0.75s linear infinite;
 }
 
-@keyframes evp-spin {
+@@keyframes evp-spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-/* Alertas */
-.evp-alert {
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-}
-
-.evp-alert-info {
-    background-color: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-/* Hero (cabecera superior unificada) */
+/* Hero */
 .evp-hero {
     position: relative;
     overflow: hidden;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     border-radius: 24px;
     background: linear-gradient(135deg, #0f172a 0%, #111827 35%, #1f2937 100%);
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
 }
 
-.evp-hero::before {
-    content: "";
-    position: absolute;
-    top: -80px;
-    right: -60px;
-    width: 240px;
-    height: 240px;
-    background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
-    pointer-events: none;
-}
+    .evp-hero::before {
+        content: "";
+        position: absolute;
+        top: -80px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(111, 206, 26, 0.35) 0%, rgba(111, 206, 26, 0) 70%);
+        pointer-events: none;
+    }
 
-.evp-hero::after {
-    content: "";
-    position: absolute;
-    bottom: -70px;
-    left: -40px;
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
-    pointer-events: none;
-}
+    .evp-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -70px;
+        left: -40px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 72%);
+        pointer-events: none;
+    }
 
 .evp-hero-content {
     position: relative;
@@ -95,177 +79,455 @@
     transition: color 0.15s ease, transform 0.15s ease;
 }
 
-.evp-breadcrumb:hover {
-    color: white;
-    transform: translateX(-2px);
-}
+    .evp-breadcrumb:hover {
+        color: white;
+        transform: translateX(-2px);
+    }
 
 .evp-hero-top {
     display: flex;
     justify-content: space-between;
     gap: 1.25rem;
-    align-items: flex-start;
+    align-items: stretch;
     flex-wrap: wrap;
+    min-height: 180px; /* Asegura que haya una altura para estirar */
 }
 
-.evp-eyebrow {
-    display: inline-block;
-    margin-bottom: 0.55rem;
-    padding: 0.3rem 0.65rem;
-    border: 1px solid rgba(255,255,255,0.12);
+.evp-hero-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: stretch;
+    gap: 0.7rem;
+    height: auto; /* Ocupará el espacio estirado */
+}
+
+.evp-role-badge,
+.evp-role-badge-white,
+.evp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.35rem 0.9rem;
     border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.evp-role-badge {
+    color: white;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.evp-role-badge-white {
+    color: #111827;
+    background: white;
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.25);
+}
+
+.evp-status-badge {
+    border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+    .evp-status-badge.is-ok {
+        background: rgba(34, 197, 94, 0.16);
+        border-color: rgba(34, 197, 94, 0.28);
+    }
+
+    .evp-status-badge.is-pending {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.28);
+    }
+
+/* Phase pill (inscriptions / votings / finalized) */
+.evp-phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    color: #fff;
+}
+
+.fase-inscripciones {
+    background: linear-gradient(180deg, #2563eb, #1d4ed8); /* azul */
+}
+
+.fase-entregas {
+    background: linear-gradient(180deg, #f59e0b, #d97706); /* naranja */
+}
+
+.fase-votaciones {
+    background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-finalizado {
+    background: linear-gradient(180deg, #6b7280, #374151); /* gris */
+}
+
+/* Alerts */
+.evp-alert {
+    margin-bottom: 1.25rem;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    font-size: 0.96rem;
+    border: 1px solid transparent;
+}
+
+.evp-alert-ok {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.evp-alert-error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+/* Main layout */
+.evp-main-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.evp-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 1.4rem;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+}
+
+.evp-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.evp-panel-kicker {
+    display: inline-block;
+    margin-bottom: 0.35rem;
+    color: #6b7280;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
-.evp-hero h1 {
-    margin: 0 0 0.45rem;
-    font-size: clamp(1.9rem, 3vw, 2.5rem);
-    line-height: 1.08;
+.evp-panel-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.3rem;
     font-weight: 800;
 }
 
-.evp-hero p {
-    max-width: 700px;
-    margin: 0;
-    color: rgba(255,255,255,0.78);
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.evp-hero-side {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.7rem;
-}
-
-.evp-role-badge,
-.evp-phase-pill {
+.evp-count-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 0.55rem 0.9rem;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.7rem;
     border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.85rem;
     font-weight: 700;
-    font-size: 0.9rem;
-    white-space: nowrap;
 }
 
-.evp-role-badge {
-    color: white;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
-}
-
-.evp-phase-pill {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    opacity: 0.95;
-}
-
-.fase-inscripcion {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.fase-votacion {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.fase-resultados {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-/* Lista de proyectos */
-.proyectos-lista {
+.evp-empty-state {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 2rem 1rem;
+    background: #fafafa;
+    border: 1px dashed #d1d5db;
+    border-radius: 18px;
+    text-align: center;
+    color: #6b7280;
 }
 
-.proyectos {
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    overflow: hidden;
-    background-color: white;
-    width: 100%;
-    transition: all 0.2s ease;
+.evp-empty-icon {
+    font-size: 1.7rem;
 }
 
-    .proyectos:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+.evp-members-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.evp-member-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #edf0f3;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfbfc);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .evp-member-card:hover {
         transform: translateY(-2px);
-        cursor:pointer;
+        border-color: #dbe3ea;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     }
 
-.nombreProyecto {
-    border-bottom: 1px solid #ccc;
-    padding: 5px;
+.evp-member-avatar {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 20px rgba(111, 206, 26, 0.24);
 }
 
-.informacionProyecto {
+.evp-member-info {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
 }
 
-.participantesProyecto {
-    border-right: 1px solid #ccc;
-    padding-right: 10px;
-    margin-right: 10px;
-    flex:1;
-}
-
-
-@media (max-width: 600px) {
-    .informacionProyecto {
-        flex-direction: column;
+    .evp-member-info strong {
+        color: #111827;
+        font-size: 1rem;
     }
 
-    .participantesProyecto {
-        border-right: none;
-        border-bottom: 1px solid #ccc;
-        margin-right: 0;
-        padding-right: 0;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
+    .evp-member-info span {
+        color: #6b7280;
+        font-size: 0.92rem;
+        word-break: break-word;
     }
-}
 
-.descripcionProyecto {
-    flex: 2;
-}
-/* Estilos de categorias */
-.categoria-seccion {
-    margin-bottom: 2rem;
+.evp-status-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
     padding: 1rem;
-    background: #f9fafb;
-    border-radius: 16px;
+    border-radius: 18px;
     border: 1px solid #e5e7eb;
 }
 
-.categoria-titulo {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+    .evp-status-card.is-ok {
+        background: linear-gradient(180deg, #f0fdf4, #ffffff);
+        border-color: #bbf7d0;
+    }
+
+    .evp-status-card.is-pending {
+        background: linear-gradient(180deg, #fffaf0, #ffffff);
+        border-color: #fde68a;
+    }
+
+.evp-status-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: white;
+    font-size: 1.25rem;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
-.categoria-proyectos {
+.evp-status-card strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.evp-status-card p,
+.evp-tip-box p {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.55;
+}
+
+.evp-tip-box {
+    padding: 1rem;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+    .evp-tip-box strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: #0f172a;
+    }
+
+/* Actions */
+.evp-actions-section {
+    margin-top: 0.35rem;
+}
+
+.evp-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.evp-section-indicator {
+    width: 4px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #6fce1a, #a4ec66);
+}
+
+.evp-section-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.evp-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.evp-action-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.95rem;
+    padding: 1.2rem;
+    min-height: 120px;
+    border-radius: 22px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .evp-action-card:hover:not(:disabled) {
+        transform: translateY(-3px);
+        border-color: #d7dee5;
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    .evp-action-card:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+    }
+
+.evp-action-primary {
+    background: linear-gradient(180deg, #ffffff, #f8fff2);
+    border-color: #d9f0c3;
+}
+
+.evp-action-danger {
+    background: linear-gradient(180deg, #ffffff, #fff7f7);
+    border-color: #f3d3d3;
+}
+
+.evp-action-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: #f3f4f6;
+    font-size: 1.4rem;
+}
+
+.evp-action-primary .evp-action-icon {
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+}
+
+.evp-action-danger .evp-action-icon {
+    background: linear-gradient(135deg, #ef4444, #fca5a5);
+    color: white;
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.18);
+}
+
+.evp-action-text {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0.35rem;
+}
+
+    .evp-action-text strong {
+        color: #111827;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .evp-action-text span {
+        color: #6b7280;
+        font-size: 0.93rem;
+        line-height: 1.5;
+    }
+
+@media (max-width: 920px) {
+    .evp-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .evp-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .evp-wrapper {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .evp-hero-content {
+        padding: 1.25rem;
+    }
+
+    .evp-panel {
+        padding: 1.05rem;
+        border-radius: 20px;
+    }
+
+    .evp-hero h1 {
+        font-size: 1.65rem;
+    }
+
+    .evp-action-card {
+        min-height: auto;
+    }
+
+    /* On small screens, make the hero side stack with left alignment */
+    .evp-hero-side {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 0.6rem;
+    }
 }
