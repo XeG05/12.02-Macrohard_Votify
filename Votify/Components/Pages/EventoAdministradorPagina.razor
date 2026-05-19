@@ -22,7 +22,27 @@ else
             <div class="eap-hero-content">
                 <div class="eap-hero-top">
                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div class="eap-breadcrumb" @onclick="VolverHome">← Volver al home</div>
+                        <div style="
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
+                            flex-wrap:wrap;
+                            margin-bottom:18px;
+                            color:#cbd5e1;
+                            font-size:0.95rem;">
+
+                            <span @onclick='() => Nav.NavigateTo("/home")'
+                                  style="cursor:pointer;">
+                                Home
+                            </span>
+
+                            <span>›</span>
+
+                            <span style="color:white;font-weight:600;">
+                                @evento?.Nombre
+                            </span>
+
+                        </div>
                         <h1>@evento?.Nombre</h1>
                         <div style="display: flex; gap: 0.65rem;">
                             <span class="eap-phase-pill @ObtenerClaseFase(faseActual?.Fase)">@FormatearFaseLabel(faseActual?.Fase)</span>
