@@ -591,4 +591,13 @@ else {
         if (hoy <= ev.FechaFinVotExperta) return "votacion-experta";
         return "resultados";
     }
+    private string GetFaseLabel(EventoDto ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        return "Finalizado";
+    }
 }

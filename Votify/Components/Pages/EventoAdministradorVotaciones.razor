@@ -18,10 +18,34 @@ else
     <!-- HEADER -->
     <div style="background: linear-gradient(90deg,#0f172a,#1e293b); color:white; padding:25px; border-radius:20px; margin-bottom:20px;">
 
-        <button @onclick="VolverEventoadmin"
-                style="background:none;border:none;color:#9ca3af;cursor:pointer;">
-            ← Volver al evento
-        </button>
+        <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+        color:#cbd5e1;
+        font-size:0.95rem;">
+
+            <span @onclick='() => Nav.NavigateTo("/home")'
+                  style="cursor:pointer;">
+                Home
+            </span>
+
+            <span>›</span>
+
+            <span @onclick='() => Nav.NavigateTo($"/eventoadmin/{EventoId}")'
+                  style="cursor:pointer;">
+                @evento?.Nombre
+            </span>
+
+            <span>›</span>
+
+            <span style="color:white;font-weight:600;">
+                Dashboard
+            </span>
+
+        </div>
 
         <h1>@evento?.Nombre</h1>
         <p>@nombreCategoria</p>
