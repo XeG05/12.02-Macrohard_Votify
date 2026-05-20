@@ -27,7 +27,12 @@ else
         </div>
 
         <div class="time-container">
-            <h4>Periodos</h4>
+            <div style="display:flex;flex-direction:row;align-items:center">
+                <h4>Periodos</h4>
+                <ToolTip Wide="true"
+                         Title="Periodos del evento"
+                         Text="Define cuándo termina cada fase: inscripciones, entrega de proyectos, votaciones populares, opinión experta y votación experta. Cada fase debe terminar antes de que comience la siguiente." />
+            </div>
             <hr />
             <div>
                 <h6>Fin de inscripciones:</h6>
@@ -51,7 +56,12 @@ else
             </div>
         </div>
         <div class="opcionesVotacion">
-            <h4>Votaciones</h4>
+            <div style="display:flex;flex-direction:row;align-items:center">
+                <h4>Votaciones</h4>
+                <ToolTip Wide="true"
+                         Title="Configuración de votaciones"
+                         Text="Decide si los votantes pueden escribir comentarios y elige el sistema de votación que aplicará a todos los proyectos del evento." />
+            </div>
             <hr/>
             <div>
                 <div>
@@ -76,7 +86,12 @@ else
                     </div>
                 </div>
                 <div>
-                    <p>Tipo de votación (por Criterio)</p>
+                    <div style="display:flex;flex-direction:row;align-items:center">
+                        <p>Tipo de votación (por Criterio)</p>
+                        <ToolTip Wide="true"
+                                 Title="Tipos de votación"
+                                 BodyContent="@TooltipTiposVotacion" />
+                    </div>
                     <div class="radio-opcion">
                         <input type="radio" name="votos"
                                checked="@(dto.TipoVotacion == TipoVotacion.Nota)"
@@ -101,7 +116,12 @@ else
             </div>
         </div>
         <div class="opciones">
+            <div style="display:flex;flex-direction:row;align-items:center">
                 <h4>Privacidad</h4>
+                <ToolTip Wide="true"
+                         Title="Privacidad del evento"
+                         Text="Un evento privado requiere contraseña para que los votantes puedan acceder. Los participantes y jurados invitados siempre acceden sin contraseña." />
+            </div>
                 <hr />
 
                 <label class="checkbox-linea">
@@ -119,7 +139,12 @@ else
                                @bind="dto.PasswordAcceso" />
                     </div>
                 }
-            <h4>Opciones de grupo</h4>
+            <div style="display:flex;flex-direction:row;align-items:center">
+                <h4>Opciones de grupo</h4>
+                <ToolTip Wide="true"
+                         Title="Grupos de participantes"
+                         Text="Los grupos contienen a los participantes que presentan un proyecto. Si marcas 'grupos completos', no podrás publicar el evento hasta que todos los grupos tengan asignado el número exacto de participantes." />
+            </div>
             <hr />
             <div class="num-participantes">
                 <p>Número de participantes por grupo:</p>
@@ -133,7 +158,12 @@ else
         </div>
 
         <div class="categorias">
-            <h4>Categorías</h4>
+            <div style="display:flex;flex-direction:row;align-items:center">
+                <h4>Categorías</h4>
+                <ToolTip Wide="true"
+                         Title="Categorías"
+                         Text="Cada categoría agrupa proyectos y tiene sus propios criterios de evaluación, grupos y jurados. Los porcentajes de los criterios deben sumar 100% y debe haber al menos una categoría con un grupo." />
+            </div>
             <hr />
             @foreach (var cat in dto.Categorias)
             {
@@ -257,6 +287,14 @@ else
 }
 
 @code {
+    private RenderFragment TooltipTiposVotacion = @<text>
+        <span>
+            <b>Nota:</b> cada votante puntúa cada criterio del 1 al 10.<br />
+            <b>Voto simple:</b> el votante marca a sus X proyectos favoritos (sin nota).<br />
+            <b>Puntos:</b> el votante reparte X puntos entre los criterios de los proyectos a su elección.
+        </span>
+    </text>;
+
     bool autenticado = false;
     private EventoCreacionDto dto = new()
     {

@@ -1,0 +1,53 @@
+<div class="tooltip-container"
+     @onmouseover="() => visible = true"
+     @onmouseout="() => visible = false">
+
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <button type="button" class="tooltip-trigger" tabindex="-1">?</button>
+    }
+
+    @if (visible)
+    {
+        <div class="tooltip-box @(Wide ? "tooltip-wide" : "") @(AlignRight ? "tooltip-right" : "")">
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <strong class="tooltip-title">@Title</strong>
+            }
+            @if (BodyContent != null)
+            {
+                @BodyContent
+            }
+            else
+            {
+                @Text
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool visible;
+
+    [Parameter]
+    public string Text { get; set; } = "";
+
+    [Parameter]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public bool Wide { get; set; }
+
+    [Parameter]
+    public bool AlignRight { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? BodyContent { get; set; }
+}

@@ -79,7 +79,11 @@ else
         @if (!EventoPausado(evento))
         {
             <div class="ejp-categories-section">
-                <h2 class="ejp-section-title">Categorías en las que participas</h2>
+                <div style="display:flex;align-items:center;">
+                    <h2 class="ejp-section-title">Categorías en las que participas</h2>
+                    <ToolTip Wide="true" Title="Categorías asignadas"
+                             Text="Solo verás las categorías en las que el administrador te ha invitado como jurado. Podrás entrar a evaluar y comentar cuando termine la fase de votación popular." />
+                </div>
                 <hr class="ejp-divider" />
 
                 @{

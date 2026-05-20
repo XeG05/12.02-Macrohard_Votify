@@ -18,10 +18,12 @@
                 <input type="text" class="form-control event-search-input" placeholder="Busca un evento..." @bind="busquedaEventos" @bind:event="oninput" style="border-radius: 20px; padding: 5px 35px 5px 15px; width: 300px;" />
                 <img src="/images/lupa.png" alt="Buscar" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;" />
             </div>
-            <button class="btn info-rol-btn" style="background-color: #1a237e; color: white; border-radius: 20px; padding: 8px 18px; border: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <img src="/images/infoIcono.png" alt="Info" style="width: 26px; height: 26px; display: block; margin: 0;" />
-                <span style="line-height: 1; margin: 0; padding: 0; display: inline-block;">Info. del rol</span>
-            </button>
+            <ToolTip Wide="true" AlignRight="true" Title="Roles en Votify" BodyContent="@TooltipRoles">
+                <button class="btn info-rol-btn" style="background-color: #1a237e; color: white; border-radius: 20px; padding: 8px 18px; border: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <img src="/images/infoIcono.png" alt="Info" style="width: 26px; height: 26px; display: block; margin: 0;" />
+                    <span style="line-height: 1; margin: 0; padding: 0; display: inline-block;">Info. del rol</span>
+                </button>
+            </ToolTip>
             <a class="btn-crear" href="EventCreator">
                 <span class="btn-crear-icon">＋</span>
                 Crear evento
@@ -449,6 +451,15 @@
 </div>
 
 @code {
+    private RenderFragment TooltipRoles = @<text>
+        <span>
+            <b>Votante:</b> puede explorar los proyectos y emitir su voto durante la fase de votaciones.<br /><br />
+            <b>Participante:</b> presenta un proyecto en grupo, sube archivos e imágenes y consulta los comentarios y resultados de su proyecto.<br /><br />
+            <b>Administrador:</b> crea y gestiona el evento, configura categorías, grupos, jurados y plazos, y supervisa votaciones.<br /><br />
+            <b>Jurado:</b> evalúa los proyectos en la fase de opinión experta, deja comentarios y emite votos expertos.
+        </span>
+    </text>;
+
     [Parameter]
     public string? Vista { get; set; }
 

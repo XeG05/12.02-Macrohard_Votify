@@ -73,7 +73,11 @@ else
 
     <!-- LISTA -->
     <div style="border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
-        <h3> Ranking</h3>
+        <div style="display:flex;align-items:center;">
+            <h3> Ranking</h3>
+            <ToolTip Wide="true" Title="Resultados de la categoría"
+                     Text="La puntuación media tiene en cuenta los pesos de cada criterio (suman 100%). Despliega 'Ver votos individuales' para auditar qué usuario votó qué nota o cuántos puntos asignó a cada proyecto." />
+        </div>
 
         @foreach (var r in resumen!)
         {

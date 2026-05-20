@@ -106,7 +106,11 @@ else if (eventoNombre != "" && categoria != null)
             }
         </div>
 
-        <h2 class="ejc-section-title">Proyectos</h2>
+        <div style="display:flex;align-items:center;">
+            <h2 class="ejc-section-title">Proyectos</h2>
+            <ToolTip Wide="true" Title="Tu trabajo como jurado"
+                     Text="Revisa cada proyecto de la categoría: entra para evaluar criterio a criterio durante la fase de opinión experta, y vota durante la fase de votación experta. El estado a la derecha indica si ya lo has revisado o sigue pendiente." />
+        </div>
         <hr class="ejc-divider" />
 
         <div class="ejc-proyectos-list">
@@ -142,8 +146,16 @@ else if (eventoNombre != "" && categoria != null)
 
                             <!-- Derecha: Botones -->
                             <div class="ejc-col-right" @onclick:stopPropagation="true">
-                                <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.Id)">Resultado de la votación popular</button>
-                                <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.Id)">Comentarios del jurado</button>
+                                <div style="display:flex;align-items:center;justify-content:flex-end;">
+                                    <button class="ejc-card-btn" @onclick="() => IrAResultadoPopular(p.Id)">Resultado de la votación popular</button>
+                                    <ToolTip Wide="true" AlignRight="true"
+                                             Text="Consulta cómo ha votado el público a este proyecto antes de emitir tu propio voto experto." />
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:flex-end;">
+                                    <button class="ejc-card-btn" @onclick="() => IrAComentariosJurado(p.Id)">Comentarios del jurado</button>
+                                    <ToolTip Wide="true" AlignRight="true"
+                                             Text="Revisa los comentarios que tú y los demás jurados habéis dejado, o consulta el resumen automático generado por IA." />
+                                </div>
                             </div>
 
                         </div>

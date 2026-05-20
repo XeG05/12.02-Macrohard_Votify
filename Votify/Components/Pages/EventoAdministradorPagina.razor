@@ -65,13 +65,19 @@ else
     <!-- CONTENIDO ADMINISTRADOR -->
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
         <!-- BOTÓN CONFIG EVENTO -->
-        <div style="margin-bottom:20px; display: flex; justify-content: flex-end;">
+        <div style="margin-bottom:20px; display: flex; justify-content: flex-end; align-items:center;">
+            <ToolTip Wide="true" AlignRight="true" Title="Configuración del evento"
+                     Text="Edita las fechas, opciones de votación, privacidad y datos generales del evento mientras todavía estés en fases tempranas." />
             <button class="eap-btn-config" @onclick="IrAConfiguracionEvento">
                 <span class="eap-btn-icon">⚙️</span> Configuración del evento
             </button>
         </div>
 
-    <h3>Categorías</h3>
+    <div style="display:flex;align-items:center;">
+        <h3>Categorías</h3>
+        <ToolTip Wide="true" Title="Categorías del evento"
+                 Text="'Ver votaciones' abre el ranking en vivo y el detalle de quién ha votado qué. 'Configurar categoría' te permite editar criterios, grupos y jurados de cada categoría." />
+    </div>
 
     @if (categorias == null || categorias.Count == 0)
     {

@@ -97,7 +97,10 @@
             @if (puedeVotarSegunFase || puedeComentarSegunFase)
             {
                 <div class="votacion-criterios">
-                    <h3>Votación</h3>
+                    <div style="display:flex;align-items:center;">
+                        <h3>Votación</h3>
+                        <ToolTip Wide="true" Title="Cómo funciona esta votación" BodyContent="@TooltipVotacion" />
+                    </div>
 
                     @foreach (var criterio in criteriosCategoria)
                     {
@@ -256,6 +259,44 @@ else {
 }
 
 @code {
+    private RenderFragment TooltipVotacion => @<text>
+        @if (evento != null)
+        {
+            @if (evento.TipoVotacion == TipoVotacion.Nota)
+            {
+                <span>
+                    <b>Votación por nota:</b> puntúa cada criterio de este proyecto del 1 al 10. Puedes actualizar tu nota mientras la fase siga abierta.
+                </span>
+            }
+            else if (evento.TipoVotacion == TipoVotacion.Simple)
+            {
+                <span>
+                    <b>Voto simple:</b> puedes marcar este proyecto como favorito en cada criterio. Tienes un número limitado de votos por criterio en todo el evento (@evento.NumVotarProyectos). Una vez emitido, no se puede retirar.
+                </span>
+            }
+            else if (evento.TipoVotacion == TipoVotacion.Puntos)
+            {
+                <span>
+                    <b>Votación por puntos:</b> reparte hasta @evento.PuntosARepartir puntos entre los criterios de los proyectos. Puedes ajustar cuántos puntos asignas mientras te queden disponibles.
+                </span>
+            }
+            @if (evento.TipoComentario == TipoComentario.Obligatorio)
+            {
+                <br />
+                <br />
+                <b>Comentario obligatorio:</b>
+                <span> debes enviar tu comentario en cada criterio antes de poder votarlo.</span>
+            }
+            else if (evento.TipoComentario == TipoComentario.Opcional)
+            {
+                <br />
+                <br />
+                <b>Comentarios opcionales:</b>
+                <span> puedes dejar comentarios si quieres explicar tu valoración.</span>
+            }
+        }
+    </text>;
+
     [Parameter] public long idProyecto { get; set; }
     [Parameter] public long idEvento { get; set; }
 
