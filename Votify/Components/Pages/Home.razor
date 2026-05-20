@@ -110,7 +110,7 @@
                             <div class="evento-card" @onclick="() => IrAEventoVotante(ev)">
                                 <div class="evento-card-top">
                                     <div class="fase-pill @GetFaseClass(ev)">@GetFaseLabel(ev)</div>
-                                    <span class="rol-badge votante-badge">Sin rol (Registrable)</span>
+                                    <span class="rol-badge votante-badge">Sin rol</span>
                                 </div>
                                 <h3 class="evento-nombre">@ev.Nombre</h3>
                                 <p class="evento-desc">@TruncarTexto(ev.Descripcion, 90)</p>
