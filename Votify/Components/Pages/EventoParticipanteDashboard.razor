@@ -19,10 +19,34 @@ else if (dashboard != null)
     <!-- PANCARTA -->
     <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
 
-        <button @onclick="VolverEvento"
-                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
-            ← Volver
-        </button>
+        <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:10px;
+                                    flex-wrap:wrap;
+                                    margin-bottom:18px;
+                                    color:#cbd5e1;
+                                    font-size:0.95rem;">
+
+            <span @onclick='() => Nav.NavigateTo("/home")'
+                  style="cursor:pointer;">
+                Home
+            </span>
+
+            <span>›</span>
+
+            <span @onclick="VolverEvento"
+                  style="cursor:pointer;">
+                @evento?.Nombre
+            </span>
+
+            <span>›</span>
+
+            <span style="color:white;font-weight:600;">
+                Mi Dashboard
+            </span>
+
+        </div>
 
         <h1 style="margin:10px 0;">Tu Dashboard</h1>
         <p style="color:#cbd5f5;">Resultados finales de tu participación</p>

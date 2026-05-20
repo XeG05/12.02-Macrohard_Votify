@@ -22,7 +22,34 @@ else
     <div class="epr-wrapper">
         <div class="epr-hero">
             <div class="epr-hero-content">
-                <div class="epr-breadcrumb" @onclick="VolverEvento">← Volver al evento</div>
+                <div style="
+                                display:flex;
+                                align-items:center;
+                                gap:10px;
+                                flex-wrap:wrap;
+                                margin-bottom:18px;
+                                color:#cbd5e1;
+                                font-size:0.95rem;">
+
+                    <span @onclick='() => Nav.NavigateTo("/home")'
+                          style="cursor:pointer;">
+                        Home
+                    </span>
+
+                    <span>›</span>
+
+                    <span @onclick="VolverEvento"
+                          style="cursor:pointer;">
+                        @evento?.Nombre
+                    </span>
+
+                    <span>›</span>
+
+                    <span style="color:white;font-weight:600;">
+                        Presentar proyecto
+                    </span>
+
+                </div>
 
                 <div class="epr-hero-top">
                     <div>

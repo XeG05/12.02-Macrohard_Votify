@@ -18,10 +18,27 @@ else
     <!-- PANCARTA -->
     <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
 
-        <button @onclick="VolverHome"
-                style="background:none;border:none;color:#cbd5e1;cursor:pointer;">
-            ← Volver
-        </button>
+        <div style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:10px;
+                                    flex-wrap:wrap;
+                                    margin-bottom:18px;
+                                    color:#cbd5e1;
+                                    font-size:0.95rem;">
+
+            <span @onclick='() => Nav.NavigateTo("/home")'
+                  style="cursor:pointer;">
+                Home
+            </span>
+
+            <span>›</span>
+
+            <span style="color:white;font-weight:600;">
+                @evento?.Nombre
+            </span>
+
+        </div>
 
         <h1 style="margin-top:12px;">@evento?.Nombre</h1>
         <p style="color:#cbd5e1;">@evento?.Descripcion</p>
