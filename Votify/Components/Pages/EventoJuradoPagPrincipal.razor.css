@@ -119,8 +119,8 @@
 
 .ejp-role-badge {
     color: white;
-    background: linear-gradient(135deg, #6fce1a, #a4ec66);
-    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+    background: linear-gradient(135deg, #a855f7, #c084fc);
+    box-shadow: 0 10px 24px rgba(168, 85, 247, 0.25);
 }
 
 .ejp-role-badge-white {
@@ -169,6 +169,10 @@
 
 .fase-votaciones {
     background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-evaluacion-experta, .fase-votacion-experta {
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed); /* morado para expertas */
 }
 
 .fase-finalizado {

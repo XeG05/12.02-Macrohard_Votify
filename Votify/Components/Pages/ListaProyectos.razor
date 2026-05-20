@@ -96,32 +96,58 @@ else
                         var proyectosDeCat = proyectos.Where(p => proyectoCategoria.ContainsKey(p.Id) && proyectoCategoria[p.Id] == cat.Id).ToList();
                         if (proyectosDeCat.Any())
                         {
-                            <div class="categoria-seccion">
-                                <h2 class="categoria-titulo">Categoría: @cat.Nombre</h2>
-                                <div class="categoria-proyectos">
-                                    @foreach (var p in proyectosDeCat)
-                                    {
-                                        <div class="proyectos" @onclick="() => IrAProyecto(p.Id)">
-                                            <div class="nombreProyecto">
-                                                <p>@p.Nombre</p>
-                                            </div>
-                                            <div class="informacionProyecto">
-                                                <div class="participantesProyecto">
-                                                    @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
-                                                    {
-                                                        foreach (var pa in participantesPorGrupo[p.IdGrupo])
-                                                        {
-                                                            <p>@pa.Nombre</p>
-                                                        }
-                                                    }
-                                                </div>
-                                                <div class="descripcionProyecto">
-                                                    <p>@p.DescripcionBreve</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
+                            var isExpanded = expandedState.ContainsKey(cat.Id) && expandedState[cat.Id];
+
+                            <div class="evp-accordion-item">
+                                <div class="evp-accordion-header" @onclick="() => ToggleAccordion(cat.Id)">
+                                    <div class="evp-accordion-title">
+                                        <h3>@cat.Nombre</h3>
+                                    </div>
+                                    <button class="evp-accordion-btn">
+                                        @if (isExpanded)
+                                        {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                              <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                                            </svg>
+                                        }
+                                        else
+                                        {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                              <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+                                            </svg>
+                                        }
+                                    </button>
                                 </div>
+
+                                @if (isExpanded)
+                                {
+                                    <div class="evp-accordion-body">
+                                        @if (!string.IsNullOrWhiteSpace(cat.Descripcion))
+                                        {
+                                            <p class="evp-accordion-desc-body">@cat.Descripcion</p>
+                                        }
+                                        @foreach (var p in proyectosDeCat)
+                                        {
+                                            <div class="evp-proyecto-box" @onclick="() => IrAProyecto(p.Id)">
+                                                <div class="evp-proyecto-left">
+                                                    <h4 class="evp-proyecto-nombre">@p.Nombre</h4>
+                                                    <div class="evp-participantes">
+                                                        @if (participantesPorGrupo.ContainsKey(p.IdGrupo))
+                                                        {
+                                                            foreach (var pa in participantesPorGrupo[p.IdGrupo])
+                                                            {
+                                                                <p>@pa.Nombre</p>
+                                                            }
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="evp-proyecto-right">
+                                                    <p class="evp-proyecto-desc">@p.DescripcionBreve</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     }
@@ -142,6 +168,7 @@ else
     Dictionary<long, List<MiembroGrupoDto>> participantesPorGrupo = new();
     Dictionary<long, CategoriaDto> categorias = new();
     Dictionary<long, long> proyectoCategoria = new();
+    Dictionary<long, bool> expandedState = new();
 
     private void VolverHome()
     {
@@ -172,7 +199,7 @@ else
             if (entrada.Rol.EsAdministrador)  tipoRol = "Administrador";
             else if (entrada.Rol.EsJurado)    tipoRol = "Jurado";
             else if (entrada.Rol.EsParticipante) tipoRol = "Participante";
-            else tipoRol = "Visitante";
+            else tipoRol = "Votante";
 
             StateHasChanged();
 
@@ -210,9 +237,33 @@ else
         }
         finally
         {
+            // Set all accordion components unexpanded by default
+            foreach(var cat in categorias.Values)
+            {
+                if (!expandedState.ContainsKey(cat.Id))
+                {
+                    expandedState[cat.Id] = false;
+                }
+            }
+
+            // Expand first category as default design
+            if (categorias.Values.Any())
+            {
+                expandedState[categorias.Values.First().Id] = true;
+            }
+
             StateHasChanged();
         }
     }
+
+    private void ToggleAccordion(long id)
+    {
+        if (expandedState.ContainsKey(id))
+        {
+            expandedState[id] = !expandedState[id];
+        }
+    }
+
     private bool EventoPausado(EventoDto evento)
     {
         return evento?.Estado == "Pausado";
@@ -225,10 +276,11 @@ else
     private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
-        if (hoy <= ev.FechaFinEntrega) return "En fase de entrega";
-        if (hoy <= ev.FechaFinVotaciones) return "En fase de votación";
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votaciones";
         if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        if (hoy <= ev.FechaFinVotExperta) return "En fase de votación experta";
         return "Finalizado";
     }
 
@@ -238,7 +290,8 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion-experta";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votacion-experta";
         return "fase-finalizado";
     }
 }

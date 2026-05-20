@@ -119,8 +119,8 @@
 
 .evp-role-badge {
     color: white;
-    background: linear-gradient(135deg, #6fce1a, #a4ec66);
-    box-shadow: 0 10px 24px rgba(111, 206, 26, 0.25);
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+    box-shadow: 0 10px 24px rgba(107, 114, 128, 0.25);
 }
 
 .evp-role-badge-white {
@@ -169,6 +169,10 @@
 
 .fase-votaciones {
     background: linear-gradient(180deg, #10b981, #059669); /* verde */
+}
+
+.fase-evaluacion-experta, .fase-votacion-experta {
+    background: linear-gradient(180deg, #8b5cf6, #7c3aed); /* morado para expertas */
 }
 
 .fase-finalizado {
@@ -529,5 +533,148 @@
         align-items: flex-start;
         flex-direction: row;
         gap: 0.6rem;
+    }
+}
+
+/* Accordion categories */
+.proyectos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.evp-accordion-item {
+    border: 1px solid #6fce1a;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.evp-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    transition: filter 0.2s, transform 0.2s;
+}
+
+    .evp-accordion-header:hover {
+        filter: brightness(1.05);
+    }
+
+.evp-accordion-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+    .evp-accordion-title h3 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+.evp-accordion-desc-body {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.evp-accordion-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.evp-accordion-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: #ffffff;
+}
+
+.evp-proyecto-box {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .evp-proyecto-box:hover {
+        transform: translateY(-2px);
+        border-color: #9ca3af;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background-color: #f9fafb;
+    }
+
+.evp-proyecto-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.evp-proyecto-nombre {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.evp-participantes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+    .evp-participantes p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+.evp-proyecto-right {
+    display: flex;
+    align-items: stretch;
+    border-left: 1px solid #e5e7eb;
+    padding-left: 1rem;
+}
+
+.evp-proyecto-desc {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #4b5563;
+}
+
+@media (max-width: 640px) {
+    .evp-proyecto-box {
+        grid-template-columns: 1fr;
+    }
+
+    .evp-proyecto-right {
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+        padding-left: 0;
+        padding-top: 1rem;
     }
 }
