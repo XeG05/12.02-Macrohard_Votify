@@ -1,0 +1,103 @@
+.toast-host {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10000;
+    pointer-events: none;
+    max-width: calc(100vw - 48px);
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: white;
+    color: #0f172a;
+    padding: 14px 16px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
+    border-left: 5px solid #94a3b8;
+    min-width: 280px;
+    max-width: 420px;
+    pointer-events: auto;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast.toast-success {
+    border-left-color: #16a34a;
+}
+
+.toast.toast-error {
+    border-left-color: #dc2626;
+}
+
+.toast.toast-info {
+    border-left-color: #2563eb;
+}
+
+.toast.toast-loading {
+    border-left-color: #f59e0b;
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.toast-success .toast-icon { background: #16a34a; }
+.toast-error   .toast-icon { background: #dc2626; }
+.toast-info    .toast-icon { background: #2563eb; }
+.toast-loading .toast-icon { background: #f59e0b; }
+
+.toast-text {
+    flex: 1;
+    padding-top: 2px;
+    word-break: break-word;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-top: -2px;
+}
+
+.toast-close:hover {
+    color: #0f172a;
+}
+
+.toast-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: toast-spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes toast-spin {
+    to { transform: rotate(360deg); }
+}

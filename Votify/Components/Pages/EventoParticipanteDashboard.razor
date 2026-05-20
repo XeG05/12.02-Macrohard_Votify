@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject ToastService Toasts
 
 @if (cargando)
 {
@@ -127,9 +128,6 @@ else if (dashboard != null)
                           style="width:100%;padding:10px;border-radius:5px;border:1px solid #ccc;margin-bottom:10px;"
                           placeholder="Describe el motivo de tu reclamación..."></textarea>
 
-                @if (!string.IsNullOrEmpty(errorReclamacion)) { <p style="color:red;margin:0 0 10px 0;">@errorReclamacion</p> }
-                @if (!string.IsNullOrEmpty(exitoReclamacion)) { <p style="color:green;margin:0 0 10px 0;">@exitoReclamacion</p> }
-
                 <div style="display:flex;justify-content:flex-end;gap:10px;">
                     <button class="btn btn-secondary" @onclick="CerrarReclamacion">Cerrar</button>
                     <button class="btn btn-primary" @onclick="EnviarReclamacion" disabled="@enviandoReclamacion">
@@ -242,6 +240,7 @@ else
         errorReclamacion = "";
         exitoReclamacion = "";
 
+        var loadingId = Toasts.ShowLoading("Enviando reclamación...");
         try
         {
             var reclamacionDto = new { Mensaje = mensajeReclamacion };
@@ -250,20 +249,24 @@ else
             if(response.IsSuccessStatusCode)
             {
                 exitoReclamacion = "Reclamación enviada con éxito.";
+                Toasts.ShowSuccess(exitoReclamacion);
                 mensajeReclamacion = "";
                 // Cerrar tras unos segundos o que el usuario cierre manualmente
             }
             else
             {
                 errorReclamacion = "Error al enviar la reclamación.";
+                Toasts.ShowError(errorReclamacion);
             }
         }
         catch(Exception ex)
         {
             errorReclamacion = "Error de conexión: " + ex.Message;
+            Toasts.ShowError(errorReclamacion);
         }
         finally
         {
+            Toasts.Dismiss(loadingId);
             enviandoReclamacion = false;
             StateHasChanged();
         }

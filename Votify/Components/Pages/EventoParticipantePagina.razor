@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject NavigationManager Nav
 @inject BlazorAuthStateProvider AuthProvider
+@inject ToastService Toasts
 
 @if (cargando)
 {
@@ -88,11 +89,6 @@ else
          </div>
         }
    
-
-        @if (!string.IsNullOrWhiteSpace(mensaje))
-        {
-            <div class="epp-alert epp-alert-ok">@mensaje</div>
-        }
 
         @if (!EventoPausado(evento))
         {
@@ -404,6 +400,7 @@ else
         mensaje = null;
         error = null;
 
+        var loadingId = Toasts.ShowLoading("Eliminando proyecto...");
         try
         {
             var grupoQuery = GrupoId.HasValue ? $"?grupoId={GrupoId}" : "";
@@ -413,18 +410,22 @@ else
             {
                 tieneProyecto = false;
                 mensaje = "Proyecto eliminado correctamente.";
+                Toasts.ShowSuccess(mensaje);
             }
             else
             {
                 error = "No se pudo eliminar el proyecto.";
+                Toasts.ShowError(error);
             }
         }
         catch (Exception ex)
         {
             error = ex.Message;
+            Toasts.ShowError($"Error al eliminar el proyecto: {ex.Message}");
         }
         finally
         {
+            Toasts.Dismiss(loadingId);
             StateHasChanged();
         }
     }
@@ -445,10 +446,10 @@ else
     private string GetFaseLabel(EventoDto ev)
     {
         var hoy = DateOnly.FromDateTime(DateTime.Now);
-        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripciones";
-        if (hoy <= ev.FechaFinEntrega)        return "En fase de entregas";
-        if (hoy <= ev.FechaFinVotaciones)     return "En fase de votaciones";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripción";
+        if (hoy <= ev.FechaFinEntrega)        return "En fase de entrega";
+        if (hoy <= ev.FechaFinVotaciones)     return "En fase de votación";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de opinión experta";
         if (hoy <= ev.FechaFinVotExperta) return "En fase de votación experta";
         return "Finalizado";
     }
@@ -459,8 +460,8 @@ else
         if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
         if (hoy <= ev.FechaFinEntrega)        return "fase-entregas";
         if (hoy <= ev.FechaFinVotaciones)     return "fase-votaciones";
-        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion-experta";
-        if (hoy <= ev.FechaFinVotExperta) return "fase-votacion-experta";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-opiniones-expertas";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votaciones-expertas";
         return "fase-finalizado";
     }
 

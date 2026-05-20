@@ -5,6 +5,7 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject ToastService Toasts
 
 @if (cargando)
 {
@@ -92,28 +93,6 @@ else
             style="background:#2563eb;color:white;border:none;padding:10px 16px;border-radius:10px;">
         Guardar fechas
     </button>
-    @if (!string.IsNullOrWhiteSpace(errorAccion))
-    {
-        <div style="
-                margin-top:15px;
-                padding:10px;
-                border-radius:10px;
-                background:#fee2e2;
-                color:#991b1b;">
-            @errorAccion
-        </div>
-    }
-    @if (!string.IsNullOrWhiteSpace(mensaje))
-    {
-        <div style="
-                margin-top:15px;
-                padding:10px;
-                border-radius:10px;
-                background:#dcfce7;
-                color:#166534;">
-            @mensaje
-        </div>
-    }
     <hr style="margin:30px 0;" />
 
     <!-- CONFIG EVENTO -->
@@ -162,17 +141,6 @@ else
 
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(error))
-    {
-        <div style="
-                margin-top:20px;
-                padding:10px;
-                border-radius:10px;
-                background:#fee2e2;
-                color:#991b1b;">
-            @error
-        </div>
-    }
 }
 
 @code {
@@ -272,6 +240,7 @@ else
         mensaje = "";
         errorAccion = "";
 
+        var loadingId = Toasts.ShowLoading("Guardando fechas...");
         try
         {
             var dto = new ActualizarFechasDto
@@ -288,6 +257,7 @@ else
 
             if (response.IsSuccessStatusCode)
             {
+                Toasts.ShowSuccess("Fechas del evento actualizadas.");
                 //  Recarga REAL de la página
                 Nav.NavigateTo(Nav.Uri, true);
             }
@@ -295,24 +265,70 @@ else
             {
                 var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
                 errorAccion = err?.Error ?? "Error al guardar fechas";
+                Toasts.ShowError(errorAccion);
             }
         }
         catch (Exception ex)
         {
             errorAccion = ex.Message;
+            Toasts.ShowError($"Error al guardar las fechas: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
         }
     }
 
     async Task Pausar()
     {
-        await ApiClient.PutAsync($"api/administrador/{EventoId}/pausar", null);
-        Nav.NavigateTo(Nav.Uri, true);
+        var loadingId = Toasts.ShowLoading("Pausando evento...");
+        try
+        {
+            var response = await ApiClient.PutAsync($"api/administrador/{EventoId}/pausar", null);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess("Evento pausado. Los participantes no podrán realizar acciones temporalmente.");
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al pausar el evento: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 
     async Task Reanudar()
     {
-        await ApiClient.PutAsync($"api/administrador/{EventoId}/reanudar", null);
-        Nav.NavigateTo(Nav.Uri, true);
+        var loadingId = Toasts.ShowLoading("Reanudando evento...");
+        try
+        {
+            var response = await ApiClient.PutAsync($"api/administrador/{EventoId}/reanudar", null);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess("Evento reanudado.");
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al reanudar el evento: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 
     async Task Cerrar()
@@ -322,8 +338,27 @@ else
 
         if (!ok) return;
 
-        await ApiClient.PutAsync($"api/administrador/{EventoId}/cerrar", null);
-
-        Nav.NavigateTo("/home");
+        var loadingId = Toasts.ShowLoading("Cerrando evento...");
+        try
+        {
+            var response = await ApiClient.PutAsync($"api/administrador/{EventoId}/cerrar", null);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess("Evento cerrado correctamente.");
+                Nav.NavigateTo("/home");
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al cerrar el evento: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 }

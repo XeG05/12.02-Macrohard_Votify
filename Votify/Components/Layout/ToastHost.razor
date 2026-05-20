@@ -1,0 +1,49 @@
+@inject ToastService Toasts
+@implements IDisposable
+
+<div class="toast-host">
+    @foreach (var msg in Toasts.Messages.ToList())
+    {
+        <div class="toast toast-@msg.Type.ToString().ToLowerInvariant()" @key="msg.Id">
+            <div class="toast-icon">
+                @switch (msg.Type)
+                {
+                    case ToastType.Success:
+                        <span>✓</span>
+                        break;
+                    case ToastType.Error:
+                        <span>!</span>
+                        break;
+                    case ToastType.Info:
+                        <span>i</span>
+                        break;
+                    case ToastType.Loading:
+                        <span class="toast-spinner"></span>
+                        break;
+                }
+            </div>
+            <div class="toast-text">@msg.Text</div>
+            @if (msg.Type != ToastType.Loading)
+            {
+                <button class="toast-close" @onclick="() => Toasts.Dismiss(msg.Id)" aria-label="Cerrar">×</button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Toasts.OnChange += OnToastsChanged;
+    }
+
+    private void OnToastsChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Toasts.OnChange -= OnToastsChanged;
+    }
+}

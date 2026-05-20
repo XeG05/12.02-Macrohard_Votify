@@ -28,6 +28,7 @@ builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AdministradorCreator>();
 builder.Services.AddScoped<VotanteCreator>();
 builder.Services.AddScoped<JuradoCreator>();

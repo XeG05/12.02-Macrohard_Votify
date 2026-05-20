@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject ApiClient ApiClient
 @inject IJSRuntime JS
+@inject ToastService Toasts
 
 @if(proyecto != null)
 {
@@ -61,13 +62,6 @@
         <div class="acciones-proyecto">
              <button class="btn-secundario" @onclick="DescargarProyecto">Descargar proyecto</button>
         </div>
-
-        @if(!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="evp-alert" style="background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
-                @errorMessage
-            </div>
-        }
 
         @if (esVotante || esJurado)
         {
@@ -352,10 +346,12 @@ else {
             info.HaVotado = true;
             info.VotosRestantes = Math.Max(0, (info.VotosRestantes ?? 0) - 1);
             errorMessage = "";
+            Toasts.ShowSuccess("Voto registrado.");
         }
         else
         {
             errorMessage = "Error al emitir el voto: " + await response.Content.ReadAsStringAsync();
+            Toasts.ShowError(errorMessage);
         }
         StateHasChanged();
     }
@@ -366,6 +362,7 @@ else {
         if (!valoresPendientes.TryGetValue(idCriterio, out var nota) || nota <= 0)
         {
             errorMessage = "Introduce una nota válida (mayor que 0).";
+            Toasts.ShowError(errorMessage);
             return;
         }
 
@@ -376,10 +373,12 @@ else {
         {
             await RecargarInfoVoto();
             errorMessage = "";
+            Toasts.ShowSuccess($"Nota {nota} guardada.");
         }
         else
         {
             errorMessage = "Error al guardar la nota: " + await response.Content.ReadAsStringAsync();
+            Toasts.ShowError(errorMessage);
         }
         StateHasChanged();
     }
@@ -397,10 +396,14 @@ else {
         {
             await RecargarInfoVoto();
             errorMessage = "";
+            Toasts.ShowSuccess(puntos == 0
+                ? "Puntos retirados del criterio."
+                : $"{puntos} puntos asignados.");
         }
         else
         {
             errorMessage = "Error al asignar puntos: " + await response.Content.ReadAsStringAsync();
+            Toasts.ShowError(errorMessage);
         }
         StateHasChanged();
     }
@@ -447,10 +450,12 @@ else {
         if (response.IsSuccessStatusCode)
         {
             comentariosEnviados[idCriterio] = true;
+            Toasts.ShowSuccess("Comentario enviado.");
         }
         else
         {
             errorMessage = "Error al enviar el comentario: " + await response.Content.ReadAsStringAsync();
+            Toasts.ShowError(errorMessage);
         }
         StateHasChanged();
     }

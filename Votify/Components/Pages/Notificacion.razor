@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject Votify.Auth.ApiClient ApiClient
 @inject NavigationManager Nav
+@inject ToastService Toasts
 
 <div class="notificaciones-wrapper">
 
@@ -219,7 +220,7 @@
             }
             else
             {
-                error = await ApiClient.LeerError(response);
+                Toasts.ShowError(await ApiClient.LeerError(response));
             }
         }
         finally
@@ -242,10 +243,11 @@
                 {
                     notificacion.Leida = true;
                 }
+                Toasts.ShowSuccess("Todas las notificaciones marcadas como leídas.");
             }
             else
             {
-                error = await ApiClient.LeerError(response);
+                Toasts.ShowError(await ApiClient.LeerError(response));
             }
         }
         finally
@@ -265,10 +267,11 @@
             if (response.IsSuccessStatusCode)
             {
                 notificaciones.RemoveAll(n => n.Id == id);
+                Toasts.ShowSuccess("Notificación eliminada.");
             }
             else
             {
-                error = await ApiClient.LeerError(response);
+                Toasts.ShowError(await ApiClient.LeerError(response));
             }
         }
         finally

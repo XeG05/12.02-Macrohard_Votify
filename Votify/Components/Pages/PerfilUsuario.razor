@@ -4,6 +4,7 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject ToastService Toasts
 
 <link rel="stylesheet" href="css/perfil-usuario.css" />
 
@@ -94,11 +95,6 @@
                     Cancelar
                 </button>
             </div>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(mensaje))
-        {
-            <p class="@(error ? "mensaje-error" : "mensaje-ok")">@mensaje</p>
         }
 
     </div>
@@ -290,6 +286,7 @@
         }
 
         cargando = true;
+        var loadingId = Toasts.ShowLoading("Guardando perfil...");
 
         try
         {
@@ -339,20 +336,24 @@
 
                 error = false;
                 mensaje = "Perfil actualizado correctamente";
+                Toasts.ShowSuccess(mensaje);
             }
             else
             {
                 error = true;
                 mensaje = await ApiClient.LeerError(response);
+                Toasts.ShowError(mensaje);
             }
         }
         catch (Exception ex)
         {
             error = true;
             mensaje = ex.Message;
+            Toasts.ShowError($"Error al guardar el perfil: {ex.Message}");
         }
         finally
         {
+            Toasts.Dismiss(loadingId);
             cargando = false;
         }
     }

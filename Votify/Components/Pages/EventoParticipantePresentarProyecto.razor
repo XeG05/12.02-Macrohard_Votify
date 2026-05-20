@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject NavigationManager Nav
 @inject BlazorAuthStateProvider AuthProvider
+@inject ToastService Toasts
 
 @if (cargando)
 {
@@ -72,16 +73,6 @@ else
                 </div>
             </div>
         </div>
-
-        @if (!string.IsNullOrWhiteSpace(error))
-        {
-            <div class="epr-alert epr-alert-error">@error</div>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(mensaje))
-        {
-            <div class="epr-alert epr-alert-ok">@mensaje</div>
-        }
 
         <div class="epr-layout">
             <section class="epr-main">
@@ -376,6 +367,7 @@ else
         error = null;
         mensaje = null;
         enviando = true;
+        Guid? loadingId = null;
 
         try
         {
@@ -386,6 +378,8 @@ else
 
             if (archivoProyecto == null)
                 throw new Exception("No puedes entregar un proyecto sin adjuntar el archivo principal.");
+
+            loadingId = Toasts.ShowLoading("Subiendo proyecto y archivos...");
 
             var maxFileSize = 15 * 1024 * 1024; // 15 MB
 
@@ -423,20 +417,24 @@ else
             if (response.IsSuccessStatusCode)
             {
                 mensaje = "Proyecto entregado correctamente.";
+                Toasts.ShowSuccess("Proyecto entregado correctamente.");
                 VolverEvento();
             }
             else
             {
                 var errJson = await response.Content.ReadAsStringAsync();
                 error = $"Error {(int)response.StatusCode} al entregar el proyecto: {errJson}";
+                Toasts.ShowError(error);
             }
         }
         catch (Exception ex)
         {
             error = ex.Message;
+            Toasts.ShowError($"Error al entregar el proyecto: {ex.Message}");
         }
         finally
         {
+            if (loadingId.HasValue) Toasts.Dismiss(loadingId.Value);
             enviando = false;
         }
     }

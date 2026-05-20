@@ -4,6 +4,7 @@
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject ToastService Toasts
 
 @if (cargando)
 {
@@ -255,25 +256,77 @@ else
             CorreosParticipantes = new()
         };
 
-        await ApiClient.PostAsJsonAsync(
-            $"api/administrador/categoria/{CategoriaId}/grupo", dto);
+        var loadingId = Toasts.ShowLoading("Creando grupo...");
+        try
+        {
+            var response = await ApiClient.PostAsJsonAsync(
+                $"api/administrador/categoria/{CategoriaId}/grupo", dto);
 
-        Nav.NavigateTo(Nav.Uri, true);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess("Grupo creado correctamente.");
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response) ?? "No se pudo crear el grupo.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al crear el grupo: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 
     async Task GuardarNombreGrupo(GrupoDto grupo)
     {
-        await ApiClient.PutAsJsonAsync(
-            $"api/administrador/grupo/{grupo.Id}", grupo);
+        try
+        {
+            var response = await ApiClient.PutAsJsonAsync(
+                $"api/administrador/grupo/{grupo.Id}", grupo);
+
+            if (response.IsSuccessStatusCode)
+                Toasts.ShowSuccess($"Nombre del grupo '{grupo.Nombre}' guardado.");
+            else
+                Toasts.ShowError(await ApiClient.LeerError(response) ?? "No se pudo guardar el nombre del grupo.");
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al guardar el nombre del grupo: {ex.Message}");
+        }
     }
 
     async Task GuardarGrupo(GrupoDto grupo)
     {
-        await ApiClient.PutAsJsonAsync(
-            $"api/administrador/{EventoId}/grupo/{grupo.Id}/participantes",
-            grupo.CorreosParticipantes);
+        var loadingId = Toasts.ShowLoading($"Guardando participantes de '{grupo.Nombre}'...");
+        try
+        {
+            var response = await ApiClient.PutAsJsonAsync(
+                $"api/administrador/{EventoId}/grupo/{grupo.Id}/participantes",
+                grupo.CorreosParticipantes);
 
-        Nav.NavigateTo(Nav.Uri, true);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess($"Participantes de '{grupo.Nombre}' actualizados. Las invitaciones se enviarán a los correos pendientes.");
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response) ?? "No se pudieron guardar los participantes.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al guardar los participantes: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 
     async Task EliminarGrupo(long idGrupo)
@@ -281,9 +334,29 @@ else
         var ok = await JS.InvokeAsync<bool>("confirm", "¿Eliminar grupo?");
         if (!ok) return;
 
-        await ApiClient.DeleteAsync($"api/administrador/grupo/{idGrupo}");
+        var loadingId = Toasts.ShowLoading("Eliminando grupo...");
+        try
+        {
+            var response = await ApiClient.DeleteAsync($"api/administrador/grupo/{idGrupo}");
 
-        Nav.NavigateTo(Nav.Uri, true);
+            if (response.IsSuccessStatusCode)
+            {
+                Toasts.ShowSuccess("Grupo eliminado.");
+                Nav.NavigateTo(Nav.Uri, true);
+            }
+            else
+            {
+                Toasts.ShowError(await ApiClient.LeerError(response) ?? "No se pudo eliminar el grupo.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Toasts.ShowError($"Error al eliminar el grupo: {ex.Message}");
+        }
+        finally
+        {
+            Toasts.Dismiss(loadingId);
+        }
     }
 
     void AñadirParticipante(GrupoDto grupo)

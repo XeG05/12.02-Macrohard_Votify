@@ -3,6 +3,7 @@
 @inject ApiClient ApiClient
 @inject BlazorAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject ToastService Toasts
  
 @if (!autenticado)
 {
@@ -268,12 +269,6 @@ else
             }
             <button type="button" @onclick="AñadirCategoria">+ Añadir Categoría</button>
         </div>
-
-        @if (!string.IsNullOrEmpty(mensaje))
-        {
-            <p class="@(error ? "msg-error" : "msg-ok")" style="color:red">@mensaje</p>
-        }
-        
         <hr />
         <div class="actions">
             <button type="button" @onclick="Guardar" disabled="@cargando">
@@ -407,6 +402,7 @@ else
 
     private async Task EjecutarCreacion(bool publicar)
     {
+        Guid? loadingId = null;
         try
         {
             cargando = true;
@@ -417,6 +413,7 @@ else
             {
                 mensaje = "Debe añadirse al menos una categoría al evento.";
                 error = true;
+                Toasts.ShowError(mensaje);
                 return;
             }
 
@@ -424,6 +421,7 @@ else
             {
                 mensaje = "Cada categoría debe tener al menos un grupo.";
                 error = true;
+                Toasts.ShowError(mensaje);
                 return;
             }
 
@@ -437,6 +435,7 @@ else
                         {
                             mensaje = "Se requiere que los grupos estén completos, no puede haber participantes sin correo asignado.";
                             error = true;
+                            Toasts.ShowError(mensaje);
                             return;
                         }
                     }
@@ -455,14 +454,18 @@ else
             {
                 mensaje = "No puedes añadirte a ti mismo como participante.";
                 error = true;
+                Toasts.ShowError(mensaje);
                 return;
             }
             if (dto.EsPrivado && string.IsNullOrWhiteSpace(dto.PasswordAcceso))
             {
                 mensaje = "Debes introducir una contraseña para eventos privados.";
                 error = true;
+                Toasts.ShowError(mensaje);
                 return;
             }
+
+            loadingId = Toasts.ShowLoading(publicar ? "Publicando evento..." : "Guardando borrador...");
 
             var response = await ApiClient.PostAsJsonAsync<EventoCreacionDto>("api/evento", dto);
             if (response.IsSuccessStatusCode)
@@ -472,23 +475,31 @@ else
                 {
                     mensaje = "Evento creado pero no se pudo obtener su información.";
                     error = true;
+                    Toasts.ShowError(mensaje);
                     return;
                 }
+                Toasts.ShowSuccess(publicar
+                    ? "Evento publicado correctamente."
+                    : "Borrador del evento guardado.");
                 Nav.NavigateTo($"/eventoadmin/{evento.Id}");
             }
             else
             {
-                var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
-                mensaje = error?.Error ?? "Error desconocido al crear el evento.";
+                var err = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                mensaje = err?.Error ?? "Error desconocido al crear el evento.";
+                error = true;
+                Toasts.ShowError(mensaje);
             }
         }
         catch (Exception ex)
         {
             mensaje = ex.Message;
             error = true;
+            Toasts.ShowError($"Error al crear el evento: {ex.Message}");
         }
         finally
         {
+            if (loadingId.HasValue) Toasts.Dismiss(loadingId.Value);
             cargando = false;
         }
     }
