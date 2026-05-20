@@ -28,32 +28,23 @@
 }
 
 .tooltip-box {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 6px;
     background: #0f172a;
     color: white;
     padding: 10px 14px;
     border-radius: 8px;
-    z-index: 1000;
+    z-index: 9999;
     font-size: 0.85rem;
     line-height: 1.4;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-    white-space: nowrap;
+    white-space: normal;
     font-weight: 400;
     text-align: left;
     pointer-events: none;
+    width: 220px;
 }
 
 .tooltip-box.tooltip-wide {
-    white-space: normal;
     width: 280px;
-}
-
-.tooltip-box.tooltip-right {
-    left: auto;
-    right: 0;
 }
 
 .tooltip-title {

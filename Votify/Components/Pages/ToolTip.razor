@@ -1,6 +1,9 @@
+@inject IJSRuntime JS
+
 <div class="tooltip-container"
-     @onmouseover="() => visible = true"
-     @onmouseout="() => visible = false">
+     @ref="containerRef"
+     @onmouseover="ShowAsync"
+     @onmouseout="Hide">
 
     @if (ChildContent != null)
     {
@@ -13,7 +16,8 @@
 
     @if (visible)
     {
-        <div class="tooltip-box @(Wide ? "tooltip-wide" : "") @(AlignRight ? "tooltip-right" : "")">
+        <div class="tooltip-box @(Wide ? "tooltip-wide" : "")"
+             style="@StyleAttribute">
             @if (!string.IsNullOrEmpty(Title))
             {
                 <strong class="tooltip-title">@Title</strong>
@@ -32,6 +36,10 @@
 
 @code {
     private bool visible;
+    private ElementReference containerRef;
+    private double top;
+    private double left;
+    private bool positioned;
 
     [Parameter]
     public string Text { get; set; } = "";
@@ -50,4 +58,57 @@
 
     [Parameter]
     public RenderFragment? BodyContent { get; set; }
+
+    private string StyleAttribute =>
+        positioned
+            ? string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                "position:fixed; top:{0}px; left:{1}px;", top, left)
+            : "visibility:hidden; position:fixed; top:0; left:0;";
+
+    private async Task ShowAsync()
+    {
+        visible = true;
+        positioned = false;
+        StateHasChanged();
+
+        try
+        {
+            var rect = await JS.InvokeAsync<BoundingRect?>("votifyTooltipGetRect", containerRef);
+            if (rect == null) return;
+
+            var tooltipWidth = Wide ? 280 : 220;
+            top = rect.Bottom + 6;
+            left = AlignRight ? rect.Right - tooltipWidth : rect.Left;
+
+            if (left + tooltipWidth > rect.ViewportWidth - 8)
+                left = rect.ViewportWidth - tooltipWidth - 8;
+            if (left < 8) left = 8;
+
+            positioned = true;
+            StateHasChanged();
+        }
+        catch
+        {
+            positioned = true;
+            StateHasChanged();
+        }
+    }
+
+    private void Hide()
+    {
+        visible = false;
+        positioned = false;
+    }
+
+    private class BoundingRect
+    {
+        public double Top { get; set; }
+        public double Left { get; set; }
+        public double Right { get; set; }
+        public double Bottom { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double ViewportWidth { get; set; }
+        public double ViewportHeight { get; set; }
+    }
 }
