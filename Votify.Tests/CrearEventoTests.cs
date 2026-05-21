@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using Votify.LógicaNegocio.Builder;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
@@ -60,6 +61,8 @@ namespace Votify.Tests
             return new EventoService(
                 new AdministradorCreator(rolRepo),
                 new VotanteCreator(rolRepo),
+                new EventoDirector(),
+                new EventoConcretoBuilder(),
                 new Repository<Evento>(ctx),
                 new Repository<Usuario>(ctx),
                 new Repository<Proyecto>(ctx),

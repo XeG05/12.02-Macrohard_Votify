@@ -5,6 +5,7 @@ using Moq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Votify.LógicaNegocio.Builder;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Factory.Roles;
 using Votify.LógicaNegocio.Interfaces;
@@ -46,6 +47,8 @@ namespace Votify.Tests
             _eventoService = new EventoService(
                 adminCreator,
                 votanteCreator,
+                new EventoDirector(),
+                new EventoConcretoBuilder(),
                 new Repository<Evento>(_context),
                 new Repository<Usuario>(_context),
                 new Repository<Proyecto>(_context),

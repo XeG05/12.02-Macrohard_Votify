@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Votify.LógicaNegocio.Builder;
 using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
@@ -13,6 +14,8 @@ namespace Votify.LógicaNegocio.Services
     {
         private readonly AdministradorCreator _adminCreator;
         private readonly VotanteCreator _votanteCreator;
+        private readonly EventoDirector _eventoDirector;
+        private readonly EventoBuilder _eventoBuilder;
         private readonly IRepository<Evento> _eventoRepo;
         private readonly IRepository<Usuario> _usuarioRepo;
         private readonly IRepository<Proyecto> _proyectoRepo;
@@ -37,6 +40,8 @@ namespace Votify.LógicaNegocio.Services
 
         public EventoService(AdministradorCreator adminC,
             VotanteCreator votanteC,
+            EventoDirector eventoDirector,
+            EventoBuilder eventoBuilder,
             IRepository<Evento> eventoRepo,
             IRepository<Usuario> usuarioRepo,
             IRepository<Proyecto> proyectoRepo,
@@ -59,6 +64,8 @@ namespace Votify.LógicaNegocio.Services
         {
             _adminCreator = adminC;
             _votanteCreator = votanteC;
+            _eventoDirector = eventoDirector;
+            _eventoBuilder = eventoBuilder;
             _eventoRepo = eventoRepo;
             _usuarioRepo = usuarioRepo;
             _proyectoRepo = proyectoRepo;
@@ -162,25 +169,8 @@ namespace Votify.LógicaNegocio.Services
             return rol ?? await _votanteCreator.CrearAsync(correo, idEvento);
         }
 
-        private Evento CrearEntidadEvento(EventoCreacionDto dto) => new Evento(
-            dto.Nombre,
-            dto.Descripcion,
-            dto.FechaFinInscripciones!.Value,
-            dto.FechaFinEntrega!.Value,
-            dto.FechaFinVotaciones!.Value,
-            dto.FechaFinExperta!.Value,
-            dto.FechaFinVotExperta!.Value,
-            dto.TipoComentario,
-            dto.ParticipantesVotan,
-            dto.TipoVotacion,
-            dto.NumVotarProyectos,
-            dto.PuntosARepartir,
-            dto.TieneGrupos,
-            dto.GruposCompletos,
-            dto.NumParticipantes,
-            dto.EsPrivado,
-            dto.PasswordAcceso
-        );
+        private Evento CrearEntidadEvento(EventoCreacionDto dto) =>
+            _eventoDirector.Construir(_eventoBuilder, dto);
 
         private async Task CrearCategoriaConCriteriosYGrupos(CategoriaDto catDto, Evento evento, Usuario creador)
         {
