@@ -3,9 +3,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore Votify.Presentacion/Votify.Presentacion.csproj
+RUN dotnet restore Votify.slnx/Votify.slnx.csproj
 
-RUN dotnet publish Votify.Presentacion/Votify.Presentacion.csproj -c Release -o /app/publish
+RUN dotnet publish Votify.slnx/Votify.slnx.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
