@@ -3,9 +3,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore Votify.slnx/Votify.csproj
+RUN dotnet restore Votify/Votify.csproj
 
-RUN dotnet publish Votify.slnx/Votify.csproj -c Release -o /app/publish
+RUN dotnet publish Votify/Votify.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
@@ -16,4 +16,4 @@ ENV ASPNETCORE_URLS=http://+:10000
 
 EXPOSE 10000
 
-ENTRYPOINT ["dotnet", "Votify.slnx.dll"]
+ENTRYPOINT ["dotnet", "Votify.dll"]
