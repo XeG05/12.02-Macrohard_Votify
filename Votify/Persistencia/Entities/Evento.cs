@@ -1,5 +1,7 @@
 ﻿using Humanizer;
 using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Estado;
+using Votify.LógicaNegocio.Estado.Interfaz;
 
 namespace Votify.Persistencia.Entities;
 
@@ -43,6 +45,29 @@ public class Evento
 
     public FasesEvento FaseActual { get; set; } = FasesEvento.Inscripciones;
 
+    //PATRON ESTADO
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    private IEstadoEvento EstadoActual => FaseActual switch
+    {
+        FasesEvento.Inscripciones => new EstadoInscripciones(),
+        FasesEvento.Entregas => new EstadoEntregas(),
+        FasesEvento.Votaciones => new EstadoVotaciones(),
+        FasesEvento.EvaluacionExperta => new EstadoEvaluacionExperta(),
+        FasesEvento.VotacionExperta => new EstadoVotacionExperta(),
+        FasesEvento.Resultados => new EstadoResultados(),
+        _ => new EstadoInscripciones()
+    };
+
+    public void SetEstado(IEstadoEvento estado)
+    {
+        FaseActual = Enum.Parse<FasesEvento>(estado.ToString()!);
+    }
+
+    public IEstadoEvento GetEstado() => EstadoActual;
+
+    //FIN PATRON ESTADO
+
     public virtual ICollection<Categorium> Categorias { get; set; } = new List<Categorium>();
 
     public virtual ICollection<Rol> Roles { get; set; } = new List<Rol>();
@@ -51,6 +76,7 @@ public class Evento
     {
         Roles = new List<Rol>();
         Categorias = new List<Categorium>();
+        
     }
     public Evento(string nombre, string descripcion, DateOnly fechaFinInscripciones,
         DateOnly fechaFinEntrega,
@@ -90,33 +116,15 @@ public class Evento
         Roles = new List<Rol>();
     }
 
-    public FasesEvento CalcularFaseActual()
-    {
-        var hoy = DateOnly.FromDateTime(DateTime.Today);
-
-        if (hoy <= FechaFinInscripciones) return FasesEvento.Inscripciones;
-        if (hoy <= FechaFinEntrega) return FasesEvento.Entregas;
-        if (hoy <= FechaFinVotaciones) return FasesEvento.Votaciones;
-        if (hoy <= FechaFinEvaluacionExperta) return FasesEvento.EvaluacionExperta;
-        if (hoy <= FechaFinVotacionExperta) return FasesEvento.VotacionExperta;
-
-        return FasesEvento.Resultados;
-    }
     public bool ActualizarFaseSiCorresponde()
     {
-        var faseNueva = CalcularFaseActual();
+        var faseAntes = FaseActual;
+        EstadoActual.ManejarFase(this);
 
-        if (FaseActual == faseNueva)
-        {
-            return false;
-        }
+        if (FaseActual == faseAntes) return false;
 
-        FaseActual = faseNueva;
-
-        if (faseNueva == FasesEvento.Resultados)
-        {
+        if (FaseActual == FasesEvento.Resultados)
             Estado = "Finalizado";
-        }
 
         return true;
     }
