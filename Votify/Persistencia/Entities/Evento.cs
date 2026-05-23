@@ -2,6 +2,7 @@
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Estado;
 using Votify.LógicaNegocio.Estado.Interfaz;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Votify.Persistencia.Entities;
 
@@ -45,28 +46,51 @@ public class Evento
 
     public FasesEvento FaseActual { get; set; } = FasesEvento.Inscripciones;
 
-    //PATRON ESTADO
+    // PATRON ESTADO
 
-    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-    private IEstadoEvento EstadoActual => FaseActual switch
+    [NotMapped]
+    private IEstadoEvento? _estadoActual;
+
+    [NotMapped]
+    private IEstadoEvento EstadoActual
     {
-        FasesEvento.Inscripciones => new EstadoInscripciones(),
-        FasesEvento.Entregas => new EstadoEntregas(),
-        FasesEvento.Votaciones => new EstadoVotaciones(),
-        FasesEvento.EvaluacionExperta => new EstadoEvaluacionExperta(),
-        FasesEvento.VotacionExperta => new EstadoVotacionExperta(),
-        FasesEvento.Resultados => new EstadoResultados(),
-        _ => new EstadoInscripciones()
-    };
+        get
+        {
+            if (_estadoActual == null || _estadoActual.Fase != FaseActual)
+            {
+                _estadoActual = CrearEstadoDesdeFaseActual();
+            }
+
+            return _estadoActual;
+        }
+    }
+
+    private IEstadoEvento CrearEstadoDesdeFaseActual()
+    {
+        return FaseActual switch
+        {
+            FasesEvento.Inscripciones => new EstadoInscripciones(),
+            FasesEvento.Entregas => new EstadoEntregas(),
+            FasesEvento.Votaciones => new EstadoVotaciones(),
+            FasesEvento.EvaluacionExperta => new EstadoEvaluacionExperta(),
+            FasesEvento.VotacionExperta => new EstadoVotacionExperta(),
+            FasesEvento.Resultados => new EstadoResultados(),
+            _ => new EstadoInscripciones()
+        };
+    }
 
     public void SetEstado(IEstadoEvento estado)
     {
-        FaseActual = Enum.Parse<FasesEvento>(estado.ToString()!);
+        _estadoActual = estado;
+        FaseActual = estado.Fase;
     }
 
-    public IEstadoEvento GetEstado() => EstadoActual;
+    public IEstadoEvento GetEstado()
+    {
+        return EstadoActual;
+    }
 
-    //FIN PATRON ESTADO
+    // FIN PATRON ESTADO
 
     public virtual ICollection<Categorium> Categorias { get; set; } = new List<Categorium>();
 
@@ -118,14 +142,25 @@ public class Evento
 
     public bool ActualizarFaseSiCorresponde()
     {
-        var faseAntes = FaseActual;
-        EstadoActual.ManejarFase(this);
+        var faseInicial = FaseActual;
 
-        if (FaseActual == faseAntes) return false;
+        while (true)
+        {
+            var faseAntes = FaseActual;
+
+            EstadoActual.ManejarFase(this);
+
+            if (FaseActual == faseAntes)
+            {
+                break;
+            }
+        }
 
         if (FaseActual == FasesEvento.Resultados)
+        {
             Estado = "Finalizado";
+        }
 
-        return true;
+        return FaseActual != faseInicial;
     }
 }

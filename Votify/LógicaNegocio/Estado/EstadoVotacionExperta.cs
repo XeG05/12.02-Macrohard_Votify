@@ -1,10 +1,13 @@
-﻿using Votify.LógicaNegocio.Estado.Interfaz;
+﻿using Votify.LógicaNegocio.Enums;
+using Votify.LógicaNegocio.Estado.Interfaz;
 using Votify.Persistencia.Entities;
 
 namespace Votify.LógicaNegocio.Estado
 {
     public class EstadoVotacionExperta : IEstadoEvento
     {
+        public FasesEvento Fase => FasesEvento.VotacionExperta;
+
         public void ManejarFase(Evento evento)
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
@@ -15,6 +18,10 @@ namespace Votify.LógicaNegocio.Estado
             }
         }
 
-        public override string ToString() => "VotacionExperta";
+        public bool PuedeEntregarProyecto() => false;
+        public bool PuedeVotarPopular() => false;
+        public bool PuedeVotarExperto() => true;
+        public bool PuedeVerResultados() => false;
+        public bool PuedeReclamar() => false;
     }
 }

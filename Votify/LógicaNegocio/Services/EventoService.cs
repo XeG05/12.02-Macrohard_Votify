@@ -475,6 +475,25 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
                 ?? throw new NotFoundException("Evento no encontrado.");
 
+            var esJurado = (await _juradoRepo.FindAsync(j =>
+                j.IdEvento == idEvento &&
+                j.CorreoUsuario == correo)).Any();
+
+            if (esJurado)
+            {
+                if (!evento.GetEstado().PuedeVotarExperto())
+                {
+                    throw new ValidationException("Solo se puede realizar la votación experta durante la fase de votación experta.");
+                }
+            }
+            else
+            {
+                if (!evento.GetEstado().PuedeVotarPopular())
+                {
+                    throw new ValidationException("Solo se puede votar durante la fase de votaciones.");
+                }
+            }
+
             if (evento.TipoComentario == TipoComentario.Obligatorio)
             {
                 var comentario = (await _comentarioRepo.FindAsync(c =>
@@ -673,7 +692,10 @@ namespace Votify.LógicaNegocio.Services
             var categoria = proyectoApp.IdGrupoNavigation.IdCategoriaNavigation;
             var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
                 ?? throw new NotFoundException("Evento no encontrado.");
-
+            if (!evento.GetEstado().PuedeVerResultados())
+            {
+                throw new ValidationException("Los resultados aún no están disponibles.");
+            }
             // 2. Obtener los proyectos de la categoría para el ranking
             var proyectosCategoria = await _proyectoRepo.AsQueryable()
                 .Where(p => p.IdGrupoNavigation.IdCategoria == categoria.Id)

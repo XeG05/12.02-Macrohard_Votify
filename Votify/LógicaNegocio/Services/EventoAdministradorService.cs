@@ -603,7 +603,7 @@ namespace Votify.LógicaNegocio.Services
             var evento = _eventoRepo.GetByIdAsync(idEvento).Result
                 ?? throw new NotFoundException("Evento no encontrado");
 
-            return evento.FaseActual; // ← esto reemplaza el if-else chain entero
+            return evento.GetEstado().Fase; // ← esto reemplaza el if-else chain entero
         }
         public async Task PausarEvento(long eventoId)
         {

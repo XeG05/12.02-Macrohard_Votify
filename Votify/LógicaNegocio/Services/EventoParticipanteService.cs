@@ -138,6 +138,13 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (string.IsNullOrWhiteSpace(request.NombreProyecto))
                     throw new ValidationException("El nombre del proyecto es obligatorio.");
+                
+                var evento = await _eventoRepo.GetByIdAsync(request.IdEvento)
+                    ?? throw new NotFoundException("Evento no encontrado.");
+                if (!evento.GetEstado().PuedeEntregarProyecto())
+                {
+                    throw new ValidationException("Solo se pueden entregar proyectos durante la fase de entregas.");
+                }
 
                 var participante = await ObtenerRegistroParticipante(request.Correo, request.IdEvento, request.GrupoIdActivo);
                 var grupo = await _grupoRepo.GetByIdAsync(participante.IdGrupo)
@@ -235,8 +242,13 @@ namespace Votify.LógicaNegocio.Services
         }
         public async Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {
-            if (ObtenerFaseActual(idEvento) != FasesEvento.Resultados)
+            var evento = await _eventoRepo.GetByIdAsync(idEvento)
+                ?? throw new NotFoundException("Evento no encontrado");
+
+            if (!evento.GetEstado().PuedeVerResultados())
+            {
                 throw new Exception("Los resultados aún no están disponibles");
+            }
 
             var participaciones = await _participanteRepo.FindAsync(p =>
                 p.CorreoUsuario == correo && p.IdEvento == idEvento);
@@ -303,7 +315,7 @@ namespace Votify.LógicaNegocio.Services
             var evento = _eventoRepo.GetByIdAsync(idEvento).Result
                 ?? throw new NotFoundException("Evento no encontrado");
 
-            return evento.FaseActual; // ← esto reemplaza el if-else chain entero
+            return evento.GetEstado().Fase;
         }
 
         public async Task EnviarReclamacion(string correoParticipante, long idEvento, string mensaje)
@@ -311,9 +323,10 @@ namespace Votify.LógicaNegocio.Services
             var evento = await _eventoRepo.GetByIdAsync(idEvento);
             if (evento == null) throw new NotFoundException("Evento no encontrado");
 
-            var fase = ObtenerFaseActual(idEvento);
-            if(fase != FasesEvento.Resultados)
+            if (!evento.GetEstado().PuedeReclamar())
+            {
                 throw new Exception("Solo se pueden enviar reclamaciones en la fase de resultados.");
+            }
 
             var administradores = await _administradorRepo.FindAsync(a => a.IdEvento == idEvento);
             var administradorPricipal = administradores.FirstOrDefault();
