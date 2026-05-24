@@ -3,6 +3,7 @@ using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Estado;
 using Votify.LógicaNegocio.Estado.Interfaz;
 using System.ComponentModel.DataAnnotations.Schema;
+using Votify.LógicaNegocio.Estado.States;
 
 namespace Votify.Persistencia.Entities;
 
