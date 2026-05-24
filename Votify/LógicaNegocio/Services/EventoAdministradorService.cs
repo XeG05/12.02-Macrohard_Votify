@@ -496,30 +496,26 @@ namespace Votify.LógicaNegocio.Services
                 .CountAsync(i => i.IdGrupo == idGrupo && !i.Aceptada);
         }
 
-        public async Task ActualizarFechas(long eventoId,
-        DateTime finInscripciones,
-        DateTime finEntrega,
-        DateTime finVotaciones,
-        DateTime finExperta,
-        DateTime finVotExperta)
+        public async Task ActualizarFechas(long eventoId, ActualizarFechasDto dto)
         {
-            DateOnly finInscripcionesOnly = DateOnly.FromDateTime(finInscripciones);
-            DateOnly finEntregaOnly = DateOnly.FromDateTime(finEntrega);
-            DateOnly finVotacionesOnly = DateOnly.FromDateTime(finVotaciones);
-            DateOnly finExpertaOnly = DateOnly.FromDateTime(finExperta);
-            DateOnly finVotExpertaOnly = DateOnly.FromDateTime(finVotExperta);
+            DateOnly finInscripcionesOnly = DateOnly.FromDateTime(dto.FechaFinInscripciones);
+            DateOnly finEntregaOnly = DateOnly.FromDateTime(dto.FechaFinEntrega);
+            DateOnly finVotacionesOnly = DateOnly.FromDateTime(dto.FechaFinVotaciones);
+            DateOnly finExpertaOnly = DateOnly.FromDateTime(dto.FechaFinExperta);
+            DateOnly finVotExpertaOnly = DateOnly.FromDateTime(dto.FechaFinVotExperta);
 
             var evento = await _eventoRepo.GetByIdAsync(eventoId);
 
             if (evento == null)
                 throw new NotFoundException("Evento no encontrado");
 
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
-
-            //  Validar orden
-            if (!(finInscripcionesOnly < finEntregaOnly && finEntregaOnly < finVotacionesOnly && finVotacionesOnly < finExpertaOnly && finExpertaOnly < finVotExpertaOnly))
+            if (!(finInscripcionesOnly < finEntregaOnly &&
+                  finEntregaOnly < finVotacionesOnly &&
+                  finVotacionesOnly < finExpertaOnly &&
+                  finExpertaOnly < finVotExpertaOnly))
+            {
                 throw new ValidationException("Las fechas deben estar en orden lógico");
-
+            }
             /*//  No fechas pasadas por el momento para hacer pruebas
             if (finInscripcionesOnly < hoy || finEntregaOnly < hoy || finVotacionesOnly < hoy || finExpertaOnly < hoy || finVotExpertaOnly < hoy)
         throw new ValidationException("No puedes poner fechas en el pasado");*/ //POR EL MOMENTO DESHABILITADO PARA HACER PRUEBAS

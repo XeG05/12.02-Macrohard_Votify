@@ -20,7 +20,7 @@ namespace Votify.LógicaNegocio.Interfaces
         Task EliminarGrupo(long idGrupo);
         Task ActualizarGrupo(long grupoId, GrupoDto dto);
         FasesEvento ObtenerFaseActual(long idEvento);
-        Task ActualizarFechas(long eventoId, DateTime finInscripciones, DateTime finEntrega, DateTime finVotaciones, DateTime finExperta, DateTime finVotExperta);
+        Task ActualizarFechas(long eventoId, ActualizarFechasDto dto);
         Task PausarEvento(long eventoId);
         Task ReanudarEvento(long eventoId);
         Task CerrarEvento(long eventoId);
