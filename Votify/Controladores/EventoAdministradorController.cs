@@ -234,13 +234,8 @@ namespace Votify.Controladores
         {
             try
             {
-                await _eventoAdministradorService.ActualizarFechas(
-                    eventoId,
-                    dto.FechaFinInscripciones,
-                    dto.FechaFinEntrega,
-                    dto.FechaFinVotaciones,
-                    dto.FechaFinExperta,
-                    dto.FechaFinVotExperta);
+                await _eventoAdministradorService.ActualizarFechas(eventoId, dto);
+
                 return NoContent();
             }
             catch (ValidationException ex) { return UnprocessableEntity(new ErrorDto { Error = ex.Message }); }
