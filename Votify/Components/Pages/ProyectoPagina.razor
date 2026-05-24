@@ -359,9 +359,9 @@ else {
     private async Task EmitirVotoNota(long idCriterio)
     {
         if (evento == null) return;
-        if (!valoresPendientes.TryGetValue(idCriterio, out var nota) || nota <= 0)
+        if (!valoresPendientes.TryGetValue(idCriterio, out var nota) || nota <= 0 || nota > 10)
         {
-            errorMessage = "Introduce una nota válida (mayor que 0).";
+            errorMessage = "Introduce una nota válida (mayor que 0 y menor o igual a 10).";
             Toasts.ShowError(errorMessage);
             return;
         }
