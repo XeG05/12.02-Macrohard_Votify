@@ -1,298 +1,418 @@
-﻿.page {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 2rem;
-    //border: 1px solid #ccc;
-    background-color: #fff;
-    max-width: 1200px;
+﻿/* =========================================================
+   PAGE & CONTENEDORES GENERALES
+========================================================= */
+.page {
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
-/* Cabecera para el botón de volver */
+/* =========================================================
+   CABECERA (BOTÓN VOLVER)
+========================================================= */
 .cabecera-proyecto {
     display: flex;
-    justify-content: flex-start;
-    margin-bottom: -1.5rem; /* Acercarlo al recuadro principal */
+    align-items: center;
+    margin-bottom: 1.5rem;
 }
 
 .btn-volver {
-    background: none;
+    background: transparent;
     border: none;
-    cursor: pointer;
     padding: 0;
-    color: #333;
+    cursor: pointer;
+    color: #2b2b2b;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: 0.2s ease;
 }
 
-.btn-volver:hover {
-    color: #888;
-}
+    .btn-volver:hover {
+        transform: translateX(-2px);
+        color: #000;
+    }
 
-/* Sección superior dividida en dos */
+/* =========================================================
+   CONTENEDOR PRINCIPAL (RECUADRO INFO SUPERIOR)
+========================================================= */
 .rectangulo-info {
-    display: flex;
-    border: 1px solid #ccc;
-    min-height: 300px;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 2rem;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+    margin-bottom: 1.5rem;
 }
 
 .nom-par {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #ccc;
-}
-
-.nombrePr {
-    padding: 1rem;
-    border-bottom: 1px solid #ccc;
+    gap: 1.8rem;
 }
 
 .nombrePr h3 {
     margin: 0;
-    font-size: 2rem;
-    font-weight: normal;
+    font-size: 2.3rem;
+    line-height: 1.1;
+    font-weight: 700;
+    color: #111;
 }
 
 .participantesPr {
-    padding: 1rem;
-    flex-grow: 1;
-    font-size: 0.9rem;
-    color: #555;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
 }
 
-.participantesPr p {
-    margin: 0.3rem 0;
-}
+    .participantesPr p {
+        margin: 0;
+        padding: 0.55rem 0.95rem;
+        background: #f5f5f5;
+        border: 1px solid #e6e6e6;
+        border-radius: 999px;
+        font-size: 0.92rem;
+        color: #333;
+        transition: 0.15s ease;
+    }
 
+        .participantesPr p:hover {
+            background: #ededed;
+        }
+
+/* =========================================================
+   IMÁGENES (GALERÍA CONTENIDA)
+========================================================= */
 .imagenes {
-    flex: 1;
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-}
-
-.arrow-btn {
-    background: none;
-    border: none;
-    font-size: 3rem;
-    cursor: pointer;
-    font-weight: normal;
-    color: #000;
-}
-
-.arrow-btn:hover {
-    color: #555;
+    justify-content: center;
+    min-height: 420px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f4f4f4;
 }
 
 .imagen-actual-container {
-    text-align: center;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #888;
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
-.imagen-actual-container img {
-    max-width: 100%;
-    max-height: 250px;
-    object-fit: contain;
-    margin-top: 10px;
+    .imagen-actual-container img {
+        width: 100%;
+        height: 420px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .imagen-actual-container span {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(0,0,0,0.65);
+        color: white;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        backdrop-filter: blur(6px);
+    }
+
+.arrow-btn {
+    position: absolute;
+    z-index: 5;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.2s ease;
 }
+
+    .arrow-btn:hover {
+        background: rgba(0,0,0,0.8);
+        transform: scale(1.05);
+    }
+
+    .arrow-btn:first-child {
+        left: 1rem;
+    }
+
+    .arrow-btn:last-child {
+        right: 1rem;
+    }
 
 .sin-imagenes {
-    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    color: #888;
-}
-
-/* Descripción */
-.descripcion-larga {
+    color: #777;
     font-size: 1rem;
-    line-height: 1.5;
-    text-align: justify;
+    width: 100%;
+    height: 420px;
+    padding: 2rem;
 }
 
-/* Botón Descargar */
+/* =========================================================
+   DESCRIPCIÓN
+========================================================= */
+.descripcion-larga {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 18px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+}
+
+    .descripcion-larga p {
+        margin: 0;
+        line-height: 1.8;
+        font-size: 1rem;
+        color: #444;
+        text-align: justify;
+    }
+
+/* =========================================================
+   BOTONES SECUNDARIOS (BLANCOS CON SOMBRA)
+========================================================= */
 .acciones-proyecto {
     display: flex;
     justify-content: flex-end;
+    margin-bottom: 2rem;
 }
 
 .btn-secundario {
-    padding: 0.5rem 1rem;
-    background-color: #f5f5f5;
-    border: 1px solid #888;
-    color: #333;
-    border-radius: 2px;
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #d1d1d1;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: normal;
-    font-size: 1.1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
 
-.btn-secundario:hover {
-    background-color: #e5e5e5;
-}
-
-/* Comentarios */
-.seccion-comentarios {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.seccion-comentarios textarea {
-    width: 100%;
-    min-height: 150px;
-    padding: 1rem;
-    border: 1px solid #888;
-    resize: vertical;
-    font-family: inherit;
-    font-size: 1.1rem;
-}
-
-.enviar-btn-container {
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* Votación */
-.seccion-votar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #888;
-}
-
-.checkbox-votar {
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-}
-
-.votos-restantes {
-    color: #888;
-    font-size: 1.2rem;
-}
-.votacion-criterios {
-    border-top: 1px solid #111;
-    padding-top: 1rem;
-}
-
-    .votacion-criterios h3 {
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        text-decoration: underline;
+    .btn-secundario:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        background-color: #fafafa;
     }
 
+    .btn-secundario:active {
+        transform: translateY(1px);
+    }
+
+    .btn-secundario:disabled {
+        background-color: #f5f5f5;
+        color: #a1a1a1;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+
+/* =========================================================
+   VOTACIONES Y COMENTARIOS (ZONA INFERIOR)
+========================================================= */
+.votacion-criterios {
+    border-top: 1px solid #111;
+    padding-top: 1.5rem;
+}
+
+    /* Separación entre el título principal "Votación" y los desplegables */
+    .votacion-criterios > div[style*="display:flex"] {
+        margin-bottom: 1.5rem;
+    }
+
+        .votacion-criterios > div[style*="display:flex"] h3 {
+            margin: 0;
+            margin-right: 10px;
+            font-size: 1.2rem;
+            text-decoration: underline;
+        }
+
+/* Tooltip / Círculo "?" */
+.info-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #444;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: help;
+}
+
+/* --- DESPLEGABLES (FORMATO Y TIPOGRAFÍA MEJORADOS) --- */
 .criterio-voto-card {
-    border: 1px solid #888;
-    border-radius: 12px;
-    margin-bottom: 0.5rem;
+    border: 1px solid #6fce1a;
+    border-radius: 4px;
     overflow: hidden;
-    background: white;
+    background-color: #fff;
+    margin-bottom: 0.8rem;
 }
 
 .criterio-voto-header {
     width: 100%;
-    border: none;
-    background: white;
-    padding: 0.5rem 0.75rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 14px 18px;
     cursor: pointer;
-    font-size: 1rem;
-    text-align: left;
+    background: linear-gradient(135deg, #6fce1a, #a4ec66); /* Degradado recuperado */
+    border: none;
+    color: #ffffff;
+    transition: filter 0.2s ease;
 }
 
+    .criterio-voto-header:hover {
+        filter: brightness(1.05);
+    }
+
+    /* Letra blanca, más grande y tipografía distinta */
+    .criterio-voto-header span,
+    .criterio-voto-header h3 {
+        color: #ffffff !important;
+        font-size: 1.2rem;
+        font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-weight: 500;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+/* --- CONTENIDO DEL CRITERIO --- */
 .criterio-voto-body {
-    padding: 0.5rem;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 
     .criterio-voto-body textarea {
         width: 100%;
-        min-height: 85px;
-        border: 1px solid #999;
-        resize: vertical;
-        padding: 0.5rem;
+        min-height: 100px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 0.8rem;
         font-family: inherit;
+        font-size: 1rem;
+        resize: vertical;
+        box-sizing: border-box;
     }
 
-.criterio-voto-actions {
+/* Contenedor principal de comentarios (Ancho completo) */
+.comentario-section {
     display: flex;
-    justify-content: flex-end;
-    margin-top: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
 }
 
+    .comentario-section h5 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* Forzar que el recuadro del comentario ya enviado ocupe todo el ancho */
+    .comentario-section > div[style*="background:#f0fdf4"] {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Margen superior para separar el botón "Enviar" de la caja de texto */
+    .comentario-section .btn-secundario {
+        margin-top: 0.8rem;
+    }
+
+/* --- CONTENEDOR DE LA NOTA Y ALINEACIÓN --- */
 .criterio-voto-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border: 1px solid #999;
-    padding: 0.25rem 0.5rem;
-    margin-top: 0.5rem;
+    justify-content: flex-start;
+    gap: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    background-color: #ffffff;
 }
 
-    .criterio-voto-footer .checkbox-votar {
-        font-size: 0.95rem;
+    .criterio-voto-footer label {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+        margin: 0;
     }
 
+    .criterio-voto-footer input[type="number"] {
+        width: 70px;
+        padding: 0.4rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    /* "Nota actual" empujado a la derecha */
     .criterio-voto-footer .votos-restantes {
+        margin-left: auto;
         font-size: 0.95rem;
-        color: #777;
+        font-weight: 500;
+        color: #555;
     }
 
+/* --- BADGES Y AVISOS --- */
 .puntos-criterio-badge {
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: #e0f2fe;
-    color: #0369a1;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.2rem 0.6rem;
     border-radius: 999px;
-    padding: 0.15rem 0.6rem;
-    margin-left: auto;
-    margin-right: 0.5rem;
-}
-
-    .puntos-criterio-badge.bajo {
-        background: #fef3c7;
-        color: #b45309;
-    }
-
-    .puntos-criterio-badge.agotado {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-
-.puntos-criterio-detalle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     font-size: 0.85rem;
-    color: #555;
-    padding: 0.25rem 0.5rem;
-    margin-top: 0.25rem;
+    text-shadow: none; /* Quitamos sombra para que se lea mejor */
 }
 
-.puntos-restantes-criterio.agotado {
-    color: #b91c1c;
-    font-weight: 600;
-}
-
+/* Aviso de comentario obligatorio devuelto a rectángulo redondeado (Pill ajustada) */
 .aviso-comentario-obligatorio {
     font-size: 0.85rem;
     color: #b45309;
-    background: #fef3c7;
+    background-color: #fef3c7;
     border: 1px solid #fde68a;
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
-    margin-top: 0.4rem;
+    border-radius: 6px; /* Más rectangular, menos píldora */
+    padding: 0.4rem 0.8rem;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 1050px) {
+    .rectangulo-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .criterio-voto-footer {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+        .criterio-voto-footer .votos-restantes {
+            margin-left: 0;
+            width: 100%;
+        }
 }

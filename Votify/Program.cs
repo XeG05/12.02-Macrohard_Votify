@@ -11,14 +11,17 @@ using Votify.Components;
 using Votify.LógicaNegocio.Builder;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
+using Votify.LógicaNegocio.Factory.Votacion;
 using Votify.LógicaNegocio.Interfaces;
+using Votify.LógicaNegocio.Observador.Interfaces;
+using Votify.LógicaNegocio.Observador.Observers;
+using Votify.LógicaNegocio.Observador.Sujetos;
 using Votify.LógicaNegocio.Services;
+using Votify.LógicaNegocio.Strategy.Interfaces;
+using Votify.LógicaNegocio.Strategy.Strategies;
 using Votify.Persistencia;
 using Votify.Persistencia.Interfaces;
 using Votify.Persistencia.Repositories;
-using Votify.LógicaNegocio.Observador.Observers;
-using Votify.LógicaNegocio.Observador.Sujetos;
-using Votify.LógicaNegocio.Observador.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +61,11 @@ builder.Services.AddScoped<IObservadorEvento, ObservadorJurado>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorFinalizacion>();
 builder.Services.AddScoped<IObservadorEvento, ObservadorCertificados>();
 
+builder.Services.AddScoped<VotacionSimpleStrategy>();
+builder.Services.AddScoped<VotacionNotaStrategy>();
+builder.Services.AddScoped<VotacionPuntosStrategy>();
+
+builder.Services.AddScoped<VotacionStrategyFactory>();
 
 builder.Services.AddScoped<JwtService>();
 

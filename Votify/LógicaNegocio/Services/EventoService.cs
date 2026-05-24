@@ -4,6 +4,7 @@ using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
+using Votify.LógicaNegocio.Factory.Votacion;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
@@ -36,6 +37,8 @@ namespace Votify.LógicaNegocio.Services
         private readonly IConfiguration _config;
         private readonly IUnitOfWork _uow;
 
+        private readonly VotacionStrategyFactory _strategyFactory;
+
         private const int DIAS_EXPIRACION_INVITACION = 7;
 
         public EventoService(AdministradorCreator adminC,
@@ -60,7 +63,8 @@ namespace Votify.LógicaNegocio.Services
             IRepository<SintesisJuradoCriterio> sintesisCriterioRepo,
             IEmailService emailService,
             IConfiguration config,
-            IUnitOfWork uow) : base(eventoRepo, uow)
+            IUnitOfWork uow,
+            VotacionStrategyFactory strategyFactory) : base(eventoRepo, uow)
         {
             _adminCreator = adminC;
             _votanteCreator = votanteC;
@@ -85,6 +89,7 @@ namespace Votify.LógicaNegocio.Services
             _emailService = emailService;
             _config = config;
             _uow = uow;
+            _strategyFactory = strategyFactory;
         }
 
         public async Task<List<Evento>> GetEventosCreados(string correo)
@@ -425,44 +430,19 @@ namespace Votify.LógicaNegocio.Services
 
             var resultado = new List<CriterioVotoInfoDto>();
 
+            var strategy = _strategyFactory.Crear(evento.TipoVotacion);
+
             foreach (var criterio in criterios)
             {
                 var votosCriterio = todosLosVotosUsuario
                     .Where(v => v.IdCriterio == criterio.Id)
                     .ToList();
 
-                var dto = new CriterioVotoInfoDto { IdCriterio = criterio.Id };
-
-                switch (evento.TipoVotacion)
-                {
-                    case TipoVotacion.Simple:
-                        var proyectosVotadosEnCategoria = new HashSet<long>();
-                        foreach (var voto in votosCriterio)
-                        {
-                            var proyectoVotado = await _proyectoRepo.GetByIdAsync(voto.IdProyectoGru);
-                            if (proyectoVotado == null) continue;
-                            var grupoVotado = await _grupoRepo.GetByIdAsync(proyectoVotado.IdGrupo);
-                            if (grupoVotado?.IdCategoria == idCategoriaActual)
-                                proyectosVotadosEnCategoria.Add(voto.IdProyectoGru);
-                        }
-                        dto.HaVotado = votosCriterio.Any(v => v.IdProyectoGru == idProyecto);
-                        dto.VotosRestantes = Math.Max(0, evento.NumVotarProyectos - proyectosVotadosEnCategoria.Count);
-                        break;
-
-                    case TipoVotacion.Nota:
-                        var votoNota = votosCriterio.FirstOrDefault(v => v.IdProyectoGru == idProyecto);
-                        dto.HaVotado = votoNota != null;
-                        dto.NotaDada = votoNota?.Nota;
-                        break;
-
-                    case TipoVotacion.Puntos:
-                        var votoPuntos = votosCriterio.FirstOrDefault(v => v.IdProyectoGru == idProyecto);
-                        var puntosUsadosCriterio = votosCriterio.Sum(v => (int)(v.Nota ?? 0));
-                        dto.HaVotado = votoPuntos != null && votoPuntos.Nota > 0;
-                        dto.PuntosAsignados = votoPuntos?.Nota ?? 0;
-                        dto.PuntosRestantes = Math.Max(0, evento.PuntosARepartir - puntosUsadosCriterio);
-                        break;
-                }
+                var dto = await strategy.ObtenerInfoCriterio(
+                    evento,
+                    proyectoActual,
+                    criterio,
+                    votosCriterio);
 
                 resultado.Add(dto);
             }
@@ -506,177 +486,14 @@ namespace Votify.LógicaNegocio.Services
                     throw new ValidationException("Debes enviar un comentario antes de votar en este criterio.");
             }
 
-            switch (evento.TipoVotacion)
-            {
-                case TipoVotacion.Simple:
-                    await VotarSimple(evento, idProyecto, idCriterio, correo);
-                    break;
-                case TipoVotacion.Nota:
-                    if (valor == null) throw new ValidationException("Se requiere una nota para este tipo de votación.");
-                    await VotarNota(evento, idProyecto, idCriterio, valor.Value, correo);
-                    break;
-                case TipoVotacion.Puntos:
-                    if (valor == null) throw new ValidationException("Se requieren puntos para este tipo de votación.");
-                    await VotarPuntos(evento, idProyecto, idCriterio, valor.Value, correo);
-                    break;
-            }
-        }
+            var strategy = _strategyFactory.Crear(evento.TipoVotacion);
 
-        public async Task VotarSimple(Evento evento, long idProyecto, long idCriterio, string correo)
-        {
-            Proyecto proyecto = await _proyectoRepo.GetByIdAsync(idProyecto)
-                ?? throw new NotFoundException("Proyecto no encontrado.");
-
-            Grupo grupo = await _grupoRepo.GetByIdAsync(proyecto.IdGrupo)
-                ?? throw new NotFoundException("Grupo no encontrado.");
-
-            Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio)
-                ?? throw new NotFoundException("Criterio no encontrado.");
-
-            if (criterio.IdCategoria != grupo.IdCategoria)
-                throw new ValidationException("El criterio no pertenece a la categoría del proyecto.");
-
-            var votosUsuario = await _votoRepo.FindAsync(v =>
-                v.IdRol == evento.Id &&
-                v.CorreoRol == correo &&
-                v.IdCriterio == idCriterio);
-
-            if (votosUsuario.Any(v => v.IdProyectoGru == idProyecto))
-                throw new ConflictException("Ya has votado este proyecto en este criterio.");
-
-            var proyectosVotadosEnCategoria = new HashSet<long>();
-
-            foreach (var voto in votosUsuario)
-            {
-                var proyectoVotado = await _proyectoRepo.GetByIdAsync(voto.IdProyectoGru);
-                if (proyectoVotado == null) continue;
-
-                var grupoVotado = await _grupoRepo.GetByIdAsync(proyectoVotado.IdGrupo);
-                if (grupoVotado?.IdCategoria == grupo.IdCategoria)
-                    proyectosVotadosEnCategoria.Add(voto.IdProyectoGru);
-            }
-
-            if (proyectosVotadosEnCategoria.Count >= evento.NumVotarProyectos)
-                throw new ConflictException($"Límite de {evento.NumVotarProyectos} votos alcanzado para este criterio.");
-
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == evento.Id && r.CorreoUsuario == correo)).FirstOrDefault()
-                ?? throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
-
-            var nuevoVoto = new Voto(criterio.Id, 1, correo, idProyecto, criterio, proyecto, rol);
-            nuevoVoto.IdRol = evento.Id;
-
-            proyecto.Votos ??= new List<Voto>();
-            rol.Votos ??= new List<Voto>();
-
-            proyecto.Votos.Add(nuevoVoto);
-            rol.Votos.Add(nuevoVoto);
-
-            await _votoRepo.AddAsync(nuevoVoto);
-            await _proyectoRepo.UpdateAsync(proyecto);
-            await _rolRepo.UpdateAsync(rol);
-            await _uow.SaveChangesAsync();
-        }
-
-        private async Task VotarNota(Evento evento, long idProyecto, long idCriterio, int nota, string correo)
-        {
-            if (nota <= 0)
-                throw new ValidationException("La nota debe ser mayor que 0.");
-
-            Proyecto proyecto = await _proyectoRepo.GetByIdAsync(idProyecto)
-                ?? throw new NotFoundException("Proyecto no encontrado.");
-
-            Grupo grupo = await _grupoRepo.GetByIdAsync(proyecto.IdGrupo)
-                ?? throw new NotFoundException("Grupo no encontrado.");
-
-            Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio)
-                ?? throw new NotFoundException("Criterio no encontrado.");
-
-            if (criterio.IdCategoria != grupo.IdCategoria)
-                throw new ValidationException("El criterio no pertenece a la categoría del proyecto.");
-
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == evento.Id && r.CorreoUsuario == correo)).FirstOrDefault()
-                ?? throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
-
-            var votoExistente = (await _votoRepo.FindAsync(v =>
-                v.IdRol == evento.Id &&
-                v.CorreoRol == correo &&
-                v.IdCriterio == idCriterio &&
-                v.IdProyectoGru == idProyecto)).FirstOrDefault();
-
-            if (votoExistente != null)
-            {
-                votoExistente.Nota = nota;
-                await _votoRepo.UpdateAsync(votoExistente);
-            }
-            else
-            {
-                var nuevoVoto = new Voto(criterio.Id, nota, correo, idProyecto, criterio, proyecto, rol);
-                nuevoVoto.IdRol = evento.Id;
-                proyecto.Votos ??= new List<Voto>();
-                rol.Votos ??= new List<Voto>();
-                proyecto.Votos.Add(nuevoVoto);
-                rol.Votos.Add(nuevoVoto);
-                await _votoRepo.AddAsync(nuevoVoto);
-                await _proyectoRepo.UpdateAsync(proyecto);
-                await _rolRepo.UpdateAsync(rol);
-            }
-
-            await _uow.SaveChangesAsync();
-        }
-
-        private async Task VotarPuntos(Evento evento, long idProyecto, long idCriterio, int puntos, string correo)
-        {
-            if (puntos < 0)
-                throw new ValidationException("Los puntos no pueden ser negativos.");
-
-            Proyecto proyecto = await _proyectoRepo.GetByIdAsync(idProyecto)
-                ?? throw new NotFoundException("Proyecto no encontrado.");
-
-            Grupo grupo = await _grupoRepo.GetByIdAsync(proyecto.IdGrupo)
-                ?? throw new NotFoundException("Grupo no encontrado.");
-
-            Criterio criterio = await _criterioRepo.GetByIdAsync(idCriterio)
-                ?? throw new NotFoundException("Criterio no encontrado.");
-
-            if (criterio.IdCategoria != grupo.IdCategoria)
-                throw new ValidationException("El criterio no pertenece a la categoría del proyecto.");
-
-            Rol rol = (await _rolRepo.FindAsync(r => r.IdEvento == evento.Id && r.CorreoUsuario == correo)).FirstOrDefault()
-                ?? throw new NotFoundException("Rol no encontrado para el usuario en este evento.");
-
-            var todosVotosCriterio = await _votoRepo.FindAsync(v =>
-                v.IdRol == evento.Id &&
-                v.CorreoRol == correo &&
-                v.IdCriterio == idCriterio);
-
-            var votoExistente = todosVotosCriterio.FirstOrDefault(v => v.IdProyectoGru == idProyecto);
-
-            var puntosUsadosOtrosProyectos = todosVotosCriterio
-                .Where(v => v.IdProyectoGru != idProyecto)
-                .Sum(v => (int)(v.Nota ?? 0));
-
-            if (puntosUsadosOtrosProyectos + puntos > evento.PuntosARepartir)
-                throw new ConflictException($"Superas el límite de {evento.PuntosARepartir} puntos para este criterio.");
-
-            if (votoExistente != null)
-            {
-                votoExistente.Nota = puntos;
-                await _votoRepo.UpdateAsync(votoExistente);
-            }
-            else if (puntos > 0)
-            {
-                var nuevoVoto = new Voto(criterio.Id, puntos, correo, idProyecto, criterio, proyecto, rol);
-                nuevoVoto.IdRol = evento.Id;
-                proyecto.Votos ??= new List<Voto>();
-                rol.Votos ??= new List<Voto>();
-                proyecto.Votos.Add(nuevoVoto);
-                rol.Votos.Add(nuevoVoto);
-                await _votoRepo.AddAsync(nuevoVoto);
-                await _proyectoRepo.UpdateAsync(proyecto);
-                await _rolRepo.UpdateAsync(rol);
-            }
-
-            await _uow.SaveChangesAsync();
+            await strategy.Votar(
+                evento,
+                idProyecto,
+                idCriterio,
+                valor,
+                correo);
         }
 
         public async Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto)
@@ -759,22 +576,12 @@ namespace Votify.LógicaNegocio.Services
 
         private double CalcularPuntajeTotal(long idPr, List<Criterio> criterios, List<Voto> votosTotales, TipoVotacion tipo)
         {
-            double total = 0;
-            var votosProyecto = votosTotales.Where(v => v.IdProyectoGru == idPr).ToList();
+            var strategy = _strategyFactory.Crear(tipo);
 
-            foreach (var crit in criterios)
-            {
-                var vCrit = votosProyecto.Where(v => v.IdCriterio == crit.Id).ToList();
-                double valorCrudo = 0;
-
-                if (tipo == TipoVotacion.Simple) valorCrudo = (double)vCrit.Count;
-                else if (tipo == TipoVotacion.Nota) valorCrudo = vCrit.Any() ? vCrit.Average(v => (double)(v.Nota ?? 0)) : 0;
-                else if (tipo == TipoVotacion.Puntos) valorCrudo = vCrit.Sum(v => (double)(v.Nota ?? 0));
-
-                // Solo multiplicamos por el peso del criterio
-                total += valorCrudo * ((double)crit.Ponderacion / 100.0);
-            }
-            return total;
+            return strategy.CalcularPuntajeTotal(
+                idPr,
+                criterios,
+                votosTotales);
         }
 
         public async Task<bool> ValidarPasswordEvento(long eventoId, string password)
