@@ -463,7 +463,8 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (!evento.GetEstado().PuedeVotarExperto())
                 {
-                    throw new ValidationException("Solo se puede realizar la votación experta durante la fase de votación experta.");
+                    throw new ValidationException("Solo se puede realizar la votación experta " +
+                        "durante la fase de votación experta.");
                 }
             }
             else

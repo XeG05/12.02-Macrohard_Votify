@@ -25,3 +25,4 @@ namespace Votify.LógicaNegocio.Estado.States
         public bool PuedeReclamar() => false;
     }
 }
+
