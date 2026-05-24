@@ -2,7 +2,7 @@
 using Votify.LógicaNegocio.Estado.Interfaz;
 using Votify.Persistencia.Entities;
 
-namespace Votify.LógicaNegocio.Estado
+namespace Votify.LógicaNegocio.Estado.States
 {
     public class EstadoResultados : IEstadoEvento
     {

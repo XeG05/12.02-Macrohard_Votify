@@ -2,25 +2,25 @@
 using Votify.LógicaNegocio.Estado.Interfaz;
 using Votify.Persistencia.Entities;
 
-namespace Votify.LógicaNegocio.Estado
+namespace Votify.LógicaNegocio.Estado.States
 {
-    public class EstadoVotacionExperta : IEstadoEvento
+    public class EstadoInscripciones : IEstadoEvento
     {
-        public FasesEvento Fase => FasesEvento.VotacionExperta;
+        public FasesEvento Fase => FasesEvento.Inscripciones;
 
         public void ManejarFase(Evento evento)
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
-            if (hoy > evento.FechaFinVotacionExperta)
+            if (hoy > evento.FechaFinInscripciones)
             {
-                evento.SetEstado(new EstadoResultados());
+                evento.SetEstado(new EstadoEntregas());
             }
         }
 
         public bool PuedeEntregarProyecto() => false;
         public bool PuedeVotarPopular() => false;
-        public bool PuedeVotarExperto() => true;
+        public bool PuedeVotarExperto() => false;
         public bool PuedeVerResultados() => false;
         public bool PuedeReclamar() => false;
     }
