@@ -1,5 +1,5 @@
 /* Reset y Base */
-.ejc-wrapper {
+.ejp-wrapper {
     max-width: 1000px;
     margin: 0 auto;
     padding: 2rem;
@@ -11,7 +11,7 @@
 /* ========================================================
    ESTADOS DE CARGA Y ALERTAS
 ======================================================== */
-.ejc-loading-state {
+.ejp-loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -20,25 +20,25 @@
     color: #6b7280;
 }
 
-.ejc-spinner {
+.ejp-spinner {
     width: 32px;
     height: 32px;
     border: 3px solid #e5e7eb;
     border-top-color: #3b82f6; /* Color azul jurado */
     border-radius: 50%;
-    animation: ejc-spin 0.8s linear infinite;
+    animation: ejp-spin 0.8s linear infinite;
 }
 
-@keyframes ejc-spin {
+@keyframes ejp-spin {
     to { transform: rotate(360deg); }
 }
 
-.ejc-alert {
+.ejp-alert {
     padding: 1rem;
     border-radius: 8px;
     font-weight: 500;
 }
-.ejc-alert-error {
+.ejp-alert-error {
     background-color: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fecaca;
@@ -47,21 +47,16 @@
 /* ========================================================
    HERO (Cabecera de Categoría)
 ======================================================== */
-.ejc-hero {
+.ejp-hero {
     position: relative;
     overflow: hidden;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
     border-radius: 24px;
     background: linear-gradient(135deg, #0f172a 0%, #111827 35%, #1f2937 100%);
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 1.6rem 1.75rem 1.8rem;
-    color: white;
 }
 
-.ejc-hero::before {
+.ejp-hero::before {
     content: "";
     position: absolute;
     top: -80px;
@@ -72,7 +67,7 @@
     pointer-events: none;
 }
 
-.ejc-hero::after {
+.ejp-hero::after {
     content: "";
     position: absolute;
     bottom: -70px;
@@ -83,82 +78,80 @@
     pointer-events: none;
 }
 
-.ejc-hero-left {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+.ejp-hero-content {
     position: relative;
     z-index: 1;
-}
-
-.ejc-btn-volver {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    padding: 0;
-    margin-top: 0.2rem;
-    transition: color 0.15s ease, transform 0.15s ease;
-}
-
-.ejc-btn-volver:hover {
-    color: white;
-    transform: translateX(-2px);
-}
-
-.ejc-hero-text h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: clamp(1.9rem, 3vw, 2.5rem);
-    font-weight: 800;
-    line-height: 1.08;
+    padding: 1.6rem 1.75rem 1.8rem;
     color: white;
 }
 
-.ejc-hero-text .ejc-eyebrow {
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 999px;
-    padding: 0.3rem 0.65rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.55rem;
-    display: inline-block;
-}
-
-.ejc-hero-text p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.78);
-    line-height: 1.6;
-    max-width: 700px;
-    font-size: 1rem;
-}
-
-.ejc-hero-right {
+.ejp-hero-top {
     display: flex;
-    align-items: flex-end;
-    align-self: stretch;
-    justify-content: flex-end;
-    position: relative;
-    z-index: 1;
+    justify-content: space-between;
+    gap: 1.25rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+    min-height: 180px; 
 }
 
-.ejc-progress-pill {
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
-    border-radius: 999px;
-    padding: 0.55rem 0.9rem;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: white;
+.ejp-hero-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: stretch;
+    gap: 0.7rem;
+    height: auto; 
+}
+
+.ejp-role-badge,
+.ejp-role-badge-white,
+.ejp-status-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
+    min-height: 28px;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
     white-space: nowrap;
+    text-align: center;
+}
+
+.ejp-role-badge {
+    color: white;
+    background: linear-gradient(135deg, #a855f7, #c084fc);
+    box-shadow: 0 10px 24px rgba(168, 85, 247, 0.25);
+}
+
+.ejp-role-badge-white {
+    color: #111827;
+    background: white;
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.25);
+}
+
+.ejp-status-badge {
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+.ejp-status-badge.is-ok {
+    background: rgba(34, 197, 94, 0.16);
+    border-color: rgba(34, 197, 94, 0.28);
+}
+
+.ejp-status-badge.is-pending {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.28);
+}
+
+.ejp-breadcrumb span {
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+.ejp-breadcrumb span[cursor="pointer"]:hover {
+    color: white;
+    transform: translateX(-2px);
 }
 
 /* ========================================================
@@ -294,14 +287,7 @@
     background-color: #f3f4f6;
     border-color: #6b7280;
     color: #111827;
-}
-
-.jur-accordion-item {
-    border: 1px solid #6fce1a;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    background-color: #fff;
-    margin-bottom: 0.5rem;
+}    margin-bottom: 0.5rem;
     padding-bottom = 10rem;
 }
 

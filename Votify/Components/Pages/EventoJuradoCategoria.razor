@@ -7,104 +7,83 @@
 
 @if (cargando)
 {
-    <div class="ejc-loading-state">
-        <div class="ejc-spinner"></div>
+    <div class="ejp-loading-state">
+        <div class="ejp-spinner"></div>
         <p>Cargando información de la categoría...</p>
     </div>
 }
 else if (!string.IsNullOrWhiteSpace(error))
 {
-    <div class="ejc-wrapper">
-        <div class="ejc-alert ejc-alert-error">@error</div>
+    <div class="ejp-wrapper">
+        <div class="ejp-alert ejp-alert-error">@error</div>
     </div>
 }
 else if (eventoNombre != "" && categoria != null)
 {
-    <div class="ejc-wrapper">
+    <div class="ejp-wrapper">
 
-        <!-- Hero/Header de la Categoria -->
-        <div class="ejc-hero">
-            <div class="ejc-hero-left">
-                <div style="
-            display:flex;
-            align-items:center;
-            gap:10px;
-            flex-wrap:wrap;
-            margin-bottom:18px;
-            color:#cbd5e1;
-            font-size:0.95rem;">
+        <!-- Hero/Header de la Categoria copiando EventoJuradoPagPrincipal -->
+        <div class="ejp-hero">
+            <div class="ejp-hero-content">
+                <div class="ejp-hero-top">
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+                        <div class="ejp-breadcrumb" style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap; margin-bottom:18px; color:#cbd5e1; font-size:0.95rem; overflow:hidden; cursor:default;">
+                            <span @onclick='() => Nav.NavigateTo("/home")' style="cursor:pointer; flex-shrink: 0;">Home</span>
+                            <span style="display: flex; align-items: center; flex-shrink: 0; cursor:default;">›</span>
+                            <span @onclick='() => Nav.NavigateTo($"/eventojurado/{EventoId}")' style="cursor:pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;">
+                                @eventoNombre
+                            </span>
+                            <span style="display: flex; align-items: center; flex-shrink: 0; cursor:default;">›</span>
+                            <span style="color:white; font-weight:600; flex-shrink: 0; cursor:default;">
+                                Categoría
+                            </span>
+                        </div>
 
-                    <span @onclick='() => Nav.NavigateTo("/home")'
-                          style="cursor:pointer;">
-                        Home
-                    </span>
+                        <span style="display:inline-block; padding: 4px 10px; background: rgba(255,255,255,0.15); border-radius: 6px; font-size: 0.85rem; font-weight: 600; width: fit-content; margin-bottom: 5px; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px;">
+                            @eventoNombre
+                        </span>
+                        <h1 style="margin: 0; font-size: 2.2rem; color: white;">@categoria.Nombre</h1>
+                    </div>
 
-                    <span>›</span>
+                    <div style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                        <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">@categoria.Descripcion</p>
+                    </div>
 
-                    <span @onclick='() => Nav.NavigateTo($"/eventojurado/{EventoId}")'
-                          style="cursor:pointer;">
-                        @eventoNombre
-                    </span>
+                    <div class="ejp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                        <span class="ejp-role-badge">Jurado</span>
+                        <span class="ejp-role-badge-white">Panel de categoría</span>
 
-                    <span>›</span>
+                        <span class="ejp-status-badge @(categoria.ProyectosRevisados == categoria.ProyectosTotales ? "is-ok" : "is-pending")">
+                            Revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales
+                        </span>
 
-                    <span style="color:white;font-weight:600;">
-                        @categoria.Nombre
-                    </span>
-
-                </div>
-                <div class="ejc-hero-text">
-                    <div class="ejc-eyebrow">@eventoNombre</div>
-                    <h1>@categoria.Nombre</h1>
-                    <p>@categoria.Descripcion</p>
-                </div>
-            </div>
-
-            <div class="ejc-hero-right">
-                <div class="ejc-progress-pill">
-                    <span class="ejc-progress-text">Proyectos revisados: @categoria.ProyectosRevisados/@categoria.ProyectosTotales</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="jur-accordion-item">
-            <div class="jur-accordion-header" @onclick="() => ToggleAccordion()">
-                <h3>Jurado</h3>
-                <button class="jur-accordion-btn">
-                    @if (isExpanded)
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                        </svg>
-                    }
-                    else
-                    {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
-                        </svg>
-                    }
-                </button>
-            </div>
-
-            @if (isExpanded)
-            {
-                <div class="jur-accordion-body">
-                    @if (Jurados != null && Jurados.Any())
-                    {
-                        @foreach (var jurado in Jurados)
+                        @if (categoria.ProyectosTotales - categoria.ProyectosRevisados > 0)
                         {
-                            <div class="jurado-box">
-                                <p>@jurado</p>
-                            </div>
+                            <span class="ejp-status-badge is-pending">
+                                @(categoria.ProyectosTotales - categoria.ProyectosRevisados) proyectos sin revisar
+                            </span>
                         }
-                    }
-                    else
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Jurados != null && Jurados.Any())
+        {
+            <div style="margin-bottom:25px; margin-top:20px; background:#f1f5f9; padding:16px; border-radius:12px; border:1px solid #e2e8f0;">
+
+                <h3 style="margin-bottom:10px; margin-top:0;"> Jurados de esta categoría</h3>
+
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                    @foreach (var jurado in Jurados)
                     {
-                        <p class="jur-no-comments">Error cargando los jurados.</p>
+                        <span style="background:#2563eb; color:white; padding:6px 12px; border-radius:999px; font-size:13px;">
+                            @jurado
+                        </span>
                     }
                 </div>
-            }
-        </div>
+            </div>
+        }
 
         <div style="display:flex;align-items:center;">
             <h2 class="ejc-section-title">Proyectos</h2>
@@ -175,7 +154,6 @@ else if (eventoNombre != "" && categoria != null)
     [Parameter] public long CategoriaId { get; set; }
 
     private bool cargando = true;
-    private bool isExpanded = false;
     private string error = "";
 
     private class EventoNombreResponse { public string Nombre { get; set; } = string.Empty; }
@@ -211,11 +189,6 @@ else if (eventoNombre != "" && categoria != null)
         {
             cargando = false;
         }
-    }
-
-    private void ToggleAccordion()
-    {
-        isExpanded = !isExpanded;
     }
 
     private void VolverAlEvento()
