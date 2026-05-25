@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pasos para ejecutar Votify</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; color: #222; line-height: 1.5; font-size: 11pt; }
+  h1 { font-size: 22pt; border-bottom: 2px solid #2563eb; padding-bottom: 6px; color: #1e3a8a; }
+  h2 { font-size: 14pt; color: #1e3a8a; margin-top: 22px; }
+  h3 { font-size: 12pt; color: #374151; margin-top: 16px; margin-bottom: 6px; }
+  code, pre { font-family: "Consolas", "Courier New", monospace; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 12px 14px; border-radius: 6px; font-size: 10pt; white-space: pre-wrap; word-break: break-all; }
+  code { background: #f1f5f9; color: #0f172a; padding: 1px 5px; border-radius: 4px; font-size: 10pt; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; margin: 10px 0; border-radius: 4px; font-size: 10pt; }
+  .tip  { background: #dbeafe; border-left: 4px solid #2563eb; padding: 8px 12px; margin: 10px 0; border-radius: 4px; font-size: 10pt; }
+  .warn { background: #fee2e2; border-left: 4px solid #dc2626; padding: 8px 12px; margin: 10px 0; border-radius: 4px; font-size: 10pt; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 10pt; }
+  th, td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
+  th { background: #f3f4f6; }
+  hr { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+  .footer { text-align: center; color: #6b7280; font-size: 9pt; margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<h1>Pasos para ejecutar Votify</h1>
+<p>Desde la raíz del proyecto (<code>12.02-Macrohard_Votify</code>), en PowerShell.</p>
+
+<h2>1. Construir la imagen <span style="font-weight:normal;color:#6b7280;font-size:10pt;">(solo si cambiaste código)</span></h2>
+<pre><code>docker build -t votify .</code></pre>
+<p>Si no tocaste nada del código desde la última vez, <strong>salta este paso</strong>.</p>
+
+<h2>2. Levantar el túnel de Cloudflare primero</h2>
+<pre><code>cloudflared tunnel --url http://localhost:10000</code></pre>
+<p>Te dará una URL tipo <code>https://xxxx-xxxx-xxxx-xxxx.trycloudflare.com</code>. <strong>Cópiala</strong>, la necesitas en el siguiente paso.</p>
+<div class="tip"><strong>Importante:</strong> deja esa ventana abierta mientras quieras que el túnel esté activo. Si la cierras o haces Ctrl+C, el túnel se cae.</div>
+
+<h2>3. Arrancar el contenedor con la URL del túnel</h2>
+<p>Pasa la URL como variable de entorno <code>App__Url</code> (doble guión bajo) para que las invitaciones por email se generen con esa URL en vez de <code>localhost:7001</code>:</p>
+<pre><code>docker rm -f votify
+docker run -d --name votify -p 10000:10000 `
+  -e App__Url="https://xxxx-xxxx-xxxx-xxxx.trycloudflare.com" `
+  votify</code></pre>
+<div class="warn"><strong>Sustituye</strong> <code>https://xxxx-xxxx-xxxx-xxxx.trycloudflare.com</code> por la URL real que te dio cloudflared en el paso 2. Cada vez que relances el túnel, la URL cambia y hay que volver a hacer este paso.</div>
+<div class="note">Si te dice que el nombre <code>votify</code> ya existe, el <code>docker rm -f votify</code> lo elimina antes de crearlo de nuevo.</div>
+
+<h2>4. Verificar</h2>
+<p>Abre <code>http://localhost:10000</code> en tu navegador para confirmar que el contenedor responde, y la URL <code>https://xxxx-xxxx-xxxx-xxxx.trycloudflare.com</code> desde cualquier otro dispositivo para confirmar el acceso externo.</p>
+<pre><code>curl http://localhost:10000</code></pre>
+
+<hr>
+
+<h2>Cuando termines</h2>
+<pre><code># Detén el túnel: Ctrl+C en la ventana de cloudflared
+
+# Detén el contenedor
+docker stop votify</code></pre>
+<p>Para volver a arrancarlo sin reconstruir, basta con:</p>
+<pre><code>docker start votify</code></pre>
+<div class="warn"><strong>Ojo:</strong> <code>docker start</code> reutiliza la <code>App__Url</code> que pusiste al hacer <code>docker run</code>. Si lanzas un túnel nuevo (URL distinta), tienes que volver a <code>docker rm -f votify</code> y <code>docker run</code> con la URL nueva — un <code>docker start</code> no actualizará la URL.</div>
+
+<hr>
+
+<h2>Comandos de utilidad</h2>
+<table>
+  <thead><tr><th>Comando</th><th>Para qué sirve</th></tr></thead>
+  <tbody>
+    <tr><td><code>docker ps</code></td><td>Ver contenedores corriendo</td></tr>
+    <tr><td><code>docker logs -f votify</code></td><td>Ver logs en vivo</td></tr>
+    <tr><td><code>docker stop votify</code></td><td>Detener el contenedor</td></tr>
+    <tr><td><code>docker start votify</code></td><td>Reanudar sin reconstruir (mantiene la URL del túnel anterior)</td></tr>
+    <tr><td><code>docker rm -f votify</code></td><td>Eliminar (forzado) — necesario antes de cambiar la URL del túnel</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">Votify — Guía de ejecución local + túnel Cloudflare</div>
+
+</body>
+</html>
