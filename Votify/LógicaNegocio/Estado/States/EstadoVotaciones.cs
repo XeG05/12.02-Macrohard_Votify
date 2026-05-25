@@ -23,6 +23,7 @@ namespace Votify.LógicaNegocio.Estado.States
         public bool PuedeVotarExperto() => false;
         public bool PuedeVerResultados() => false;
         public bool PuedeReclamar() => false;
+        public bool PuedeVerResultadosPopularesJurado() => true;
     }
 }
 

@@ -510,7 +510,7 @@ namespace Votify.LógicaNegocio.Services
             var categoria = proyectoApp.IdGrupoNavigation.IdCategoriaNavigation;
             var evento = await _eventoRepo.GetByIdAsync(categoria.IdEvento)
                 ?? throw new NotFoundException("Evento no encontrado.");
-            if (!evento.GetEstado().PuedeVerResultados())
+            if (!evento.GetEstado().PuedeVerResultados() && !evento.GetEstado().PuedeVerResultadosPopularesJurado())
             {
                 throw new ValidationException("Los resultados aún no están disponibles.");
             }

@@ -14,5 +14,6 @@ namespace Votify.LógicaNegocio.Estado.Interfaz
         bool PuedeVotarExperto();
         bool PuedeVerResultados();
         bool PuedeReclamar();
+        bool PuedeVerResultadosPopularesJurado();
     }
 }
