@@ -169,12 +169,13 @@ else
             @foreach (var cat in dto.Categorias)
             {
                 <div class="categoria-container" @key="cat">
+                    <button type="button" class="btn-eliminar-cat" @onclick="() => EliminarCategoria(cat)">✕ Eliminar Categoría</button>
                     <div class="categorias">
                         <input type="text" placeholder="Nombre categoría"
                                @bind="cat.Nombre" />
                         <input type="text" placeholder="Descripción"
                                @bind="cat.Descripcion" />
-                        <div Class="votos">
+                        <div class="votos" style="background-color: transparent;">
                             <label>
                                 Voto popular %
                                 <input type="number" min="0" max="100"
@@ -185,9 +186,11 @@ else
                                 <input type="number" min="0" max="100"
                                        @bind="cat.PonderacionExperto" style="width:70px;" />
                             </label>
-                            <label>
+                        </div>
+                        <div style="margin-top:10px; margin-bottom: 5px;">
+                            <label style="font-weight: 500;">
                                 Evaluación de criterios %
-                                <span style="margin-left:8px; color:#666;">
+                                <span style="margin-left:8px; color:#666; font-weight: normal;">
                                     Los criterios deben sumar 100%
                                 </span>
                             </label>
@@ -199,18 +202,20 @@ else
                                        @bind="crit.Nombre" />
                                 <input type="text" placeholder="Descripción"
                                        @bind="crit.Descripcion" />
-                                <input type="number"
-                                       min="0"
-                                       max="100"
-                                       placeholder="Pond %"
-                                       @bind="crit.Ponderacion"
-                                       style="width:70px;" />
-                                <span>%</span>
-                                <button type="button" @onclick="() => EliminarCriterio(cat, crit)">✕</button>
+                                <div style="display:flex; align-items:center;">
+                                    <input type="number"
+                                           min="0"
+                                           max="100"
+                                           placeholder="Pond %"
+                                           @bind="crit.Ponderacion"
+                                           style="width:70px; margin-right:5px;" />
+                                    <span>%</span>
+                                </div>
+                                <button type="button" class="btn-eliminar-crit" @onclick="() => EliminarCriterio(cat, crit)">✕</button>
                             </div>
                         }
                         <button type="button" @onclick="() => AñadirCriterio(cat)"
-                                style="width:fit-content;margin-left:16px;">
+                                style="width:fit-content;margin-bottom: 20px;">
                             + Añadir criterio
                         </button>
                         <div class="participantes">
@@ -224,10 +229,9 @@ else
                                                @bind="grupo.Nombre" />
                                         <button type="button"
                                                 @onclick="() => EliminarGrupo(cat, grupo)">
-                                            ✕
+                                            ✕ Eliminar Grupo
                                         </button>
                                     </div>
-                                    <hr />
                                     @for (int i = 0; i < grupo.CorreosParticipantes.Count; i++)
                                     {
                                         var idx = i;
@@ -241,7 +245,7 @@ else
                                     }
                                 </div>
                             }
-                            <button type="button" @onclick="() => AñadirGrupo(cat)">
+                            <button type="button" style="width:fit-content;" @onclick="() => AñadirGrupo(cat)">
                                 + Añadir Grupo
                             </button>
                         </div>
@@ -259,15 +263,14 @@ else
                                     <button type="button" @onclick="() => EliminarJurado(cat, idx)">✕</button>
                                 </div>
                             }
-                            <button type="button" @onclick="() => AñadirJurado(cat)">
+                            <button type="button" style="width:fit-content;" @onclick="() => AñadirJurado(cat)">
                                 + Añadir Jurado
                             </button>
                         </div>
                     </div>
-                    <button type="button" @onclick="() => EliminarCategoria(cat)">✕</button>
                 </div>
             }
-            <button type="button" @onclick="AñadirCategoria">+ Añadir Categoría</button>
+            <button type="button" style="width:fit-content" @onclick="AñadirCategoria">+ Añadir Categoría</button>
         </div>
         <hr />
         <div class="actions">

@@ -16,164 +16,162 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <!-- PANCARTA -->
-    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
-
-        <div style="
-        display:flex;
-        align-items:center;
-        gap:10px;
-        flex-wrap:wrap;
-        margin-bottom:18px;
-        color:#cbd5e1;
-        font-size:0.95rem;">
-
-            <span @onclick='() => Nav.NavigateTo("/home")'
-                  style="cursor:pointer;">
-                Home
-            </span>
-
-            <span>›</span>
-
-            <span @onclick='() => Nav.NavigateTo($"/eventoadmin/{EventoId}")'
-                  style="cursor:pointer;">
-                @evento?.Nombre
-            </span>
-
-            <span>›</span>
-
-            <span style="color:white;font-weight:600;">
-                Categoría
-            </span>
-
-        </div>
-
-        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
-        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
-
-        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
-            Fase actual: @faseActual?.Fase
-        </span>
-    </div>
-
-    <!-- CATEGORÍA -->
-    <div style="margin-bottom:25px;">
-        <h2>@categoria?.Nombre</h2>
-        <p>@categoria?.Descripcion</p>
-    </div>
-
-    @if (categoria?.CorreosJurados != null && categoria.CorreosJurados.Any())
-    {
-        <div style="margin-bottom:25px;
-                        background:#f1f5f9;
-                        padding:16px;
-                        border-radius:12px;
-                        border:1px solid #e2e8f0;">
-
-            <h3 style="margin-bottom:10px;"> Jurados de esta categoría</h3>
-
-            <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                @foreach (var jurado in categoria.CorreosJurados)
-                {
-                    <span style="background:#2563eb;
-                                         color:white;
-                                         padding:6px 12px;
-                                         border-radius:999px;
-                                         font-size:13px;">
-                        @jurado
-                    </span>
-                }
-            </div>
-        </div>
-    }
-
-    @if (faseActual?.Fase == "Inscripciones")
-    {
-        <button @onclick="CrearGrupo"
-                style="background:#16a34a;color:white;border:none;padding:10px 16px;border-radius:10px;margin-bottom:20px;">
-            + Añadir grupo
-        </button>
-    }
-
-    <!-- GRUPOS -->
-    @foreach (var g in grupos)
-    {
-        <div style="border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin-bottom:16px;">
-
-            <!-- NOMBRE -->
-            <div style="display:flex;align-items:center;gap:10px;">
-
-                <input type="text"
-                       @bind="g.Nombre"
-                       disabled="@(faseActual?.Fase != "Inscripciones")"
-                       style="font-weight:bold;font-size:16px;" />
-
-                @if (faseActual?.Fase == "Inscripciones")
-                {
-                    <button @onclick="() => GuardarNombreGrupo(g)"
-                            style="background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:8px;">
-                        Guardar nombre
-                    </button>
-
-                    <button @onclick="() => EliminarGrupo(g.Id)"
-                            style="background:#dc2626;color:white;border:none;padding:6px 10px;border-radius:8px;">
-                        ✕
-                    </button>
-                }
-            </div>
-
-            <hr />
-
-            <!-- PARTICIPANTES -->
-            @if (faseActual?.Fase == "Inscripciones")
-            {
-                @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
-                {
-                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-
-                        <input type="text"
-                               value="@item.value"
-                               @oninput='e => g.CorreosParticipantes[item.index] = e.Value?.ToString() ?? ""'
-                               style="width:260px;" />
-
-                        <button @onclick="() => EliminarParticipante(g, item.index)">
-                            ❌
-                        </button>
-
-                        @if (item.value == "Invitación Pendiente")
-                        {
-                            <span style="color:#d97706;font-size:13px;">
-                                Invitación enviada
+    <!-- PANCARTA HERO -->
+    <div class="ejp-wrapper">
+        <div class="ejp-hero">
+            <div class="ejp-hero-content">
+                <div class="ejp-hero-top">
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; color:#cbd5e1; font-size:0.95rem;">
+                            <span @onclick='() => Nav.NavigateTo("/home")' style="cursor:pointer;" class="ejp-breadcrumb">
+                                Home
                             </span>
+                            <span style="display: flex; align-items: center; margin-bottom: 1rem;">›</span>
+                            <span @onclick='() => Nav.NavigateTo($"/eventoadmin/{EventoId}")' style="cursor:pointer;" class="ejp-breadcrumb">
+                                @evento?.Nombre
+                            </span>
+                            <span style="display: flex; align-items: center; margin-bottom: 1rem;">›</span>
+                            <span style="color:white;font-weight:600; margin-bottom: 1rem;">
+                                Categoría
+                            </span>
+                        </div>
+
+                        <span style="display:inline-block; padding: 4px 10px; background: rgba(255,255,255,0.15); border-radius: 6px; font-size: 0.85rem; font-weight: 600; width: fit-content; margin-bottom: 5px;">
+                            @evento?.Nombre
+                        </span>
+                        <h1 style="margin: 0; font-size: 2.2rem;">@categoria?.Nombre</h1>
+
+                        <div style="display: flex; gap: 0.65rem;">
+                            @if (evento != null)
+                            {
+                                <span class="ejp-phase-pill @GetFaseClass(evento)">@GetFaseLabel(evento)</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="ejp-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                        <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">@categoria?.Descripcion</p>
+                    </div>
+
+                    <div class="ejp-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1rem; margin-left: 1rem;">
+                        <span class="ejp-role-badge">Administrador</span>
+                        <span class="ejp-role-badge-white">Panel de categoría</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (categoria?.CorreosJurados != null && categoria.CorreosJurados.Any())
+        {
+            <div style="margin-bottom:25px;
+                            background:#f1f5f9;
+                            padding:16px;
+                            border-radius:12px;
+                            border:1px solid #e2e8f0;">
+
+                <h3 style="margin-bottom:10px;"> Jurados de esta categoría</h3>
+
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                    @foreach (var jurado in categoria.CorreosJurados)
+                    {
+                        <span style="background:#2563eb;
+                                             color:white;
+                                             padding:6px 12px;
+                                             border-radius:999px;
+                                             font-size:13px;">
+                            @jurado
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (faseActual?.Fase == "Inscripciones")
+        {
+            <button class="btn-secundario" @onclick="CrearGrupo" style="margin-bottom:20px;">
+                + Añadir grupo
+            </button>
+        }
+
+        <!-- GRUPOS -->
+        @foreach (var g in grupos)
+        {
+            <div class="grup-container">
+
+                <!-- NOMBRE Y ACCIONES -->
+                <div class="grup-sup">
+
+                    <input type="text"
+                           @bind="g.Nombre"
+                           disabled="@(faseActual?.Fase != "Inscripciones")"
+                           class="input input-grupo"
+                           style="margin-right: 15px;" />
+
+                    @if (faseActual?.Fase == "Inscripciones")
+                    {
+                        <div style="display: flex; gap: 8px; flex-wrap: nowrap; align-items:center; flex-shrink: 0;">
+                            <button class="btn-secundario" @onclick="() => GuardarNombreGrupo(g)" style="white-space: nowrap;">
+                                Cambiar nombre
+                            </button>
+
+                            <div style="width: 25px;"></div> <!-- Pequeño espacio -->
+
+                            <button class="btn-secundario btn-primario" @onclick="() => GuardarGrupo(g)" style="white-space: nowrap; font-weight: 600;">
+                                💾 Guardar Todo
+                            </button>
+                            <button class="btn-eliminar" @onclick="() => EliminarGrupo(g.Id)" style="white-space: nowrap;">
+                                Eliminar grupo
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <!-- PARTICIPANTES -->
+                <div class="participantes" style="padding:15px; background: transparent; border: none;">
+                    @if (faseActual?.Fase == "Inscripciones")
+                    {
+                        @foreach (var item in g.CorreosParticipantes.Select((value, index) => new { value, index }))
+                        {
+                            <div class="participante">
+
+                                <input type="text"
+                                       class="input"
+                                       value="@item.value"
+                                       @oninput='e => g.CorreosParticipantes[item.index] = e.Value?.ToString() ?? ""' />
+
+                                @if (item.value == "Invitación Pendiente")
+                                {
+                                    <span style="color:#d97706;font-size:13px; font-weight:500; white-space:nowrap;">
+                                        Invitación enviada
+                                    </span>
+                                }
+
+                                <button class="btn-eliminar" @onclick="() => EliminarParticipante(g, item.index)" style="flex-shrink:0;">
+                                    ✕
+                                </button>
+
+                            </div>
                         }
 
-                    </div>
-                }
-
-                <button @onclick="() => AñadirParticipante(g)"
-                        style="margin-top:6px;">
-                    + Añadir participante
-                </button>
-
-                <br />
-
-                <button @onclick="() => GuardarGrupo(g)"
-                        style="margin-top:10px;background:#2563eb;color:white;border:none;padding:8px 12px;border-radius:8px;">
-                    💾 Guardar cambios
-                </button>
-            }
-            else
-            {
-                <ul>
-                    @foreach (var p in g.CorreosParticipantes)
-                    {
-                        <li>@p</li>
+                        <div style="padding-left:15px; margin-top:5px;">
+                            <button class="btn-secundario" @onclick="() => AñadirParticipante(g)">
+                                + Añadir participante
+                            </button>
+                        </div>
                     }
-                </ul>
-            }
-
-        </div>
-    }
+                    else
+                    {
+                        <ul style="padding-left:25px; margin-top:5px; color:#555;">
+                            @foreach (var p in g.CorreosParticipantes)
+                            {
+                                <li>@p</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 }
 
 @code {
@@ -367,5 +365,27 @@ else
     void EliminarParticipante(GrupoDto grupo, int index)
     {
         grupo.CorreosParticipantes.RemoveAt(index);
+    }
+
+    private string GetFaseClass(EventoDto ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion-experta";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votacion-experta";
+        return "fase-finalizado";
+    }
+
+    private string GetFaseLabel(EventoDto ev)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        if (hoy <= ev.FechaFinVotExperta) return "En fase de votación experta";   
+        return "Finalizado";
     }
 }

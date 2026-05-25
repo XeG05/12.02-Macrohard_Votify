@@ -36,6 +36,7 @@ namespace Votify.Tests
             var uowMock = new Mock<IUnitOfWork>();
             _emailMock = new Mock<IEmailService>();
             var configMock = new Mock<IConfiguration>();
+            var serviceProviderMock = new Mock<IServiceProvider>();
 
             var adminRepo = new Repository<Administrador>(_context);
             var votanteRepo = new Repository<Votante>(_context);
@@ -67,7 +68,8 @@ namespace Votify.Tests
                 new Repository<Votify.Persistencia.Entities.SintesisJuradoCriterio>(_context),
                 _emailMock.Object,
                 configMock.Object,
-                uowMock.Object
+                uowMock.Object,
+                new Votify.LógicaNegocio.Factory.Votacion.VotacionStrategyFactory(serviceProviderMock.Object)
             );
         }
 

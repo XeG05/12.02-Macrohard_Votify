@@ -57,6 +57,7 @@ namespace Votify.Tests
                 .Returns(Task.CompletedTask);
 
             var configMock = new Mock<IConfiguration>();
+            var serviceProviderMock = new Mock<IServiceProvider>();
 
             return new EventoService(
                 new AdministradorCreator(rolRepo),
@@ -81,7 +82,8 @@ namespace Votify.Tests
                 new Repository<Votify.Persistencia.Entities.SintesisJuradoCriterio>(ctx),
                 emailMock.Object,
                 configMock.Object,
-                uowMock.Object
+                uowMock.Object,
+                new Votify.LógicaNegocio.Factory.Votacion.VotacionStrategyFactory(serviceProviderMock.Object)
             );
         }
 

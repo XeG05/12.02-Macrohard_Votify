@@ -4,208 +4,366 @@
 .main-container {
     display: flex;
     flex-direction:column;
-    margin: 5rem;
+    margin: 3rem auto;
+    max-width: 900px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h3, h4, h6 {
+    color: #333;
+    margin-bottom: 0.5rem;
 }
 
 h3 {
-    margin-top: 1rem;
+    margin-top: 0;
     font-weight: 600;
+}
+
+hr {
+    margin-bottom: 15px;
+    border-top: 1px solid #eee;
 }
 
 .basic-info {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
 }
 
-.input {
-    width: 400px;
+.input, input[type="text"], input[type="password"], input[type="date"], input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.input:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, input[type="number"]:focus {
+    border-color: #6fce1a;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(111, 206, 26, 0.25);
 }
 
 .time-container, .opciones, .participantes, .categorias, .opcionesVotacion {
-    margin-top: 20px;
+    margin-top: 25px;
 }
 
 .categorias {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
-    padding: 8px;
+    gap: 15px;
 }
 
-.categorias > button {
-    margin-top: 5px;
+button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.categoria-container{
-    display:flex;
-    flex-direction: row;
-    margin: 5px;
-    padding: 2px;
-    border: 2px solid black;
+button:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.15);
+    border-color: #bbb;
+}
+
+button[disabled] {
+    background: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    border-color: #dee2e6;
+}
+
+.categoria-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+    padding: 25px;
+    border: 1px solid #dee2e6;
     border-radius: 10px;
+    background-color: #fafafa;
+    position: relative;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.02);
 }
 
-.categoria-container > input {
-    width:90%;
-    margin-left: 10px;
-    border:none;
+.categoria-container .btn-eliminar-cat {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #fff;
+    color: #dc3545;
+    padding: 5px 10px;
+    border: 1px solid #dc3545;
+    transition: all 0.2s;
+    box-shadow: none;
 }
 
-.categoria-container > button {
-    width:10%;
-    background-color: transparent;
-    border:none;
+.categoria-container .btn-eliminar-cat:hover {
+    background: linear-gradient(135deg, #e94b59, #dc3545);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+.categoria-container > .categorias {
+    gap: 15px;
 }
 
 .votos {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.votos label {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #555;
+    gap: 5px;
 }
 
 .criterios {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
-    margin-left: 16px;
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    flex-wrap: wrap;
+    max-width: 100%;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.03);
+}
+
+.criterios .btn-eliminar-crit {
+    background-color: #fff;
+    color: #dc3545;
+    padding: 6px 12px;
+    border: 1px solid #dc3545;
+    transition: all 0.2s;
+    box-shadow: none;
+}
+
+.criterios .btn-eliminar-crit:hover {
+    background: linear-gradient(135deg, #e94b59, #dc3545);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
 }
 
 .time-container > div {
-    margin-top: 8px;
+    margin-top: 10px;
     display: flex;
     flex-direction:column;
     gap: 5px;
 }
 
 .time-container > div > input {
-    width: 200px;
+    max-width: 250px;
 }
 
 .opcionesVotacion > div {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 15px;
 }
 
-    .opcionesVotacion > div > p {
-        margin:8px;
-    }
+.opcionesVotacion > div > p {
+    margin-bottom: 8px;
+    font-weight: 500;
+}
 
-    .opcionesVotacion > div > div {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid black;
-        border-radius: 10px;
-        padding: 5px;
-    }
-
-    .opcionesVotacion > div > div> p {
-        margin: 5px;
-    }
-
-#partvotar {
+.opcionesVotacion > div > div {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: transparent;
 }
 
 .radio-opcion {
     display: flex;
     flex-direction: row;
-    align-items:center;
-    margin-left: 10px;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
-    .radio-opcion > p {
-        margin: 7px;
-    }
+.radio-opcion > p {
+    margin: 0 0 0 10px;
+    font-size: 14px;
+}
 
-    .radio-opcion > input {
-        height: 90%;
-    }
+.radio-opcion > input[type="radio"] {
+    width: auto;
+    cursor: pointer;
+}
 
+.radio-opcion > input[type="number"] {
+    margin-left: 15px;
+    width: 100px;
+}
+
+.checkbox-linea {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.checkbox-linea input[type="checkbox"] {
+    width: auto;
+}
 
 .opciones > div {
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-.opciones > div > p {
-    margin: 8px;
-}
-
-.participantes {
+.participantes, .jurados-categoria {
     width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 5px;
+    gap: 10px;
+    background-color: transparent;
+    padding: 15px 0;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .grup-container {
-    width: 75%;
-    margin-bottom: 10px;
-    padding: 0;
+    width: 100%;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
-    border: 2px solid black;
-    border-radius: 10px;
-}
-
-.grup-container > hr {
-    margin: 0;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.03);
 }
 
 .grup-sup {
     width: 100%;
     display: flex;
+    padding: 10px;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e1e4e8;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-    .grup-sup > input {
-        width: 90%;
-        margin: 5px;
-        border: none;
-    }
+.grup-sup > input {
+    flex-grow: 1;
+    min-width: 150px;
+    margin: 0;
+}
 
-    .grup-sup > button {
-        display: flex;
-        width: 10%;
-        align-items: center;
-        justify-content:center;
-        cursor: pointer;
-        background-color: transparent;
-        border: none;
-        margin: 2px;
-    }
+.grup-sup > button {
+    background-color: #fff;
+    color: #dc3545;
+    padding: 6px 12px;
+    border: 1px solid #dc3545;
+    transition: all 0.2s;
+    box-shadow: none;
+}
 
+.grup-sup > button:hover {
+    background: linear-gradient(135deg, #e94b59, #dc3545);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
 
 .participante {
-    width: 100%;
     display: flex;
     flex-direction: row;
-    margin-top: 2px;
-    padding-left: 5px;
-    height: 30px;
+    padding: 10px 15px;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.participante:last-child {
+    border-bottom: none;
+}
+
+.participante > input {
+    flex-grow: 1;
+    min-width: 150px;
+}
+
+.participante > button {
+    background-color: transparent;
+    color: #dc3545;
+    padding: 6px 12px;
+    border: 1px solid #dc3545;
+    box-shadow: none;
+    transition: all 0.2s;
+}
+
+.participante > button:hover {
+    background: linear-gradient(135deg, #e94b59, #dc3545);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
     align-items: center;
 }
 
-    .participante > p {
-        margin:0;
-        padding: 0;
-    }
+.actions button:first-child {
+    background-color: #fff;
+    color: #495057;
+    border: 1px solid #ced4da;
+    font-weight: 500;
+}
 
-    .participante > button {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        background-color: transparent;
-        border: none;
-        margin-right: 5px;
-    }
+.actions button:first-child:hover {
+    background-color: #f8f9fa;
+    border-color: #b1b5b9;
+}
 
-    .participante > input {
-        border: none;
-        margin-right: 20px;
-        width: 50%;
-    }
+.actions button:last-child {
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+    color: white;
+    font-weight: 600;
+    padding: 10px 24px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(111, 206, 26, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actions button:last-child:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(111, 206, 26, 0.45);
+    background: linear-gradient(135deg, #6fce1a, #a4ec66);
+}
