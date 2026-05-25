@@ -136,14 +136,12 @@
     color: white;
 }
 
-.ejp-status-badge.is-ok {
-    background: rgba(34, 197, 94, 0.16);
-    border-color: rgba(34, 197, 94, 0.28);
-}
-
-.ejp-status-badge.is-pending {
-    background: rgba(245, 158, 11, 0.16);
-    border-color: rgba(245, 158, 11, 0.28);
+    .ejp-status-badge.is-ok,
+    .ejp-status-badge.is-pending {
+        background: rgba(241, 245, 249, 0.12); /* Gris pizarra claro semitransparente */
+        border-color: rgba(241, 245, 249, 0.25); /* Borde gris con un poco más de opacidad */
+        color: #e2e8f0; /* Texto gris muy claro y limpio para excelente contraste */
+    }
 }
 
 .ejp-breadcrumb span {
