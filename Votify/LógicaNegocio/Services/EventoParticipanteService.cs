@@ -138,9 +138,18 @@ namespace Votify.LógicaNegocio.Services
             {
                 if (string.IsNullOrWhiteSpace(request.NombreProyecto))
                     throw new ValidationException("El nombre del proyecto es obligatorio.");
-                
+
                 var evento = await _eventoRepo.GetByIdAsync(request.IdEvento)
                     ?? throw new NotFoundException("Evento no encontrado.");
+
+                // Actualizar la fase del evento justo antes de validar si se puede entregar
+                var faseCambiada = evento.ActualizarFaseSiCorresponde();
+
+                if (faseCambiada)
+                {
+                    await _eventoRepo.UpdateAsync(evento);
+                }
+
                 if (!evento.GetEstado().PuedeEntregarProyecto())
                 {
                     throw new ValidationException("Solo se pueden entregar proyectos durante la fase de entregas.");
