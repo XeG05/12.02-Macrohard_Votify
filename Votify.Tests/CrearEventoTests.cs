@@ -6,6 +6,7 @@ using Votify.LógicaNegocio.DTOs;
 using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Factory.Roles;
+using Votify.LógicaNegocio.Factory.Votacion;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
 using Votify.Persistencia;
@@ -83,7 +84,7 @@ namespace Votify.Tests
                 emailMock.Object,
                 configMock.Object,
                 uowMock.Object,
-                new Votify.LógicaNegocio.Factory.Votacion.VotacionStrategyFactory(serviceProviderMock.Object)
+                new VotacionStrategyFactory(new Mock<IServiceProvider>().Object)
             );
         }
 
