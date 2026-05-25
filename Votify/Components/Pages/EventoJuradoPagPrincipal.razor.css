@@ -535,3 +535,96 @@
         gap: 0.6rem;
     }
 }
+/* ========================================================
+   CUADRO DE ADVERTENCIA (Fase no activa)
+======================================================== */
+.ejp-alert-warning {
+    background-color: #fef3c7; /* Amarillo opaco */
+    border: 2px solid #fbbf24; /* Bordes amarillos sólidos */
+    color: #92400e; /* Texto oscuro para buen contraste */
+    border-radius: 12px; /* Bordes redondeados */
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ========================================================
+   LISTADO DE CATEGORÍAS (Estilo ListaProyectos + Mockup)
+======================================================== */
+.ejp-categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Tarjeta principal basada en evp-proyecto-box */
+.ejp-category-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 1px solid #d1d5db; /* Borde gris clásico */
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+    .ejp-category-card:hover {
+        transform: translateY(-2px);
+        border-color: #9ca3af;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background-color: #f9fafb;
+    }
+
+.ejp-category-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ejp-category-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.ejp-category-desc {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #4b5563;
+}
+
+/* Alineación inferior derecha para la pill (como en el mockup) */
+.ejp-category-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+/* Formato de la etiqueta "Proyectos revisados: X/X" */
+.ejp-progress-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid #9ca3af;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    background-color: #ffffff;
+}
+
+    /* Un toque de color si se completan todos los proyectos (opcional pero recomendado) */
+    .ejp-progress-pill.completado {
+        border-color: #10b981;
+        color: #047857;
+        background-color: rgba(16, 185, 129, 0.08);
+    }
