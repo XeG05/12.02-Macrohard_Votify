@@ -22,18 +22,24 @@ else
             <div class="ejp-hero-content">
                 <div class="ejp-hero-top">
                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
-                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; color:#cbd5e1; font-size:0.95rem;">
-                            <span @onclick='() => Nav.NavigateTo("/home")' style="cursor:pointer;" class="ejp-breadcrumb">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap; margin-bottom:18px; color:#cbd5e1; font-size:0.95rem; overflow:hidden;">
+    
+                            <span @onclick='() => Nav.NavigateTo("/home")' class="ejp-breadcrumb" style="flex-shrink: 0;">
                                 Home
                             </span>
-                            <span style="display: flex; align-items: center; margin-bottom: 1rem;">›</span>
-                            <span @onclick='() => Nav.NavigateTo($"/eventoadmin/{EventoId}")' style="cursor:pointer;" class="ejp-breadcrumb">
+    
+                            <span style="display: flex; align-items: center; flex-shrink: 0;">›</span>
+    
+                            <span @onclick='() => Nav.NavigateTo($"/eventoadmin/{EventoId}")' class="ejp-breadcrumb" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;">
                                 @evento?.Nombre
                             </span>
-                            <span style="display: flex; align-items: center; margin-bottom: 1rem;">›</span>
-                            <span style="color:white;font-weight:600; margin-bottom: 1rem;">
+    
+                            <span style="display: flex; align-items: center; flex-shrink: 0;">›</span>
+    
+                            <span style="color:white; font-weight:600; flex-shrink: 0;">
                                 Categoría
                             </span>
+
                         </div>
 
                         <span style="display:inline-block; padding: 4px 10px; background: rgba(255,255,255,0.15); border-radius: 6px; font-size: 0.85rem; font-weight: 600; width: fit-content; margin-bottom: 5px;">
@@ -116,7 +122,7 @@ else
 
                             <div style="width: 25px;"></div> <!-- Pequeño espacio -->
 
-                            <button class="btn-secundario btn-primario" @onclick="() => GuardarGrupo(g)" style="white-space: nowrap; font-weight: 600;">
+                            <button class="btn-secundario" @onclick="() => GuardarGrupo(g)" style="white-space: nowrap; font-weight: 600;">
                                 💾 Guardar Todo
                             </button>
                             <button class="btn-eliminar" @onclick="() => EliminarGrupo(g.Id)" style="white-space: nowrap;">
