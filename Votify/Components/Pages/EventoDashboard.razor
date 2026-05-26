@@ -15,47 +15,52 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <!-- PANCARTA -->
-    <div style="background:linear-gradient(90deg,#0f172a,#1e293b);color:white;padding:25px;border-radius:18px;margin-bottom:25px;">
+    <div class="dash-wrapper">
+        <div class="dash-hero">
+            <div class="dash-hero-content">
+            <div class="dash-hero-top">
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+                    <div class="dash-breadcrumb">
+                        <span @onclick='() => Nav.NavigateTo("/home")'>Home</span>
+                        <span>›</span>
+                        <span style="color:white;font-weight:600; text-overflow: ellipsis; overflow: hidden;">
+                            @evento?.Nombre
+                        </span>
+                    </div>
+                    
+                    <h1 style="margin: 0; padding-bottom: 0.5rem; font-size: 1.8rem; line-height: 1.2;">
+                        @evento?.Nombre
+                    </h1>
+                    
+                    <div style="display: flex; gap: 0.65rem;">
+                        <span class="dash-phase-pill @GetFaseClass(evento)">
+                            @GetFaseLabel(evento)
+                        </span>
+                    </div>
+                </div>
 
-        <div style="
-                                    display:flex;
-                                    align-items:center;
-                                    gap:10px;
-                                    flex-wrap:wrap;
-                                    margin-bottom:18px;
-                                    color:#cbd5e1;
-                                    font-size:0.95rem;">
+                <div class="dash-descripcion-container" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1.2rem; margin-left: 1rem; flex: 2; display: flex; align-items: flex-start; justify-content: flex-start;">
+                    <p style="margin: 0; max-width: 700px; color: rgba(255,255,255,0.78); font-size: 1rem; line-height: 1.6;">
+                        @evento?.Descripcion
+                    </p>
+                </div>
 
-            <span @onclick='() => Nav.NavigateTo("/home")'
-                  style="cursor:pointer;">
-                Home
-            </span>
-
-            <span>›</span>
-
-            <span style="color:white;font-weight:600;">
-                @evento?.Nombre
-            </span>
-
+                <div class="dash-hero-side" style="border-left: 2px solid rgba(255,255,255,0.2); padding-left: 1.2rem; margin-left: 1rem;">
+                    <span class="dash-role-badge @GetRolClass(rol)">@rol</span>
+                    <span class="dash-role-badge-white">Dashboard</span>
+                </div>
+            </div>
         </div>
-
-        <h1 style="margin-top:12px;">@evento?.Nombre</h1>
-        <p style="color:#cbd5e1;">@evento?.Descripcion</p>
-
-        <span style="background:#2563eb;padding:6px 12px;border-radius:8px;">
-            Fase actual: @faseActual?.Fase
-        </span>
     </div>
+    </div>
+
     <div class="dashboard-container">
 
-        <!-- CABECERA -->
         <div class="header">
             <h1>@evento?.Nombre</h1>
             <p class="sub">Resultados finales del evento</p>
         </div>
 
-        <!-- CATEGORÍAS -->
         @foreach (var categoria in categoriasRanking)
         {
             <div class="categoria-card">
@@ -68,7 +73,6 @@ else
                     var ganador = categoria.Proyectos.First();
                     var resto = categoria.Proyectos.Skip(3).ToList();
 
-                    <!-- GANADOR PRINCIPAL -->
                     <div style="
                 background:white;
                 border-radius:22px;
@@ -77,7 +81,6 @@ else
                 box-shadow:0 10px 30px rgba(0,0,0,0.10);
                 border:1px solid #f3f4f6;">
 
-                        <!-- línea dorada -->
                         <div style="
                     height:8px;
                     background:linear-gradient(90deg,#d4af37,#facc15);">
@@ -134,7 +137,6 @@ else
                         </div>
                     </div>
 
-                    <!-- SEGUNDO Y TERCER PUESTO -->
                     @if (top3.Count > 1)
                     {
                         <div style="
@@ -158,7 +160,6 @@ else
                                     box-shadow:0 8px 24px rgba(0,0,0,0.08);
                                     border:1px solid #f3f4f6;">
 
-                                    <!-- línea superior -->
                                     <div style="
                                         height:7px;
                                         background:@color;">
@@ -210,7 +211,6 @@ else
                         </div>
                     }
 
-                    <!--  RANKING RESTO -->
                     <div class="ranking-list">
 
                         @{
@@ -229,7 +229,6 @@ else
                                     <strong>@item.v.NombreProyecto</strong>
                                     <span>@item.v.NombreGrupo</span>
 
-                                    <!-- barra -->
                                     <div class="barra">
                                         <div class="barra-fill"
                                              style="width:@($"{porcentaje}%")"></div>
@@ -262,7 +261,6 @@ else
             </div>
         }
 
-        <!-- BOTÓN -->
         <div class="volver">
             <button @onclick="IrAVistaOriginal">
                 Volver a mi vista del evento
@@ -361,4 +359,37 @@ else
     {
         Nav.NavigateTo($"/{EventoId}/proyecto/{idProyecto}");
     }
+
+    private string GetFaseClass(EventoDto ev)
+    {
+        if (ev == null) return "fase-finalizado";
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "fase-inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "fase-entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "fase-votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "fase-evaluacion-experta";
+        if (hoy <= ev.FechaFinVotExperta) return "fase-votacion-experta";
+        return "fase-finalizado";
+    }
+
+    private string GetFaseLabel(EventoDto ev)
+    {
+        if (ev == null) return "Finalizado";
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        if (hoy <= ev.FechaFinInscripciones) return "En fase de inscripciones";
+        if (hoy <= ev.FechaFinEntrega) return "En fase de entregas";
+        if (hoy <= ev.FechaFinVotaciones) return "En fase de votaciones";
+        if (hoy <= ev.FechaFinEvaluacionExperta) return "En fase de evaluación experta";
+        if (hoy <= ev.FechaFinVotExperta) return "En fase de votación experta";
+        return "Finalizado";
+    }
+
+    private string GetRolClass(string rol) => rol switch
+    {
+        "Admin" => "rol-admin",
+        "Jurado" => "rol-jurado",
+        "Participante" => "rol-participante",
+        "Votante" => "rol-votante",
+        _ => "rol-default"
+    };
 }
