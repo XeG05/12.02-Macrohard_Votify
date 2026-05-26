@@ -10,5 +10,6 @@
         public int Posicion { get; set; }
 
         public List<ComentarioDto> Comentarios { get; set; } = new();
+        public List<CriterioComentariosDto> SintesisJuradosPorCriterio { get; set; } = new();
     }
 }

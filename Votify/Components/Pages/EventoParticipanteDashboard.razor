@@ -89,31 +89,63 @@ else if (dashboard != null)
         </div>
     </div>
 
-    <!-- COMENTARIOS -->
+    <!-- FEEDBACK -->
     <div style="margin-top:30px; border:1px solid #e5e7eb; border-radius:15px; padding:20px;">
-        <h3>💬 Comentarios recibidos</h3>
+        <h3>💬 Feedback recibido</h3>
 
-        @if (dashboard.Comentarios == null || dashboard.Comentarios.Count == 0)
-        {
-            <p style="color:gray;">No hay comentarios todavía.</p>
-        }
-        else
-        {
-            @foreach (var comentario in dashboard.Comentarios)
-            {
-                <div style="border-bottom:1px solid #eee; padding:12px 0;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px;">
 
-                    <p style="margin:0; font-weight:bold; color:#334155;">
-                        @comentario.Autor
-                    </p>
+            <!-- IZQUIERDA: Comentarios de votantes -->
+            <div style="border:1px solid #e5e7eb; border-radius:12px; padding:16px;">
+                <h4 style="margin-bottom:12px;">Comentarios de los votantes</h4>
 
-                    <p style="margin:5px 0 0 0;">
-                        @comentario.Contenido
-                    </p>
+                @if (dashboard.Comentarios == null || dashboard.Comentarios.Count == 0)
+                {
+                    <p style="color:gray;">No hay comentarios de votantes todavía.</p>
+                }
+                else
+                {
+                    @foreach (var comentario in dashboard.Comentarios)
+                    {
+                        <div style="border-bottom:1px solid #eee; padding:12px 0;">
+                            <p style="margin:0; font-weight:bold; color:#334155;">
+                                @comentario.Autor
+                            </p>
 
-                </div>
-            }
-        }
+                            <p style="margin:5px 0 0 0;">
+                                @comentario.Contenido
+                            </p>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- DERECHA: Síntesis IA de jurados -->
+            <div style="border:1px solid #e5e7eb; border-radius:12px; padding:16px; background:#f8fafc;">
+                <h4 style="margin-bottom:12px;">Comentarios del jurado</h4>
+
+                @if (dashboard.SintesisJuradosPorCriterio == null || dashboard.SintesisJuradosPorCriterio.Count == 0)
+                {
+                    <p style="color:gray;">No hay comentarios de jurados para sintetizar todavía.</p>
+                }
+                else
+                {
+                    @foreach (var criterio in dashboard.SintesisJuradosPorCriterio)
+                    {
+                        <div style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">
+                            <p style="margin:0 0 6px 0; font-weight:bold; color:#1e293b;">
+                                @criterio.NombreCriterio
+                            </p>
+
+                            <p style="margin:0; color:#475569;">
+                                @criterio.Sintesis
+                            </p>
+                        </div>
+                    }
+                }
+            </div>
+
+        </div>
     </div>
 
     <!-- MODAL RECLAMACIÓN -->

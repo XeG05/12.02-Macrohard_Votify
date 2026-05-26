@@ -4,6 +4,7 @@ using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Votify.LógicaNegocio.Services
 {
@@ -20,6 +21,7 @@ namespace Votify.LógicaNegocio.Services
         private readonly IRepository<Administrador> _administradorRepo;
         private readonly IEmailService _emailService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly SíntesisFeedbackService _sintesisFeedbackService;
         private readonly long? _grupoIdActivo;
 
         public EventoParticipanteService(
@@ -34,6 +36,7 @@ namespace Votify.LógicaNegocio.Services
             IRepository<Administrador> administradorRepo,
             IEmailService emailService,
             IUnitOfWork unitOfWork,
+            SíntesisFeedbackService sintesisFeedbackService,
             long? grupoIdActivo = null
         )
         {
@@ -48,6 +51,7 @@ namespace Votify.LógicaNegocio.Services
             _administradorRepo = administradorRepo;
             _emailService = emailService;
             _unitOfWork = unitOfWork;
+            _sintesisFeedbackService = sintesisFeedbackService;
             _grupoIdActivo = grupoIdActivo;
         }
 
@@ -279,9 +283,14 @@ namespace Votify.LógicaNegocio.Services
             if (participante == null)
                 throw new NotFoundException("Participante no encontrado en este evento.");
 
-            var proyecto = (await _proyectoRepo.FindAsync(p => p.IdGrupo == participante.IdGrupo)).FirstOrDefault()
-                    ?? throw new ConflictException("El grupo no tiene proyecto");
-
+            var proyecto = await _proyectoRepo.AsQueryable()
+            .Include(p => p.SintesisCriteriosJurado)
+            .FirstOrDefaultAsync(p => p.IdGrupo == participante.IdGrupo)
+            ?? throw new ConflictException("El grupo no tiene proyecto");
+            var categoria = await _categoriumRepo.AsQueryable()
+            .Include(c => c.Criterios)
+            .FirstOrDefaultAsync(c => c.Id == idCategoria && c.IdEvento == idEvento)
+            ?? throw new NotFoundException("Categoría no encontrada.");
             var grupo = gruposPorId.GetValueOrDefault(proyecto.IdGrupo);
 
             var gruposCategoria = await _grupoRepo.FindAsync(g => g.IdCategoria == idCategoria);
@@ -303,8 +312,53 @@ namespace Votify.LógicaNegocio.Services
             var posicion = ranking.FindIndex(r => r.proyecto.IdGrupo == proyecto.IdGrupo) + 1;
             var totalVotos = votosPorProyecto.GetValueOrDefault(proyecto.Id, 0);
 
-            var comentarios = await _comentarioRepo.FindAsync(c => c.IdProyectoGru == proyecto.Id);
+            var comentariosVotantes = await _comentarioRepo.AsQueryable()
+                .Where(c => c.IdProyectoGru == proyecto.Id && !(c.Rol is Jurado))
+                .ToListAsync();
 
+            var comentariosJurados = await _comentarioRepo.AsQueryable()
+                .Where(c => c.IdProyectoGru == proyecto.Id && c.Rol is Jurado)
+                .ToListAsync();
+            var sintesisJuradosPorCriterio = new List<CriterioComentariosDto>();
+            bool haySintesisNueva = false;
+
+            foreach (var criterio in categoria.Criterios)
+            {
+                var comentariosCriterio = comentariosJurados
+                    .Where(c => c.IdCriterio == criterio.Id)
+                    .Select(c => c.Contenido)
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToArray();
+
+                if (!comentariosCriterio.Any())
+                    continue;
+
+                var sintesisExistente = proyecto.SintesisCriteriosJurado?
+                    .FirstOrDefault(s => s.IdCriterio == criterio.Id);
+
+                if (sintesisExistente == null || string.IsNullOrWhiteSpace(sintesisExistente.Sintesis))
+                {
+                    haySintesisNueva = true;
+                }
+
+                var sintesis = await _sintesisFeedbackService.ObtenerSintesisCriterioAsync(
+                    proyecto,
+                    criterio.Id,
+                    comentariosCriterio);
+
+                sintesisJuradosPorCriterio.Add(new CriterioComentariosDto
+                {
+                    CriterioId = criterio.Id,
+                    NombreCriterio = criterio.Nombre,
+                    Sintesis = sintesis,
+                    Comentarios = new List<string>()
+                });
+            }
+
+            if (haySintesisNueva)
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
             return new DashboardParticipanteDto
             {
                 NombreProyecto = proyecto.Nombre,
@@ -312,11 +366,15 @@ namespace Votify.LógicaNegocio.Services
                 GrupoId = grupo?.Id ?? 0,
                 TotalVotos = totalVotos,
                 Posicion = posicion,
-                Comentarios = comentarios.Select(c => new ComentarioDto
+
+                Comentarios = comentariosVotantes.Select(c => new ComentarioDto
                 {
+                    IdCriterio = c.IdCriterio,
                     Autor = c.CorreoRol ?? "Anónimo",
                     Contenido = c.Contenido
-                }).ToList()
+                }).ToList(),
+
+                SintesisJuradosPorCriterio = sintesisJuradosPorCriterio
             };
         }
         public FasesEvento ObtenerFaseActual(long idEvento)
