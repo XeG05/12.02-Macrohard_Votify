@@ -92,28 +92,32 @@ namespace Votify.LógicaNegocio.Services
             _strategyFactory = strategyFactory;
         }
 
-        public async Task<List<Evento>> GetEventosCreados(string correo)
+        private async Task<List<Evento>> FiltrarEventosAbiertosPorRol<TRol>(IRepository<TRol> repoRol, string correo, HashSet<long>? excluir = null) where TRol : Rol
         {
-            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
-            var eventIds = admins.Select(a => a.IdEvento).ToHashSet();
+            var roles = await repoRol.FindAsync(r => r.CorreoUsuario == correo);
+            var eventIds = roles.Select(r => r.IdEvento)
+                                .Where(id => excluir is null || !excluir.Contains(id))
+                                .ToHashSet();
+
             var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => eventIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
+            return todos.Where(e => eventIds.Contains(e.Id) && e.Estado != "Cerrado").ToList();
         }
+
+        public async Task<List<Evento>> GetEventosCreados(string correo)
+            => await FiltrarEventosAbiertosPorRol(_adminRepo, correo);
 
         public async Task<List<Evento>> GetEventosParticipacion(string correo)
         {
-            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
-            var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
+            var adminEventIds = (await _adminRepo.FindAsync(a => a.CorreoUsuario == correo))
+                                .Select(a => a.IdEvento).ToHashSet();
+            return await FiltrarEventosAbiertosPorRol(_participanteRepo, correo, adminEventIds);
+        }
 
-            var participantes = await _participanteRepo.FindAsync(p => p.CorreoUsuario == correo);
-
-            var participacionIds = participantes
-                .Select(p => p.IdEvento)
-                .Where(id => !adminEventIds.Contains(id))
-                .ToHashSet();
-
-            var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => participacionIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
+        public async Task<List<Evento>> GetEventosJurados(string correo)
+        {
+            var adminEventIds = (await _adminRepo.FindAsync(a => a.CorreoUsuario == correo))
+                                .Select(a => a.IdEvento).ToHashSet();
+            return await FiltrarEventosAbiertosPorRol(_juradoRepo, correo, adminEventIds);
         }
 
         public async Task<List<Evento>> GetEventosDisponibles(string correo)
@@ -131,24 +135,6 @@ namespace Votify.LógicaNegocio.Services
             var todos = await _eventoRepo.GetAllAsync();
             return todos.Where(e => !eventosExcluidos.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
         }
-
-        public async Task<List<Evento>> GetEventosJurados(string correo)
-        {
-            var admins = await _adminRepo.FindAsync(a => a.CorreoUsuario == correo);
-            var adminEventIds = admins.Select(a => a.IdEvento).ToHashSet();
-
-            var jurados = await _juradoRepo.FindAsync(j => j.CorreoUsuario == correo);
-
-            var juradoIds = jurados
-                .Select(j => j.IdEvento)
-                .Where(id => !adminEventIds.Contains(id))
-                .ToHashSet();
-
-            var todos = await _eventoRepo.GetAllAsync();
-            return todos.Where(e => juradoIds.Contains(e.Id)).Where(e => e.Estado != "Cerrado").ToList();
-        }
-
-
 
         public async Task<EntradaEventoDto> EntrarEvento(string correo, long eventoId, long? grupoId = null)
         {
