@@ -17,3 +17,4 @@ namespace Votify.LógicaNegocio.Estado.Interfaz
         bool PuedeVerResultadosPopularesJurado();
     }
 }
+

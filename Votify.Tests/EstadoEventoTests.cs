@@ -33,13 +33,18 @@ namespace Votify.Tests
             bool puedeVotarPopular = false,
             bool puedeVotarExperto = false,
             bool puedeVerResultados = false,
-            bool puedeReclamar = false)
+            bool puedeReclamar = false,
+            bool puedeVerResultadosPopularesJurado = false)
         {
             Assert.AreEqual(puedeEntregarProyecto, estado.PuedeEntregarProyecto(), "Permiso de entrega incorrecto.");
             Assert.AreEqual(puedeVotarPopular, estado.PuedeVotarPopular(), "Permiso de voto popular incorrecto.");
             Assert.AreEqual(puedeVotarExperto, estado.PuedeVotarExperto(), "Permiso de voto experto incorrecto.");
             Assert.AreEqual(puedeVerResultados, estado.PuedeVerResultados(), "Permiso de resultados incorrecto.");
             Assert.AreEqual(puedeReclamar, estado.PuedeReclamar(), "Permiso de reclamación incorrecto.");
+            Assert.AreEqual(
+                puedeVerResultadosPopularesJurado,
+                estado.PuedeVerResultadosPopularesJurado(),
+                "Permiso de resultados populares para jurado incorrecto.");
         }
 
         // ─── Reconstrucción del EstadoConcreto desde FaseActual ─────────────────────
@@ -152,27 +157,39 @@ namespace Votify.Tests
         }
 
         [TestMethod]
-        public void EstadoVotaciones_SoloPermiteVotoPopular()
+        public void EstadoVotaciones_PermiteVotoPopularYVerResultadosPopularesJurado()
         {
-            AssertPermisos(new EstadoVotaciones(), puedeVotarPopular: true);
+            AssertPermisos(
+                new EstadoVotaciones(),
+                puedeVotarPopular: true,
+                puedeVerResultadosPopularesJurado: true);
         }
 
         [TestMethod]
-        public void EstadoEvaluacionExperta_NoPermiteVotarNiVerResultados()
+        public void EstadoEvaluacionExperta_PermiteVerResultadosPopularesJurado()
         {
-            AssertPermisos(new EstadoEvaluacionExperta());
+            AssertPermisos(
+                new EstadoEvaluacionExperta(),
+                puedeVerResultadosPopularesJurado: true);
         }
 
         [TestMethod]
-        public void EstadoVotacionExperta_SoloPermiteVotoExperto()
+        public void EstadoVotacionExperta_PermiteVotoExpertoYVerResultadosPopularesJurado()
         {
-            AssertPermisos(new EstadoVotacionExperta(), puedeVotarExperto: true);
+            AssertPermisos(
+                new EstadoVotacionExperta(),
+                puedeVotarExperto: true,
+                puedeVerResultadosPopularesJurado: true);
         }
 
         [TestMethod]
-        public void EstadoResultados_PermiteVerResultadosYReclamar()
+        public void EstadoResultados_PermiteVerResultadosReclamarYVerResultadosPopularesJurado()
         {
-            AssertPermisos(new EstadoResultados(), puedeVerResultados: true, puedeReclamar: true);
+            AssertPermisos(
+                new EstadoResultados(),
+                puedeVerResultados: true,
+                puedeReclamar: true,
+                puedeVerResultadosPopularesJurado: true);
         }
 
         // ─── Transiciones de fase ───────────────────────────────────────────────────
@@ -279,7 +296,7 @@ namespace Votify.Tests
             Assert.IsTrue(haCambiado);
             Assert.AreEqual(FasesEvento.Resultados, evento.FaseActual);
             Assert.AreEqual("Finalizado", evento.Estado);
-            Assert.IsInstanceOfType<EstadoResultados>(evento.GetEstado());
+            Assert.IsInstanceOfType(evento.GetEstado(), typeof(EstadoResultados));
         }
     }
 }
