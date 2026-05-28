@@ -442,6 +442,8 @@ namespace Votify.LógicaNegocio.Services
                 j.IdEvento == idEvento &&
                 j.CorreoUsuario == correo)).Any();
 
+            ValidarPermisoVotacion(evento, esJurado);
+            /*
             if (esJurado)
             {
                 if (!evento.GetEstado().PuedeVotarExperto())
@@ -456,7 +458,7 @@ namespace Votify.LógicaNegocio.Services
                 {
                     throw new ValidationException("Solo se puede votar durante la fase de votaciones.");
                 }
-            }
+            }*/
 
             if (evento.TipoComentario == TipoComentario.Obligatorio)
             {
@@ -478,6 +480,17 @@ namespace Votify.LógicaNegocio.Services
                 idCriterio,
                 valor,
                 correo);
+        }
+
+        private static void ValidarPermisoVotacion(Evento evento, bool esJurado)
+        {
+            if (esJurado && !evento.GetEstado().PuedeVotarExperto())
+                throw new ValidationException(
+                    "Solo se puede realizar la votación experta durante la fase de votación experta.");
+
+            if (!esJurado && !evento.GetEstado().PuedeVotarPopular())
+                throw new ValidationException(
+                    "Solo se puede votar durante la fase de votaciones.");
         }
 
         public async Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto)

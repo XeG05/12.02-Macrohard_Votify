@@ -109,20 +109,6 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<Proyecto?> ObtenerMiProyecto(string correo, long idEvento, long? grupoIdActivo)
         {
-            // (PABLO) LO QUE HABIA ANTES:
-            /*
-            var participante = await ObtenerRegistroParticipante();
-
-            var categoriasEvento = await ObtenerCategoriasEvento();
-            var idsCategorias = categoriasEvento.Select(c => c.Id).ToHashSet();
-
-            var proyectosGrupo = await _proyectoRepo.FindAsync(p =>
-                p.IdGrupo == participante.IdGrupo);
-
-            return proyectosGrupo.FirstOrDefault(p => idsCategorias.Contains(p.IdCategoria));*/
-
-
-            //LO NUEVO CORREGIDO (CREO):
             var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
 
             return (await _proyectoRepo
@@ -221,29 +207,6 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task EliminarProyecto(string correo, long idEvento, long? grupoIdActivo)
         {
-            //(PABLO) LO QUE HABIA ANTES:
-            /*
-            var participante = await ObtenerRegistroParticipante();
-
-            var categoriasEvento = await ObtenerCategoriasEvento();
-            var idsCategorias = categoriasEvento.Select(c => c.Id).ToHashSet();
-
-            var proyectosGrupo = await _proyectoRepo.FindAsync(p =>
-                p.IdGrupo == participante.IdGrupo);
-
-            var proyectosEvento = proyectosGrupo
-                .Where(p => idsCategorias.Contains(p.IdCategoria))
-                .ToList();
-
-            if (!proyectosEvento.Any())
-                throw new Exception("No hay ningún proyecto entregado para este evento.");
-
-            foreach (var proyecto in proyectosEvento)
-            {
-                await _proyectoRepo.DeleteAsync(proyecto);
-            }*/
-
-            //LO NUEVO CORREGIDO (CREO):
             var participante = await ObtenerRegistroParticipante(correo, idEvento, grupoIdActivo);
 
             var proyecto = (await _proyectoRepo
