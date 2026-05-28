@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Votify.Controladores;
 using Votify.LógicaNegocio.DTOs;
@@ -8,7 +7,6 @@ using Votify.LógicaNegocio.Enums;
 using Votify.LógicaNegocio.Exceptions;
 using Votify.LógicaNegocio.Interfaces;
 using Votify.LógicaNegocio.Services;
-using Votify.Persistencia;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
