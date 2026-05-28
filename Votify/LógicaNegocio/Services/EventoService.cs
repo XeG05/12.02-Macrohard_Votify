@@ -367,14 +367,12 @@ namespace Votify.LógicaNegocio.Services
                 await _comentarioRepo.AddAsync(nuevo);
             }
 
-            // Invalida la síntesis del criterio correspondiente al actualizarse un comentario
             var sintesisCriterio = (await _sintesisCriterioRepo.FindAsync(s => s.IdProyecto == idProyecto && s.IdCriterio == idCriterio)).FirstOrDefault();
             if (sintesisCriterio != null)
             {
                 await _sintesisCriterioRepo.DeleteAsync(sintesisCriterio);
             }
 
-            // También podemos invalidar la general
             if (!string.IsNullOrEmpty(pr.SintesisVotantes))
             {
                 pr.SintesisVotantes = null;
@@ -389,7 +387,6 @@ namespace Votify.LógicaNegocio.Services
             var comentarios = await _comentarioRepo.FindAsync(
                 c => c.IdProyectoGru == idProyecto && c.CorreoRol == correo);
 
-            // Buscamos el comentario basándonos en el Id del proyecto y el correo del usuario (el IdProyectoGru en la BD significa Id del Proyecto)
             return comentarios.Select(c => new ComentarioDto
             {
                 IdCriterio = c.IdCriterio,
@@ -485,7 +482,6 @@ namespace Votify.LógicaNegocio.Services
 
         public async Task<ResultadoProyectoDto> ObtenerResultadoProyecto(long idProyecto)
         {
-            // 1. Obtener el contexto del proyecto y su categoría con sus criterios
             var proyectoApp = await _proyectoRepo.AsQueryable()
                 .Include(p => p.IdGrupoNavigation)
                     .ThenInclude(g => g.IdCategoriaNavigation)
@@ -500,18 +496,14 @@ namespace Votify.LógicaNegocio.Services
             {
                 throw new ValidationException("Los resultados aún no están disponibles.");
             }
-            // 2. Obtener los proyectos de la categoría para el ranking
             var proyectosCategoria = await _proyectoRepo.AsQueryable()
                 .Where(p => p.IdGrupoNavigation.IdCategoria == categoria.Id)
                 .ToListAsync();
 
-            // 3. Obtener votos exclusivos de Votantes (No Jurados)
             var todosLosVotosVotantes = await _votoRepo.AsQueryable()
                 .Where(v => v.IdCriterioNavigation.IdCategoria == categoria.Id
                          && !(v.Rol is Jurado))
                 .ToListAsync();
-
-            // 4. Calcular ranking (Pasamos solo la lista de criterios, ya no hace falta la categoría)
             var listaCriterios = categoria.Criterios.ToList();
             var tablaPuntuaciones = proyectosCategoria.Select(p => new
             {
@@ -521,7 +513,6 @@ namespace Votify.LógicaNegocio.Services
             .OrderByDescending(x => x.Puntaje)
             .ToList();
 
-            // 5. Preparar desglose y resultado final
             var votosProyecto = todosLosVotosVotantes.Where(v => v.IdProyectoGru == idProyecto).ToList();
             var desgloseCriterios = new Dictionary<string, double>();
             double resultadoFinalGlobal = 0;
@@ -531,23 +522,10 @@ namespace Votify.LógicaNegocio.Services
                 var votosCriterio = votosProyecto.Where(v => v.IdCriterio == criterio.Id).ToList();
                 double valorCrudo = 0;
 
-                switch (evento.TipoVotacion)
-                {
-                    case TipoVotacion.Simple:
-                        valorCrudo = (double)votosCriterio.Count;
-                        break;
-                    case TipoVotacion.Nota:
-                        valorCrudo = votosCriterio.Any() ? votosCriterio.Average(v => (double)(v.Nota ?? 0)) : 0;
-                        break;
-                    case TipoVotacion.Puntos:
-                        valorCrudo = votosCriterio.Sum(v => (double)(v.Nota ?? 0));
-                        break;
-                }
-
-                // CÁLCULO: Solo Valor * Ponderación del Criterio
+                var strategy = _strategyFactory.Crear(evento.TipoVotacion);
+                valorCrudo = strategy.CalcularValorCrudo(votosCriterio);
                 double pesoCriterio = (double)criterio.Ponderacion / 100.0;
                 double valorPonderado = valorCrudo * pesoCriterio;
-
                 desgloseCriterios[criterio.Nombre] = valorPonderado;
                 resultadoFinalGlobal += valorPonderado;
             }
@@ -555,7 +533,7 @@ namespace Votify.LógicaNegocio.Services
             return new ResultadoProyectoDto
             {
                 TotalVotos = votosProyecto.Count,
-                ResultadoVotos = resultadoFinalGlobal, // Se mantiene en double para evitar el error de conversión
+                ResultadoVotos = resultadoFinalGlobal, 
                 VotosPorCriterio = desgloseCriterios,
                 PosicionRanking = tablaPuntuaciones.FindIndex(x => x.Id == idProyecto) + 1
             };
@@ -579,7 +557,7 @@ namespace Votify.LógicaNegocio.Services
                 throw new Exception("Evento no encontrado");
 
             if (!evento.EsPrivado)
-                return true; // si no es privado, pasa siempre
+                return true; 
 
             return evento.PasswordAcceso == password;
         }
@@ -593,7 +571,6 @@ namespace Votify.LógicaNegocio.Services
             if (hoy <= evento.FechaFinVotacionExperta)
                 throw new Exception("El evento aún no ha finalizado");
 
-            // 🔹 obtener categorías del evento
             var categorias = await _categoriumRepo.FindAsync(c => c.IdEvento == eventoId);
 
             var resultado = new List<RankingCategoriaDto>();
@@ -655,7 +632,6 @@ namespace Votify.LógicaNegocio.Services
                     double? mediaNota = null;
                     double? totalPuntos = null;
 
-                    //DIFERENCIAR ENTRE VOTANTE O JURADO
                     var votosVotantes = votosCriterio
                         .Where(v => setVotantes.Contains(v.CorreoRol))
                         .ToList();
@@ -667,59 +643,24 @@ namespace Votify.LógicaNegocio.Services
                     double pesoPopular = categoria.PonderacionPopular / 100.0;
                     double pesoExperto = categoria.PonderacionExperto / 100.0;
 
-                    switch (evento.TipoVotacion)
-                    {
-                        case TipoVotacion.Simple:
-
-                            puntuacion += ponderacion * (
-                                votosVotantes.Count * pesoPopular +
-                                votosJurados.Count * pesoExperto
-                            );
-
-                            break;
-
-                        case TipoVotacion.Nota:
-
-                            double mediaVotantes = votosVotantes.Any()
-                                ? votosVotantes.Average(v => (double)(v.Nota ?? 0))
-                                : 0;
-
-                            double mediaJurados = votosJurados.Any()
-                                ? votosJurados.Average(v => (double)(v.Nota ?? 0))
-                                : 0;
-
-                            puntuacion += ponderacion * (
-                                mediaVotantes * pesoPopular +
-                                mediaJurados * pesoExperto
-                            );
-
-                            mediaNota = (mediaVotantes + mediaJurados) / 2;
-
-                            break;
-
-                        case TipoVotacion.Puntos:
-
-                            double puntosVotantes = votosVotantes.Sum(v => (double)(v.Nota ?? 0));
-                            double puntosJurados = votosJurados.Sum(v => (double)(v.Nota ?? 0));
-
-                            puntuacion += ponderacion * (
-                                puntosVotantes * pesoPopular +
-                                puntosJurados * pesoExperto
-                            );
-
-                            totalPuntos = puntosVotantes + puntosJurados;
-
-                            break;
-                    }
-
+                    var strategy = _strategyFactory.Crear(evento.TipoVotacion);
+                    var resultadoCalculo = strategy.CalcularPuntuacionCriterio(
+                     votosVotantes,
+                     votosJurados,
+                     ponderacion,
+                     pesoPopular,
+                     pesoExperto
+                    );
+                    puntuacion += resultadoCalculo.Puntuacion;
                     resultadosCriterios.Add(new ResultadoCriterioDto
                     {
                         NombreCriterio = criterio.Nombre,
                         Ponderacion = criterio.Ponderacion,
                         CantidadVotos = votosCriterio.Count,
-                        MediaNota = mediaNota,
-                        TotalPuntos = totalPuntos
+                        MediaNota = resultadoCalculo.MediaNota,
+                        TotalPuntos = resultadoCalculo.TotalPuntos
                     });
+
                 }
 
                 resultado.Add(new ProyectoResultadosDto

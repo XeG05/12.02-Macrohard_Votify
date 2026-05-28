@@ -115,5 +115,32 @@ namespace Votify.LógicaNegocio.Strategy.Strategies
             }
             return total;
         }
+
+        public ResultadoCalculoDto CalcularPuntuacionCriterio(
+             List<Voto> votosVotantes,
+             List<Voto> votosJurados,
+             double ponderacion,
+             double pesoPopular,
+             double pesoExperto)
+        {
+            double mediaVotantes = votosVotantes.Any() ? votosVotantes.Average(v =>
+           (double)(v.Nota ?? 0)) : 0;
+            double mediaJurados = votosJurados.Any() ? votosJurados.Average(v => (double)
+           (v.Nota ?? 0)) : 0;
+            double puntuacion = ponderacion * (
+            mediaVotantes * pesoPopular +
+            mediaJurados * pesoExperto
+            );
+            return new ResultadoCalculoDto
+            {
+                Puntuacion = puntuacion,
+                MediaNota = (mediaVotantes + mediaJurados) / 2.0
+            };
+        }
+        public double CalcularValorCrudo(List<Voto> votosCriterio)
+        {
+            return votosCriterio.Any() ? votosCriterio.Average(v => (double)(v.Nota ??
+           0)) : 0;
+        }
     }
 }

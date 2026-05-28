@@ -130,5 +130,30 @@ namespace Votify.LógicaNegocio.Strategy.Interfaces
             }
             return total;
         }
+
+        public ResultadoCalculoDto CalcularPuntuacionCriterio(
+             List<Voto> votosVotantes,
+             List<Voto> votosJurados,
+             double ponderacion,
+             double pesoPopular,
+             double pesoExperto)
+        {
+            double puntosVotantes = votosVotantes.Sum(v => (double)(v.Nota ?? 0));
+            double puntosJurados = votosJurados.Sum(v => (double)(v.Nota ?? 0));
+            double puntuacion = ponderacion * (
+            puntosVotantes * pesoPopular +
+            puntosJurados * pesoExperto
+            );
+            return new ResultadoCalculoDto
+            {
+                Puntuacion = puntuacion,
+                TotalPuntos = puntosVotantes + puntosJurados
+            };
+        }
+        public double CalcularValorCrudo(List<Voto> votosCriterio)
+        {
+            return votosCriterio.Sum(v => (double)(v.Nota ?? 0));
+        }
+
     }
 }
