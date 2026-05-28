@@ -66,7 +66,23 @@ namespace Votify.LógicaNegocio.Templates.EmailTemplates
             string nombreCreador,
             string urlAceptacion
         );
-    }
 
+        //Metodos hecho para los tests:
+        public string GenerarAsunto(string nombreEvento)
+        {
+            return ObtenerAsunto(nombreEvento);
+        }
+
+        public string GenerarBody(
+            string nombreEvento,
+            string nombreCreador,
+            string urlAceptacion)
+        {
+            return ObtenerBody(
+                nombreEvento,
+                nombreCreador,
+                urlAceptacion);
+        }
+    }
 
 }
