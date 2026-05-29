@@ -12,7 +12,7 @@ using Votify.LógicaNegocio.Strategy.Strategies;
 using Votify.Persistencia.Entities;
 using Votify.Persistencia.Interfaces;
 
-namespace Votify.Tests.Strategies
+namespace Votify.Tests
 {
     [TestClass] // Obligatorio en MSTest para que detecte la clase
     public class VotacionStrategyTests
