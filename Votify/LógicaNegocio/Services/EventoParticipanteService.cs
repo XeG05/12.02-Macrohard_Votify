@@ -216,6 +216,8 @@ namespace Votify.LógicaNegocio.Services
             await _proyectoRepo.DeleteAsync(proyecto);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        private const long GRUPO_NO_ENCONTRADO = 0;
         public async Task<DashboardParticipanteDto> ObtenerDashboard(long idCategoria,string correo, long idEvento)
         {
             var evento = await _eventoRepo.GetByIdAsync(idEvento)
@@ -326,7 +328,7 @@ namespace Votify.LógicaNegocio.Services
             {
                 NombreProyecto = proyecto.Nombre,
                 NombreGrupo = grupo?.Nombre ?? "Sin grupo",
-                GrupoId = grupo?.Id ?? 0,
+                GrupoId = grupo?.Id ?? GRUPO_NO_ENCONTRADO,
                 TotalVotos = totalVotos,
                 Posicion = posicion,
 

@@ -443,7 +443,7 @@ namespace Votify.LógicaNegocio.Services
                 j.CorreoUsuario == correo)).Any();
 
             ValidarPermisoVotacion(evento, esJurado);
-            /*
+            
             if (esJurado)
             {
                 if (!evento.GetEstado().PuedeVotarExperto())
@@ -458,7 +458,7 @@ namespace Votify.LógicaNegocio.Services
                 {
                     throw new ValidationException("Solo se puede votar durante la fase de votaciones.");
                 }
-            }*/
+            }
 
             if (evento.TipoComentario == TipoComentario.Obligatorio)
             {
